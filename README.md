@@ -4,9 +4,11 @@
 
 **Coding is like writing poetry for computers – carefully crafting lines to bring functionality to life.**
 
+---
+
 I'm an full-stack developer who wants to build my own version of the digital world one step at a time. All coding projects are built from the ground up, from planning and designing all the way to solving real-life problems with code.
 
----
+#
 
 ### 🧰 Languages and Tools
 
