@@ -35,7 +35,7 @@ I'm an full-stack developer who wants to build my own version of the digital wor
 
 <details>
  <summary><h3>Welcome to My Tech Journey 🚀</h3></summary>
- **Hello and welcome!**
+**Hello and Welcome!**
  
 My journey into the world of technology began with my first Android device, sparking an innate curiosity about how things work beneath the surface. From an early age, I was fascinated by customization, experimenting with custom ROMs, and exploring new features. This passion soon led me to the world of programming, where I found myself captivated by the endless possibilities of software development.
  
@@ -44,3 +44,4 @@ I started as an enthusiastic IT student, eager to absorb as much knowledge as po
 My goal is to deepen my understanding of the ever-evolving tech landscape and contribute meaningfully to its growth. Through continuous learning and hands-on experience, I aspire to make a lasting impact.
 
 Thanks for stopping by, I look forward to collaborating and growing together in this exciting field!😊
+</details>
