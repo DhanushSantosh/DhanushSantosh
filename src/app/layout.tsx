@@ -1,8 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CursorFluid } from "@/components/CursorFluid";
-import { DevtoolsCleaner } from "@/components/DevtoolsCleaner";
 import { hero } from "@/data/content";
 
 const geistSans = Geist({
@@ -20,9 +19,19 @@ const profileTitle = `${hero.name} — ${hero.role}`;
 const profileDescription =
   `Portfolio for ${hero.name}, a creative developer crafting cinematic interfaces with Next.js, WebGL, and motion.`;
 
+export const viewport: Viewport = {
+  themeColor: "#050a12",
+};
+
 export const metadata: Metadata = {
   title: profileTitle,
   description: profileDescription,
+  applicationName: hero.name,
+  manifest: "/manifest.webmanifest",
+  category: "portfolio",
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: profileTitle,
     description:
@@ -38,6 +47,19 @@ export const metadata: Metadata = {
       },
     ],
   },
+  icons: {
+    icon: [
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: [{ url: "/icon-192.png" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: profileTitle,
+  },
   metadataBase: new URL("https://xerocore.dev"),
 };
 
@@ -47,12 +69,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-black text-white antialiased`}
       >
         <CursorFluid />
-        <DevtoolsCleaner />
         {children}
       </body>
     </html>

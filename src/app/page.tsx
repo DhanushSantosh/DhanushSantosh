@@ -6,6 +6,7 @@ import { Reveal } from "@/components/Reveal";
 import { ClientSculpture } from "@/components/DynamicSculpture";
 import { SiteHeader } from "@/components/SiteHeader";
 import BackToTopButton from "@/components/BackToTopButton";
+import HeroSentenceCycler from "@/components/HeroSentenceCycler";
 
 const navLinks = [
   { label: "Expertise", href: "#expertise" },
@@ -39,7 +40,7 @@ export default function Home() {
                   {hero.location}
                 </p>
                 <h1 className="text-4xl font-semibold leading-tight text-white md:text-5xl lg:text-6xl">
-                  {hero.name} builds rich product stories with code, light, and motion.
+                  <HeroSentenceCycler name={hero.name} />
                 </h1>
                 <p className="max-w-2xl text-lg text-white/70">{hero.summary}</p>
               </div>

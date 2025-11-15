@@ -6,7 +6,7 @@ export const hero = {
     "I blend engineering, motion, and brand storytelling to craft digital experiences that feel cinematic and alive.",
   summary:
     "Over the past 7+ years I have led front-of-site experiences for product launches, fintech platforms, and immersive marketing activations. I thrive where clean systems thinking meets bold art direction.",
-  email: "hello@xerocore.dev",
+  email: "contact@xerocore.in",
   resume: "https://vercel.com/templates/next.js",
 };
 
