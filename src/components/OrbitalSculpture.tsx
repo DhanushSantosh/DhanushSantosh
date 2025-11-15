@@ -40,12 +40,15 @@ const manualArcCoords: Array<[number, number, number, number]> = [
 
 const pairwiseArcCoords: Array<[number, number, number, number]> = markers.flatMap(
   (source, index) =>
-    markers.slice(index + 1).map((target) => [
-      source.lat,
-      source.lon,
-      target.lat,
-      target.lon,
-    ]),
+    markers.slice(index + 1).map(
+      (target) =>
+        [source.lat, source.lon, target.lat, target.lon] as [
+          number,
+          number,
+          number,
+          number,
+        ],
+    ),
 );
 
 const gridLatitudes = [-70, -40, -10, 20, 45];
