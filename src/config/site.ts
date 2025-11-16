@@ -1,6 +1,6 @@
+import { hero } from "@/data/content";
 import type { IconType } from "react-icons";
 import { FiGithub, FiLinkedin } from "react-icons/fi";
-import { hero } from "@/data/content";
 
 type NavLink = {
   label: string;
@@ -13,25 +13,23 @@ type SocialLink = {
   icon: IconType;
 };
 
-const contactHeadline = "Ready to launch something iconic?";
+const contactHeadline = "Ready to ship your AI-native product?";
 const contactDescription =
-  "I collaborate with founders, art directors, and forward teams to build immersive stories end-to-end—from creative direction through Vercel deployment.";
+  "I partner with founders, research leads, and ops teams to design copilots, automation workflows, and intelligent UX from discovery through launch.";
 
-const emailSubject = `Collaboration Opportunity · ${hero.name} x [Your Company]`;
+const emailSubject = `AI Collaboration · ${hero.name} x [Your Company]`;
 const emailBodyLines = [
   `Hi ${hero.name},`,
   "",
-  "I'm [Your Name], [Role] at [Company/Team]. We're planning a new launch and want to explore partnering with you for creative engineering support.",
+  "I'm [Your Name], [Role] at [Company/Team]. We're building [brief description] and would love to explore partnering on AI product engineering.",
   "",
-  "Key context:",
-  "• Company / Product: [Name + short descriptor]",
-  "• Engagement focus: [Marketing site, platform UI, interactive hero, etc.]",
-  "• Timeline: [e.g., Kickoff in March, beta in June]",
-  "• Success looks like: [Performance goals, brand moments, conversions, etc.]",
+  "Build context:",
+  "• Product vision: [Copilot, automation, insights, etc.]",
+  "• Users / workflows: [Ops, GTM, support, etc.]",
+  "• Tech stack + data sources: [Repos, APIs, warehouses]",
+  "• Desired outcomes: [Latency targets, guardrails, KPIs]",
   "",
-  "We admire your work blending cinematic storytelling with robust systems, and we'd love to understand availability, pricing, and any initial thoughts you have.",
-  "",
-  "If the fit feels right, I'm happy to send over a detailed brief and schedule a call with stakeholders.",
+  "If it sounds aligned, happy to send over a detailed brief and jump on a call to map next steps.",
   "",
   "Best,",
   "[Your Name]",

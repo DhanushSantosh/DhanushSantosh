@@ -54,11 +54,16 @@ export function EmailTemplateButton({
   }, [email, cc, bcc, subject, body]);
 
   const handleClick = () => {
-    const preferredUrl = isMobileDevice() ? mailtoHref : gmailUrl;
-    const opened = window.open(preferredUrl, "_blank", "noopener,noreferrer");
-    if (!opened) {
-      window.location.href = preferredUrl;
-    }
+    const isMobile = isMobileDevice();
+    const preferredUrl = isMobile ? mailtoHref : gmailUrl;
+    const tempLink = document.createElement("a");
+    tempLink.href = preferredUrl;
+    tempLink.target = isMobile ? "_self" : "_blank";
+    tempLink.rel = "noopener noreferrer";
+    tempLink.style.display = "none";
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    document.body.removeChild(tempLink);
   };
 
   return (

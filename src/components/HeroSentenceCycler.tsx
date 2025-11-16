@@ -3,13 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 
 const SENTENCES = [
-  "designs cinematic software.",
-  "crafts standout product flows.",
-  "codes expressive launch systems.",
-  "shapes bold digital moments.",
-  "turns ideas into living interfaces.",
-  "paints with light, motion, and code.",
-  "scores product stories with precision.",
+  "ships AI copilots end-to-end.",
+  "threads LLMs into workflows.",
+  "orchestrates edge inference.",
+  "designs automation that feels human.",
+  "turns data into reliable retrieval.",
+  "pairs design systems with agents.",
+  "teaches models to respect UX.",
+  "deploys evals before launch.",
+  "connects research to production.",
 ];
 
 const LONGEST_SENTENCE = SENTENCES.reduce(

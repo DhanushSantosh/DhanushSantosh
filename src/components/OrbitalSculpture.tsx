@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Line, OrbitControls, Sparkles } from "@react-three/drei";
+import { AdaptiveDpr, AdaptiveEvents, Line, OrbitControls, Preload, Sparkles } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { Line2, LineSegments2 } from "three-stdlib";
@@ -12,8 +12,8 @@ const markers = [
   { lat: 37.7749, lon: -122.4194, label: "SFO" },
   { lat: 19.4326, lon: -99.1332, label: "MEX" },
   { lat: 51.5072, lon: -0.1276, label: "LON" },
-  { lat: 48.8566, lon: 2.3522, label: "PAR" },
-  { lat: 52.52, lon: 13.405, label: "BER" },
+  { lat: 64.1466, lon: -21.9426, label: "REK" },
+  { lat: 21.3069, lon: -157.8583, label: "HNL" },
   { lat: 25.2048, lon: 55.2708, label: "DXB" },
   { lat: 28.6139, lon: 77.209, label: "DEL" },
   { lat: 1.3521, lon: 103.8198, label: "SGP" },
@@ -22,6 +22,7 @@ const markers = [
   { lat: -33.8688, lon: 151.2093, label: "SYD" },
   { lat: -23.5505, lon: -46.6333, label: "SAO" },
   { lat: -1.2921, lon: 36.8219, label: "NRB" },
+  { lat: 5.6037, lon: -0.187, label: "ACC" },
   { lat: -26.2041, lon: 28.0473, label: "JHB" },
   { lat: -75.0, lon: 15.0, label: "ANT" },
 ];
@@ -31,27 +32,39 @@ const markerLookup = Object.fromEntries(markers.map((marker) => [marker.label, m
 const arcRoutes: Array<[string, string]> = [
   ["NYC", "SFO"],
   ["NYC", "LON"],
+  ["NYC", "REK"],
   ["NYC", "DXB"],
   ["NYC", "DEL"],
+  ["REK", "LON"],
+  ["REK", "DXB"],
   ["SFO", "TOK"],
   ["SFO", "SYD"],
+  ["SFO", "HNL"],
   ["MEX", "SAO"],
   ["MEX", "NYC"],
+  ["MEX", "HNL"],
   ["SAO", "JHB"],
   ["JHB", "DXB"],
   ["JHB", "NRB"],
-  ["LON", "PAR"],
-  ["PAR", "BER"],
-  ["BER", "DXB"],
+  ["SAO", "SYD"],
   ["DXB", "SGP"],
   ["DXB", "NRB"],
   ["DXB", "DEL"],
+  ["DXB", "SYD"],
   ["DEL", "SGP"],
   ["SGP", "TOK"],
   ["TOK", "SEO"],
   ["SEO", "SYD"],
   ["SGP", "SYD"],
   ["NRB", "SGP"],
+  ["NYC", "HNL"],
+  ["HNL", "TOK"],
+  ["HNL", "SYD"],
+  ["ACC", "SYD"],
+  ["ACC", "LON"],
+  ["ACC", "DXB"],
+  ["ACC", "NRB"],
+  ["REK", "SYD"],
   ["SYD", "ANT"],
   ["JHB", "ANT"],
   ["DEL", "ANT"],
@@ -324,7 +337,8 @@ export function OrbitalSculpture() {
     <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[32px] bg-black shadow-[0_0_80px_rgba(0,0,0,0.9)]">
       <Canvas
         camera={{ position: [0, 0, 6], fov: 38 }}
-        dpr={[1, 2]}
+        dpr={[1, 1.6]}
+        gl={{ antialias: true, powerPreference: "high-performance" }}
         className="absolute inset-0"
       >
         <color attach="background" args={["#000000"]} />
@@ -333,12 +347,10 @@ export function OrbitalSculpture() {
         <pointLight position={[-4, -3, -2]} intensity={0.8} color="#5fe1ff" />
         <GlobeAssembly />
         <Sparkles count={40} size={1.5} scale={6} color="#5fe1ff" speed={0.2} opacity={0.25} />
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          autoRotate
-          autoRotateSpeed={0.35}
-        />
+        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.35} />
+        <AdaptiveDpr pixelated />
+        <AdaptiveEvents />
+        <Preload all />
       </Canvas>
     </div>
   );

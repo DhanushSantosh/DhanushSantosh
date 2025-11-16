@@ -1,101 +1,101 @@
 export const hero = {
-  name: "Dhanush",
-  role: "Creative Developer",
+  name: "Dhanush Santosh",
+  role: "Full-Stack AI Developer",
   location: "Remote • Worldwide",
   tagline:
-    "I blend engineering, motion, and brand storytelling to craft digital experiences that feel cinematic and alive.",
+    "I architect AI-native product systems where resilient infra, delightful UX, and reliable models operate as a single surface.",
   summary:
-    "Over the past 7+ years I have led front-of-site experiences for product launches, fintech platforms, and immersive marketing activations. I thrive where clean systems thinking meets bold art direction.",
+    "Across fintech, creative tooling, and B2B SaaS I lead squads shipping AI copilots, realtime dashboards, and automation platforms. I balance research velocity with production rigor—wrapping model orchestration, evals, and design systems into experiences that scale beyond demos.",
   email: "contact@xerocore.in",
-  resume: "https://vercel.com/templates/next.js",
+  resume: "https://resume.xerocore.dev",
 };
 
 export const stats = [
-  { label: "Years shipping polished interfaces", value: "7+" },
-  { label: "Products launched", value: "35" },
-  { label: "Avg. lighthouse performance", value: "96" },
+  { label: "AI-native launches shipped", value: "18" },
+  { label: "Automation hours saved yearly", value: "12K+" },
+  { label: "Avg. inference latency", value: "<450ms" },
 ];
 
 export const expertise = [
   {
-    title: "Creative Engineering",
+    title: "AI Product Engineering",
     description:
-      "Next.js-focused builds with performant rendering strategies, streaming, and design systems on autopilot.",
-    items: ["Next.js 14+", "Edge-ready APIs", "Design systems"],
+      "Ship LLM copilots, chat workflows, and multi-modal UX across Next.js, server actions, and typed design systems.",
+    items: ["Next.js 14+", "LangChain / custom routers", "Design systems"],
   },
   {
-    title: "Real-time 3D",
+    title: "Intelligent Automation",
     description:
-      "Interactive hero moments powered by Three.js, GLSL shaders, physics, and spatial UI explorations.",
-    items: ["three.js / R3F", "Custom shaders", "GPU particles"],
+      "Thread automations through CRMs, ops tooling, and data streams with workflow engines, queuing, and guardrails.",
+    items: ["Temporal / queues", "Edge APIs", "LLM eval harnesses"],
   },
   {
-    title: "Product Partnerships",
+    title: "Data & MLOps",
     description:
-      "Hands-on leadership with founders, brand teams, and marketing to deliver outcomes—not just code drops.",
-    items: ["Creative direction", "Workshops", "Product strategy"],
+      "Shape data contracts, retrieval pipelines, and evaluation dashboards so the models stay observable in prod.",
+    items: ["Postgres + pgvector", "Vector search", "Observability"],
   },
 ];
 
 export const experience = [
   {
-    role: "Lead Frontend Engineer",
+    role: "Lead AI Product Engineer",
     company: "Nebula Studio",
     period: "2022 — Present",
     summary:
-      "Architected the studio’s component library, introduced shared motion primitives, and grew a team of four creative engineers.",
+      "Leading full-stack squads delivering AI-first marketing platforms and internal copilots for global brand launches.",
     highlights: [
-      "Spearheaded a modular Next.js platform serving six premium marketing sites with shared theming.",
-      "Built 3D hero narratives that increased dwell time by 42% and generated $2.3M in pipeline.",
-      "Rolled out an observability stack that dropped regressions to near zero post-launch.",
+      "Architected Nebula OS, a multi-tenant Next.js + Edge runtime powering generative landing pages for six premium campaigns.",
+      "Built an inference orchestration layer with OpenAI + Anthropic failovers and pgvector retrieval, improving factual accuracy by 38%.",
+      "Established automated evals, tracing, and feature flags that cut regressions to near-zero post release.",
     ],
   },
   {
-    role: "Senior Frontend Engineer",
+    role: "Senior Full-Stack Engineer",
     company: "Volt Finance",
     period: "2019 — 2022",
     summary:
-      "Owned the dashboard experience for a high-frequency trading platform, translating complex data to elegant interactions.",
+      "Owned mission-critical trading surfaces and rolled out AI-driven risk analysis for quant teams.",
     highlights: [
-      "Led the migration from CRA to Next.js with server components adoption and improved load time by 63%.",
-      "Designed live risk visualizations streaming millions of datapoints with websockets and workers.",
-      "Partnered with design to build a cohesive component library used by four internal teams.",
+      "Migrated the dashboard from CRA to Next.js/Node microservices, slicing load time by 63% while introducing streaming data widgets.",
+      "Launched Volt Sense, an AI assistant watching risk policies and alerting PMs in Slack via retrieval + function calling.",
+      "Partnered with research to codify a shared component library and testing harness adopted by four teams.",
     ],
   },
   {
-    role: "Frontend Engineer",
-    company: "Independent",
+    role: "Product Engineer",
+    company: "Independent / Labs",
     period: "2016 — 2019",
     summary:
-      "Shipped immersive marketing sites, creative prototypes, and polished SaaS experiences for agencies and founders.",
+      "Shipped automation-heavy prototypes, data viz, and AI experiments for agencies, creators, and seed-stage founders.",
     highlights: [
-      "Delivered over 25 bespoke builds for fashion, music, and tech clients with repeat engagements.",
-      "Experimented with volumetric lighting, parallax narratives, and scroll-based storytelling.",
-      "Trusted as a technical partner from storyboarding through deployment and analytics.",
+      "Delivered 25+ bespoke builds spanning creative marketing sites, realtime dashboards, and voice interfaces.",
+      "Experimented with reinforcement-learning powered personalization, multi-agent storytelling, and WebGL interactions.",
+      "Served as embedded partner from research sprints through deployment, observability, and iteration.",
     ],
   },
 ];
 
 export const projects = [
   {
-    title: "Helios Launch System",
+    title: "Atlas Copilot",
     description:
-      "An interactive mission control for Helios Aerospace featuring volumetric starscapes, signal visualizers, and live telemetry overlays.",
-    stack: ["Next.js", "WebGL", "Edge Functions"],
-    url: "https://helios.xero.dev",
+      "AI partner for global operations teams with retrieval-augmented chat, workflow automation, and inline approvals.",
+    stack: ["Next.js", "Temporal", "OpenAI"],
+    url: "https://atlas.xero.dev",
   },
   {
-    title: "Volt Terminal",
+    title: "Volt Sense",
     description:
-      "High-frequency trading cockpit with custom chart primitives, streaming positions, and hotkey-optimized order management.",
-    stack: ["React Server Components", "Rust workers", "WebSockets"],
-    url: "https://terminal.xero.dev",
+      "Risk intelligence assistant layering LLM scoring atop millions of trade events, streaming insights to traders in under two seconds.",
+    stack: ["Node", "pgvector", "LangChain"],
+    url: "https://sense.xero.dev",
   },
   {
-    title: "Muse Collective",
+    title: "Muse Autopilot",
     description:
-      "A curated gallery for digital artists with cinematic transitions, curated layouts, and creator-owned storefront tooling.",
-    stack: ["Next.js", "Content Layer", "Stripe"],
+      "Creative studio autopilot that assembles custom storyboards, AI voiceovers, and WebGL hero scenes from a single brief.",
+    stack: ["Next.js", "R3F", "Stability SDK"],
     url: "https://muse.xero.dev",
   },
 ];

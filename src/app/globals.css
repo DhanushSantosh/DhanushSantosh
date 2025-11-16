@@ -58,9 +58,17 @@ html {
   scroll-behavior: smooth;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 ::selection {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: rgba(95, 225, 255, 0.35);
 }
 
 body::before {
