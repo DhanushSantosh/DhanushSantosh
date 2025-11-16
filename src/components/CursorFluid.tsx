@@ -21,12 +21,26 @@ export function CursorFluid() {
       root.style.setProperty("--cursor-glow-factor", "0");
     };
 
+    const handlePointerOut = (event: PointerEvent) => {
+      if (event.relatedTarget === null) {
+        handleLeave();
+      }
+    };
+
+    const handleWindowBlur = () => {
+      handleLeave();
+    };
+
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerleave", handleLeave);
+    window.addEventListener("pointerout", handlePointerOut);
+    window.addEventListener("blur", handleWindowBlur);
 
     return () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerleave", handleLeave);
+      window.removeEventListener("pointerout", handlePointerOut);
+      window.removeEventListener("blur", handleWindowBlur);
     };
   }, []);
 

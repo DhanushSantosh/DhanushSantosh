@@ -1,18 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const SENTENCES = [
   "designs cinematic software.",
   "crafts standout product flows.",
   "codes expressive launch systems.",
   "shapes bold digital moments.",
+  "turns ideas into living interfaces.",
+  "paints with light, motion, and code.",
+  "scores product stories with precision.",
 ];
 
 const LONGEST_SENTENCE = SENTENCES.reduce(
   (longest, sentence) => (sentence.length > longest.length ? sentence : longest),
   ""
 );
+
+const DEFAULT_SEQUENCE = SENTENCES.map((_, index) => index);
+const shuffleSequence = () =>
+  [...DEFAULT_SEQUENCE].sort(() => Math.random() - 0.5);
 
 type HeroSentenceCyclerProps = {
   name: string;
@@ -21,16 +28,30 @@ type HeroSentenceCyclerProps = {
 
 const FADE_DURATION_MS = 400;
 
-export function HeroSentenceCycler({ name, intervalMs = 6000 }: HeroSentenceCyclerProps) {
+export function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps) {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [sequence, setSequence] = useState<number[]>(() => [...DEFAULT_SEQUENCE]);
+
+  const currentSentence = useMemo(() => {
+    if (!sequence.length) return SENTENCES[index];
+    return SENTENCES[sequence[index]];
+  }, [index, sequence]);
 
   useEffect(() => {
+    if (!sequence.length) return;
+
     let fadeTimeout: number | null = null;
     const interval = window.setInterval(() => {
       setVisible(false);
       fadeTimeout = window.setTimeout(() => {
-        setIndex((prev) => (prev + 1) % SENTENCES.length);
+        setIndex((prev) => {
+          if (prev + 1 >= sequence.length) {
+            setSequence(shuffleSequence());
+            return 0;
+          }
+          return prev + 1;
+        });
         setVisible(true);
       }, FADE_DURATION_MS);
     }, intervalMs);
@@ -41,7 +62,7 @@ export function HeroSentenceCycler({ name, intervalMs = 6000 }: HeroSentenceCycl
         window.clearTimeout(fadeTimeout);
       }
     };
-  }, [intervalMs]);
+  }, [intervalMs, sequence]);
 
   return (
     <span className="inline-block">
@@ -55,7 +76,7 @@ export function HeroSentenceCycler({ name, intervalMs = 6000 }: HeroSentenceCycl
             visible ? "opacity-100" : "opacity-0"
           }`}
         >
-          {SENTENCES[index]}
+          {currentSentence}
         </span>
       </span>
     </span>

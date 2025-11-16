@@ -36,6 +36,24 @@ body {
   isolation: isolate;
 }
 
+@font-face {
+  font-family: "XerocoreRoyal";
+  src: url("/fonts/alex-brush.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-poetic {
+  font-family: "XerocoreRoyal", "Tangerine", "Great Vibes", "Brush Script MT", "Segoe Script",
+    "Snell Roundhand", cursive;
+  letter-spacing: 0.03em;
+  font-variant-ligatures: contextual;
+  font-feature-settings: "calt" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -48,13 +66,13 @@ html {
 body::before {
   content: "";
   position: fixed;
-  width: 210px;
-  height: 210px;
+  width: 160px;
+  height: 160px;
   top: 0;
   left: 0;
   transform: translate(
-      calc(var(--cursor-x) - 105px),
-      calc(var(--cursor-y) - 105px)
+      calc(var(--cursor-x) - 80px),
+      calc(var(--cursor-y) - 80px)
     );
   background: radial-gradient(circle, rgba(95, 225, 255, 0.18), rgba(95, 225, 255, 0.05) 55%, transparent);
   border-radius: 50%;

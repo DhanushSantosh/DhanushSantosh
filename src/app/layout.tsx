@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CursorFluid } from "@/components/CursorFluid";
+import ScrollReset from "@/components/ScrollReset";
 import { hero } from "@/data/content";
 
 const geistSans = Geist({
@@ -74,6 +75,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} bg-black text-white antialiased`}
       >
         <CursorFluid />
+        <ScrollReset />
         {children}
       </body>
     </html>
