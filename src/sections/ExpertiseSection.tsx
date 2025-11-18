@@ -1,34 +1,196 @@
-import { expertise, hero } from "@/data/content";
+"use client";
+
+import { techStack, hero } from "@/data/content";
 import { Reveal } from "@/components/Reveal";
+import Image from "next/image";
+import { useState } from "react";
+import {
+  SiNextdotjs,
+  SiReact,
+  SiTypescript,
+  SiTailwindcss,
+  SiNodedotjs,
+  SiDocker,
+  SiOpenai,
+  SiAnthropic,
+  SiMeta,
+  SiHuggingface,
+  SiGooglegemini,
+  SiSupabase,
+} from "react-icons/si";
+
+const iconMap: Record<string, React.ElementType | string> = {
+  "Next.js": SiNextdotjs,
+  React: SiReact,
+  TypeScript: SiTypescript,
+  TailwindCSS: SiTailwindcss,
+  "Node.js": SiNodedotjs,
+  Docker: SiDocker,
+  Supabase: SiSupabase,
+  "GPT-5": SiOpenai,
+  "Claude 3.5": SiAnthropic,
+  "Llama 3": SiMeta,
+  "Gemini Pro": "/icons/gemini.png", // User provided image
+  Cursor: "/icons/cursor.png", // User provided image
+  "Hugging Face": SiHuggingface,
+};
+
+const colorMap: Record<string, string> = {
+  "Next.js": "#ffffff", // White (Next.js brand)
+  React: "#61DAFB", // Cyan
+  TypeScript: "#3178C6", // Blue
+  TailwindCSS: "#06B6D4", // Cyan
+  "Node.js": "#339933", // Green
+  Docker: "#2496ED", // Blue
+  Supabase: "#3ECF8E", // Supabase Green
+  "GPT-5": "#ffffff", // White (User preference)
+  "Claude 3.5": "#D97757", // Anthropic Clay
+  "Llama 3": "#0490EA", // Meta Blue
+  "Gemini Pro": "", // Image handles color
+  Cursor: "", // Image handles color
+  "Hugging Face": "#FFD21E", // Hugging Face Yellow
+};
+
+const hoverColorMap: Record<string, string> = {
+  ...colorMap,
+  "Next.js": "#ffffff",
+};
 
 export function ExpertiseSection() {
+  const [activeTech, setActiveTech] = useState<string | null>(null);
+
   return (
-    <section id="expertise" className="space-y-10 pt-6 md:pt-8">
-      <Reveal as="section" className="space-y-4">
-        <p className="text-sm uppercase tracking-[0.4em] text-white/50">Expertise</p>
-        <h2 className="text-balance text-3xl font-semibold text-white md:text-4xl">
+    <section id="expertise" className="space-y-16 pt-12 md:pt-24">
+      {/* Hidden SVG for Gemini Gradient Definitions */}
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <linearGradient id="gemini-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#4E88D4" />
+            <stop offset="100%" stopColor="#8E75B2" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <Reveal as="section" className="space-y-6">
+        <p className="text-sm uppercase tracking-[0.4em] text-white/50">
+          Expertise
+        </p>
+        <h2 className="text-balance text-3xl font-semibold text-white md:text-4xl lg:text-5xl">
           AI-native systems with cinematic craft.
         </h2>
-        <p className="max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
+        <p className="max-w-3xl text-lg leading-relaxed text-white/70">
           {hero.tagline}
         </p>
       </Reveal>
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {expertise.map((item) => (
-          <Reveal key={item.title} className="h-full">
-            <div className="flex h-full flex-col rounded-3xl border border-white/10 bg-black p-6 shadow-[0_0_35px_rgba(0,0,0,0.85)] transition hover:border-white/40 sm:p-7">
-              <div className="text-sm uppercase tracking-[0.4em] text-white/50">{item.title}</div>
-              <p className="mt-4 flex-1 text-sm leading-relaxed text-white/70">{item.description}</p>
-              <div className="mt-6 flex flex-wrap gap-2 text-xs uppercase text-white/50">
-                {item.items.map((stackItem) => (
-                  <span key={stackItem} className="rounded-full border border-white/5 bg-white/5 px-3 py-1">
-                    {stackItem}
-                  </span>
-                ))}
-              </div>
+
+      <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+        {/* Full Stack Column */}
+        <Reveal className="h-full">
+          <div className="flex flex-col gap-8">
+            <div className="flex items-center gap-4">
+              <div className="h-px w-8 bg-blue-500/50" />
+              <h3 className="text-lg font-medium uppercase tracking-widest text-white/80">
+                Full Stack
+              </h3>
             </div>
-          </Reveal>
-        ))}
+
+            <div className="grid grid-cols-4 gap-x-8 gap-y-10 sm:gap-x-12">
+              {techStack.fullStack.map((tech) => {
+                const Icon = iconMap[tech];
+                const hoverColor = hoverColorMap[tech] || "#ffffff";
+                const isActive = activeTech === tech;
+
+                return (
+                  <div
+                    key={tech}
+                    className="group flex cursor-pointer flex-col items-center gap-3"
+                    style={{ "--hover-color": hoverColor } as React.CSSProperties}
+                    onClick={() => setActiveTech(isActive ? null : tech)}
+                  >
+                    <div className={`relative flex items-center justify-center transition-transform duration-300 ${isActive ? "-translate-y-1" : "hover-hover:group-hover:-translate-y-1"}`}>
+                      {typeof Icon === "string" ? (
+                        <div className="relative h-10 w-10">
+                          <Image
+                            src={Icon}
+                            alt={tech}
+                            fill
+                            className={`object-contain transition-all duration-300 ${isActive ? "opacity-100 grayscale-0 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" : "opacity-50 grayscale hover-hover:group-hover:opacity-100 hover-hover:group-hover:grayscale-0 hover-hover:group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"}`}
+                          />
+                        </div>
+                      ) : Icon ? (
+                        <Icon className={`text-4xl transition-all duration-300 ${isActive ? "text-[var(--hover-color)] drop-shadow-[0_0_10px_var(--hover-color)]" : "text-white/40 hover-hover:group-hover:text-[var(--hover-color)] hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]"}`} />
+                      ) : null}
+                    </div>
+                    <span className={`text-[10px] font-medium uppercase tracking-wider transition-colors duration-300 ${isActive ? "text-white/60" : "text-white/20 hover-hover:group-hover:text-white/60"}`}>
+                      {tech}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Reveal>
+
+        {/* AI Column */}
+        <Reveal className="h-full" transition={{ delay: 0.1 }}>
+          <div className="flex flex-col gap-8">
+            <div className="flex items-center gap-4">
+              <div className="h-px w-8 bg-blue-500/50" />
+              <h3 className="text-lg font-medium uppercase tracking-widest text-white/80">
+                AI Native
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-4 gap-x-8 gap-y-10 sm:gap-x-12">
+              {techStack.ai.map((tech) => {
+                const Icon = iconMap[tech];
+                const hoverColor = hoverColorMap[tech] || "#ffffff";
+                const isGemini = tech === "Gemini Pro";
+                const isActive = activeTech === tech;
+
+                return (
+                  <div
+                    key={tech}
+                    className="group flex cursor-pointer flex-col items-center gap-3"
+                    style={{ "--hover-color": hoverColor } as React.CSSProperties}
+                    onClick={() => setActiveTech(isActive ? null : tech)}
+                  >
+                    <div className={`relative flex items-center justify-center transition-transform duration-300 ${isActive ? "-translate-y-1" : "hover-hover:group-hover:-translate-y-1"}`}>
+                      {typeof Icon === "string" ? (
+                        <div className="relative h-10 w-10">
+                          <Image
+                            src={Icon}
+                            alt={tech}
+                            fill
+                            className={`object-contain transition-all duration-300 ${isActive ? "opacity-100 grayscale-0 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" : "opacity-50 grayscale hover-hover:group-hover:opacity-100 hover-hover:group-hover:grayscale-0 hover-hover:group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"}`}
+                          />
+                        </div>
+                      ) : Icon ? (
+                        isGemini ? (
+                          // Gemini Special Case: Use SiGooglegemini with Gradient Fill (Wait, we are using Image for Gemini now, so this branch might be unused if content.ts maps it to image path)
+                          // Checking content.ts... "Gemini Pro" is mapped to "/icons/gemini.png" in iconMap.
+                          // So this `isGemini` logic for the Icon component is actually fallback/dead code if iconMap has a string.
+                          // But let's keep it safe or clean it up. Since iconMap["Gemini Pro"] IS a string, the `typeof Icon === "string"` block above handles it.
+                          // The `else` block here handles the component case.
+                          // If we ever revert to component, we want this logic.
+                          <Icon
+                            className={`text-4xl transition-all duration-300 ${isActive ? "opacity-100 grayscale-0 drop-shadow-[0_0_15px_rgba(142,117,178,0.5)]" : "opacity-50 grayscale hover-hover:group-hover:opacity-100 hover-hover:group-hover:grayscale-0 hover-hover:group-hover:drop-shadow-[0_0_15px_rgba(142,117,178,0.5)]"}`}
+                            style={{ fill: "url(#gemini-gradient)" }}
+                          />
+                        ) : (
+                          <Icon className={`text-4xl transition-all duration-300 ${isActive ? "text-[var(--hover-color)] drop-shadow-[0_0_10px_var(--hover-color)]" : "text-white/40 hover-hover:group-hover:text-[var(--hover-color)] hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]"}`} />
+                        )
+                      ) : null}
+                    </div>
+                    <span className={`text-[10px] font-medium uppercase tracking-wider transition-colors duration-300 ${isActive ? "text-white/60" : "text-white/20 hover-hover:group-hover:text-white/60"}`}>
+                      {tech}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

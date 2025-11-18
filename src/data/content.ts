@@ -99,3 +99,23 @@ export const projects = [
     url: "https://muse.xero.dev",
   },
 ];
+
+export const techStack = {
+  fullStack: [
+    "Next.js",
+    "React",
+    "TypeScript",
+    "TailwindCSS",
+    "Node.js",
+    "Docker",
+    "Supabase",
+  ],
+  ai: [
+    "GPT-5",
+    "Claude 3.5",
+    "Llama 3",
+    "Gemini Pro",
+    "Cursor",
+    "Hugging Face",
+  ],
+};
