@@ -316,6 +316,13 @@ function ArcConnections() {
 function GlobeAssembly() {
   const assemblyRef = useRef<THREE.Group>(null);
 
+  useEffect(() => {
+    if (assemblyRef.current) {
+      // Set initial rotation to load from a different point (180 degrees)
+      assemblyRef.current.rotation.y = Math.PI;
+    }
+  }, []);
+
   useFrame((_, delta) => {
     if (assemblyRef.current) {
       assemblyRef.current.rotation.y += delta * 0.08;
