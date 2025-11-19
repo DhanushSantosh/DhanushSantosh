@@ -83,6 +83,7 @@ export const projects = [
       "AI partner for global operations teams with retrieval-augmented chat, workflow automation, and inline approvals.",
     stack: ["Next.js", "Temporal", "OpenAI"],
     url: "https://atlas.xero.dev",
+    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
   },
   {
     title: "Volt Sense",
@@ -90,6 +91,7 @@ export const projects = [
       "Risk intelligence assistant layering LLM scoring atop millions of trade events, streaming insights to traders in under two seconds.",
     stack: ["Node", "pgvector", "LangChain"],
     url: "https://sense.xero.dev",
+    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
   },
   {
     title: "Muse Autopilot",
@@ -97,6 +99,7 @@ export const projects = [
       "Creative studio autopilot that assembles custom storyboards, AI voiceovers, and WebGL hero scenes from a single brief.",
     stack: ["Next.js", "R3F", "Stability SDK"],
     url: "https://muse.xero.dev",
+    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
   },
 ];
 

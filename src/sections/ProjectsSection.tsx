@@ -1,8 +1,14 @@
-import { FiArrowUpRight } from "react-icons/fi";
+"use client";
+
+import { FiArrowUpRight, FiPlay } from "react-icons/fi";
 import { projects } from "@/data/content";
 import { Reveal } from "@/components/Reveal";
+import { useState } from "react";
+import { VideoModal } from "@/components/VideoModal";
 
 export function ProjectsSection() {
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+
   return (
     <section id="projects" className="space-y-10">
       <Reveal as="section" className="space-y-4">
@@ -32,20 +38,37 @@ export function ProjectsSection() {
                 </div>
               </header>
               <p className="mt-4 flex-1 text-sm leading-relaxed text-white/70 sm:text-base">{project.description}</p>
-              <a
-                href={project.url}
-                target="_blank"
-                rel="noreferrer"
-                data-cursor-block
-                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white transition hover:text-white/70"
-              >
-                Visit project
-                <FiArrowUpRight className="ml-2" />
-              </a>
+              <div className="mt-6 flex items-center gap-4">
+                <a
+                  href={project.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-cursor-block
+                  className="group inline-flex items-center justify-center rounded-full border border-white bg-white px-4 py-1.5 text-sm font-semibold text-black transition hover:bg-white hover:shadow-[0_0_35px_rgba(255,255,255,0.55)]"
+                >
+                  Visit project
+                  <FiArrowUpRight className="ml-2 text-black transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
+                {project.demo && (
+                  <button
+                    onClick={() => setSelectedVideo(project.demo!)}
+                    data-cursor-block
+                    className="inline-flex items-center justify-center rounded-full border border-white/10 px-4 py-1.5 text-sm font-semibold text-white transition hover:border-white/40 hover:shadow-[0_0_28px_rgba(95,225,255,0.45)]"
+                  >
+                    Demo
+                    <FiPlay className="ml-2" />
+                  </button>
+                )}
+              </div>
             </article>
           </Reveal>
         ))}
       </div>
+      <VideoModal
+        isOpen={!!selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+        videoUrl={selectedVideo || ""}
+      />
     </section>
   );
 }
