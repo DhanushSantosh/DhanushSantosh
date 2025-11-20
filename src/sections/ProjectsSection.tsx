@@ -26,7 +26,7 @@ export function ProjectsSection() {
             <article className="flex h-full flex-col rounded-3xl border border-white/10 bg-black p-5 shadow-[0_0_45px_rgba(0,0,0,0.85)] transition hover:border-white/40 sm:p-6">
               <header className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-balance">
-                  <p className="text-sm uppercase tracking-[0.4em] text-white/50">Case Study</p>
+                  <p className="text-sm uppercase tracking-[0.4em] text-white/50">Open Source</p>
                   <h3 className="text-2xl font-semibold text-white">{project.title}</h3>
                 </div>
                 <div className="flex flex-wrap gap-2 text-[0.7rem] uppercase tracking-[0.25em] text-white/50 sm:justify-end">

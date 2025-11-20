@@ -78,28 +78,20 @@ export const experience = [
 
 export const projects = [
   {
-    title: "Atlas Copilot",
+    title: "DeskCrafter",
     description:
-      "AI partner for global operations teams with retrieval-augmented chat, workflow automation, and inline approvals.",
-    stack: ["Next.js", "Temporal", "OpenAI"],
-    url: "https://atlas.xero.dev",
-    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
+      "A beautiful, user-friendly Linux app for creating, managing, and launching custom desktop entries.",
+    stack: ["Python", "PyQt5", "Linux"],
+    url: "https://github.com/DhanushSantosh/DeskCrafter",
+    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ",
   },
   {
-    title: "Volt Sense",
+    title: "WinePrefix-Automation",
     description:
-      "Risk intelligence assistant layering LLM scoring atop millions of trade events, streaming insights to traders in under two seconds.",
-    stack: ["Node", "pgvector", "LangChain"],
-    url: "https://sense.xero.dev",
-    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
-  },
-  {
-    title: "Muse Autopilot",
-    description:
-      "Creative studio autopilot that assembles custom storyboards, AI voiceovers, and WebGL hero scenes from a single brief.",
-    stack: ["Next.js", "R3F", "Stability SDK"],
-    url: "https://muse.xero.dev",
-    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
+      "Wine Prefix Automation simplifies the process of creating and managing Wine prefixes through an intuitive graphical interface.",
+    stack: ["Shell", "Bash", "Wine", "Lutris"],
+    url: "https://github.com/DhanushSantosh/WinePrefix-Automation",
+    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ",
   },
 ];
 
