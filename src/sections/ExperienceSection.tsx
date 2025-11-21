@@ -21,7 +21,7 @@ export function ExperienceSection() {
                     {item.role} · {item.company}
                   </h3>
                 </div>
-                <p className="text-sm leading-relaxed text-white/65 md:text-base">{item.summary}</p>
+                <p className="text-sm leading-relaxed text-white/65 sm:text-base">{item.summary}</p>
               </div>
               <ul className="mt-5 space-y-3 text-sm text-white/75">
                 {item.highlights.map((highlight) => (

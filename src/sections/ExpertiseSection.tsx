@@ -78,7 +78,7 @@ export function ExpertiseSection() {
         <h2 className="text-balance text-3xl font-semibold text-white md:text-4xl lg:text-5xl">
           AI-native systems with cinematic craft.
         </h2>
-        <p className="max-w-3xl text-lg leading-relaxed text-white/70">
+        <p className="max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">
           {hero.tagline}
         </p>
       </Reveal>
@@ -94,7 +94,7 @@ export function ExpertiseSection() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-4 gap-x-8 gap-y-10 sm:gap-x-12">
+            <div className="grid grid-cols-4 gap-x-6 gap-y-10 sm:gap-x-12">
               {techStack.fullStack.map((tech) => {
                 const Icon = iconMap[tech];
                 const hoverColor = hoverColorMap[tech] || "#ffffff";

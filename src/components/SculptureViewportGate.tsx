@@ -41,7 +41,7 @@ export function SculptureViewportGate({
       {isVisible ? (
         children
       ) : (
-        <div className="mx-auto h-[420px] w-full max-w-[420px] animate-pulse rounded-[32px] border border-white/10 bg-black" />
+        <div className="mx-auto h-[300px] w-full max-w-[420px] animate-pulse rounded-[32px] border border-white/10 bg-black sm:h-[360px] lg:h-[420px]" />
       )}
     </div>
   );

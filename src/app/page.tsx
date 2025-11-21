@@ -13,7 +13,7 @@ import ContactSection from "@/sections/ContactSection";
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 pb-16 pt-10 sm:gap-16 sm:px-8 sm:pb-20 sm:pt-12 lg:px-12">
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 pb-16 pt-8 sm:gap-16 sm:px-8 sm:pb-20 sm:pt-12 lg:px-12">
         <SiteHeader navLinks={siteConfig.navLinks} name={hero.name} role={hero.role} />
 
         <main className="space-y-16 sm:space-y-20 lg:space-y-24">
