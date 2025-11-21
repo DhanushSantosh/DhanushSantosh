@@ -10,6 +10,9 @@ import ExperienceSection from "@/sections/ExperienceSection";
 import ProjectsSection from "@/sections/ProjectsSection";
 import ContactSection from "@/sections/ContactSection";
 
+// Static render with light revalidation to keep SSG fast while allowing updates.
+export const revalidate = 3600;
+
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">

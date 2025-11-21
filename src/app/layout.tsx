@@ -1,19 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { CursorFluid } from "@/components/CursorFluid";
 import ScrollReset from "@/components/ScrollReset";
 import { hero } from "@/data/content";
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: "../../public/fonts/geist/GeistSans-Variable.woff2",
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "../../public/fonts/geist/GeistMono-Variable.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
 });
 
 const profileTitle = `${hero.name} — ${hero.role}`;

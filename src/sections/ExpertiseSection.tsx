@@ -15,7 +15,6 @@ import {
   SiAnthropic,
   SiMeta,
   SiHuggingface,
-  SiGooglegemini,
   SiSupabase,
 } from "react-icons/si";
 

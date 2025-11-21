@@ -1,11 +1,15 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { AdaptiveDpr, AdaptiveEvents, Line, OrbitControls, Preload, Sparkles } from "@react-three/drei";
-import { useEffect, useMemo, useRef } from "react";
+import { AdaptiveEvents, Line, OrbitControls, Preload } from "@react-three/drei";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { Line2, LineSegments2 } from "three-stdlib";
 import { worldLinePaths } from "@/data/worldLines";
+
+type OrbitalSculptureProps = {
+  quality?: "full" | "lite";
+};
 
 const markers = [
   { lat: 40.7128, lon: -74, label: "NYC" },
@@ -82,6 +86,23 @@ const arcs: Array<[number, number, number, number]> = arcRoutes
 
 const globeRadius = 1.65;
 
+const qualityPresets = {
+  full: {
+    surfaceDetail: 150,
+    wireDetail: 96, // reduce wireframe rings/meridians for fewer globe lines
+    haloDetail: 96,
+    arcPoints: 96,
+    dprMax: 3,
+  },
+  lite: {
+    surfaceDetail: 120,
+    wireDetail: 72,
+    haloDetail: 84,
+    arcPoints: 80,
+    dprMax: 2.25,
+  },
+} as const;
+
 function latLonToVector(lat: number, lon: number, radius: number) {
   const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lon + 180) * (Math.PI / 180);
@@ -91,7 +112,15 @@ function latLonToVector(lat: number, lon: number, radius: number) {
   return new THREE.Vector3(x, y, z);
 }
 
-function MapOutlines() {
+function MapOutlines({
+  color,
+  lineWidth,
+  opacity,
+}: {
+  color: string;
+  lineWidth: number;
+  opacity: number;
+}) {
   const outlineLines = useMemo(() => {
     return worldLinePaths
       .map((path) =>
@@ -106,21 +135,30 @@ function MapOutlines() {
         <Line
           key={`outline-${index}`}
           points={points}
-          color="#5fe1ff"
-          lineWidth={0.6}
+          color={color}
+          lineWidth={lineWidth}
           transparent
-          opacity={0.3}
+          opacity={opacity}
+          toneMapped={false}
         />
       ))}
     </group>
   );
 }
 
-function GlobeSurface() {
+function GlobeSurface({
+  surfaceDetail,
+  wireDetail,
+  haloDetail,
+}: {
+  surfaceDetail: number;
+  wireDetail: number;
+  haloDetail: number;
+}) {
   return (
     <group>
       <mesh>
-        <sphereGeometry args={[globeRadius, 128, 128]} />
+        <sphereGeometry args={[globeRadius, surfaceDetail, surfaceDetail]} />
         <meshStandardMaterial
           color="#04050c"
           metalness={0.25}
@@ -130,11 +168,11 @@ function GlobeSurface() {
         />
       </mesh>
       <mesh>
-        <sphereGeometry args={[globeRadius + 0.015, 128, 128]} />
+        <sphereGeometry args={[globeRadius + 0.015, wireDetail, wireDetail]} />
         <meshStandardMaterial color="#5fe1ff" wireframe transparent opacity={0.15} />
       </mesh>
       <mesh scale={1.07}>
-        <sphereGeometry args={[globeRadius * 1.08, 64, 64]} />
+        <sphereGeometry args={[globeRadius * 1.08, haloDetail, haloDetail]} />
         <meshBasicMaterial color="#5fe1ff" transparent opacity={0.08} side={THREE.BackSide} />
       </mesh>
     </group>
@@ -224,9 +262,11 @@ function MarkerNetwork() {
 function FlowingArc({
   coords,
   speed = 0.6,
+  samples = 72,
 }: {
   coords: [number, number, number, number];
   speed?: number;
+  samples?: number;
 }) {
   const { points, curve } = useMemo(() => {
     const [lat1, lon1, lat2, lon2] = coords;
@@ -240,9 +280,9 @@ function FlowingArc({
     const curve = new THREE.QuadraticBezierCurve3(start, control, end);
     return {
       curve,
-      points: curve.getPoints(72),
+      points: curve.getPoints(samples),
     };
-  }, [coords]);
+  }, [coords, samples]);
 
   const lineRef = useRef<Line2 | LineSegments2 | null>(null);
   const travelerRef = useRef<THREE.Mesh>(null);
@@ -303,17 +343,43 @@ function FlowingArc({
   );
 }
 
-function ArcConnections() {
+function ArcConnections({ samples, density }: { samples: number; density: number }) {
+  const limit = Math.max(6, Math.round(arcs.length * density));
+  const activeArcs = arcs.slice(0, limit);
+
   return (
     <group>
-      {arcs.map((coords, index) => (
-        <FlowingArc key={coords.join("-")} coords={coords} speed={0.6 + (index % 4) * 0.1} />
+      {activeArcs.map((coords, index) => (
+        <FlowingArc
+          key={coords.join("-")}
+          coords={coords}
+          speed={0.6 + (index % 4) * 0.1}
+          samples={samples}
+        />
       ))}
     </group>
   );
 }
 
-function GlobeAssembly() {
+function GlobeAssembly({
+  surfaceDetail,
+  wireDetail,
+  haloDetail,
+  arcSamples,
+  outlineColor,
+  outlineOpacity,
+  outlineWidth,
+  arcDensity,
+}: {
+  surfaceDetail: number;
+  wireDetail: number;
+  haloDetail: number;
+  arcSamples: number;
+  outlineColor: string;
+  outlineOpacity: number;
+  outlineWidth: number;
+  arcDensity: number;
+}) {
   const assemblyRef = useRef<THREE.Group>(null);
 
   useEffect(() => {
@@ -331,31 +397,72 @@ function GlobeAssembly() {
 
   return (
     <group ref={assemblyRef}>
-      <GlobeSurface />
-      <MapOutlines />
+      <GlobeSurface surfaceDetail={surfaceDetail} wireDetail={wireDetail} haloDetail={haloDetail} />
+      <MapOutlines color={outlineColor} lineWidth={outlineWidth} opacity={outlineOpacity} />
       <MarkerNetwork />
-      <ArcConnections />
+      <ArcConnections samples={arcSamples} density={arcDensity} />
     </group>
   );
 }
 
-export function OrbitalSculpture() {
+export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
+  const preset = qualityPresets[quality] ?? qualityPresets.full;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 768px)");
+    const update = (event?: MediaQueryListEvent | MediaQueryList) => {
+      setIsMobile((event ?? mql).matches);
+    };
+    update(mql);
+
+    if (typeof mql.addEventListener === "function") {
+      const listener = (event: MediaQueryListEvent) => update(event);
+      mql.addEventListener("change", listener);
+      return () => mql.removeEventListener("change", listener);
+    }
+    // Safari fallback
+    const legacyListener = (event: MediaQueryListEvent) => update(event);
+    mql.addListener(legacyListener);
+    return () => mql.removeListener(legacyListener);
+  }, []);
+
+  const maxDeviceDpr =
+    typeof window !== "undefined"
+      ? Math.min(window.devicePixelRatio || 1, preset.dprMax)
+      : preset.dprMax;
+  const dprRange: [number, number] = [1, maxDeviceDpr];
+  const outlineColor = isMobile ? "#5ad8f0" : "#6fe6ff";
+  const outlineOpacity = isMobile ? 0.22 : 0.35;
+  const outlineWidth = isMobile ? 0.72 : 0.9;
+  const ambientIntensity = 0.5;
+  const directionalIntensity = 1.4;
+  const pointIntensity = 0.8;
+  const arcDensity = isMobile ? 0.85 : 1.0;
+
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[32px] bg-black shadow-[0_0_80px_rgba(0,0,0,0.9)]">
       <Canvas
         camera={{ position: [0, 0, 6], fov: 38 }}
-        dpr={[1, 1.6]}
+        dpr={dprRange}
         gl={{ antialias: true, powerPreference: "high-performance" }}
         className="absolute inset-0"
       >
         <color attach="background" args={["#000000"]} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[4, 4, 5]} intensity={1.4} color="#ffffff" />
-        <pointLight position={[-4, -3, -2]} intensity={0.8} color="#5fe1ff" />
-        <GlobeAssembly />
-        <Sparkles count={40} size={1.5} scale={6} color="#5fe1ff" speed={0.2} opacity={0.25} />
+        <ambientLight intensity={ambientIntensity} />
+        <directionalLight position={[4, 4, 5]} intensity={directionalIntensity} color="#ffffff" />
+        <pointLight position={[-4, -3, -2]} intensity={pointIntensity} color="#5fe1ff" />
+        <GlobeAssembly
+          surfaceDetail={preset.surfaceDetail}
+          wireDetail={preset.wireDetail}
+          haloDetail={preset.haloDetail}
+          arcSamples={preset.arcPoints}
+          outlineColor={outlineColor}
+          outlineOpacity={outlineOpacity}
+          outlineWidth={outlineWidth}
+          arcDensity={arcDensity}
+        />
         <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.35} />
-        <AdaptiveDpr pixelated />
         <AdaptiveEvents />
         <Preload all />
       </Canvas>
