@@ -60,7 +60,7 @@ export function ExpertiseSection() {
   const [activeTech, setActiveTech] = useState<string | null>(null);
 
   return (
-    <section id="expertise" className="space-y-16 pt-12 md:pt-24">
+    <section id="expertise" className="space-y-16 md:pt-24">
       {/* Hidden SVG for Gemini Gradient Definitions */}
       <svg width="0" height="0" className="absolute">
         <defs>
