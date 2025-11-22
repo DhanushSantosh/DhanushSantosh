@@ -80,10 +80,8 @@ body::before {
   height: 160px;
   top: 0;
   left: 0;
-  transform: translate(
-      calc(var(--cursor-x) - 80px),
-      calc(var(--cursor-y) - 80px)
-    );
+  transform: translate(calc(var(--cursor-x) - 80px),
+      calc(var(--cursor-y) - 80px));
   background: radial-gradient(circle, rgba(95, 225, 255, 0.18), rgba(95, 225, 255, 0.05) 55%, transparent);
   border-radius: 50%;
   opacity: calc(var(--cursor-visible) * var(--cursor-glow-factor));
@@ -103,4 +101,34 @@ body::before {
 #devtools-indicator,
 [data-nextjs-toast] {
   display: none !important;
+}
+
+@keyframes arc-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-arc-rotate {
+  animation: arc-rotate 8s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes arc-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-arc-reverse {
+  animation: arc-reverse 12s linear infinite;
+  transform-origin: center;
 }

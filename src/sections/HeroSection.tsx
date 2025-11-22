@@ -20,11 +20,11 @@ export function HeroSection() {
           </div>
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
-              href="#contact"
+              href="/about"
               data-cursor-block
               className="group inline-flex w-full items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white hover:shadow-[0_0_35px_rgba(255,255,255,0.55)] sm:w-auto"
             >
-              Ship an AI project
+              About Me
               <FiArrowUpRight className="ml-2 text-black transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
             <a

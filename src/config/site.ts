@@ -39,10 +39,10 @@ const emailBodyLines = [
 
 export const siteConfig = {
   navLinks: [
-    { label: "Expertise", href: "#expertise" },
-    { label: "Experience", href: "#experience" },
-    { label: "Projects", href: "#projects" },
-    { label: "Contact", href: "#contact" },
+    { label: "Expertise", href: "/#expertise" },
+    { label: "Experience", href: "/#experience" },
+    { label: "Projects", href: "/#projects" },
+    { label: "Contact", href: "/#contact" },
   ] as NavLink[],
   socialLinks: [
     { label: "GitHub", href: "https://github.com/DhanushSantosh", icon: FiGithub },

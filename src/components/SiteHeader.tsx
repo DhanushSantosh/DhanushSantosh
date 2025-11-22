@@ -11,7 +11,7 @@ type NavLink = {
 };
 
 type SiteHeaderProps = {
-  navLinks: NavLink[];
+  navLinks: ReadonlyArray<NavLink>;
   name: string;
   role: string;
 };
@@ -47,17 +47,26 @@ export function SiteHeader({ navLinks, name, role }: SiteHeaderProps) {
     event: MouseEvent<HTMLAnchorElement>,
     href: string,
   ) => {
-    event.preventDefault();
-    closeMenu();
-    const target = document.querySelector(href);
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (href.startsWith("/#")) {
+      event.preventDefault();
+      closeMenu();
+      const targetId = href.replace("/#", "#");
+      const target = document.querySelector(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        // If target not found (e.g. on another page), navigate to home with hash
+        window.location.assign(href);
+      }
+    } else {
+      closeMenu();
+    }
   };
 
   return (
     <header
-      className={`relative rounded-2xl border border-white/10 bg-black/85 p-5 shadow-[0_0_30px_rgba(0,0,0,0.6)] transition-all duration-300 ${
-        scrolled ? "backdrop-blur supports-[backdrop-filter]:bg-black/65 sticky top-4 z-30" : ""
-      }`}
+      className={`relative rounded-2xl border border-white/10 bg-black/85 p-5 shadow-[0_0_30px_rgba(0,0,0,0.6)] transition-all duration-300 ${scrolled ? "backdrop-blur supports-[backdrop-filter]:bg-black/65 sticky top-4 z-30" : ""
+        }`}
     >
       <div className="flex items-center justify-between gap-4">
         <div>
@@ -81,6 +90,7 @@ export function SiteHeader({ navLinks, name, role }: SiteHeaderProps) {
             </Link>
           ))}
         </nav>
+
         <button
           type="button"
           aria-label="Toggle navigation"
@@ -92,11 +102,10 @@ export function SiteHeader({ navLinks, name, role }: SiteHeaderProps) {
         </button>
       </div>
       <div
-        className={`absolute left-5 right-5 top-full z-30 rounded-3xl border border-white/15 bg-black/95 p-4 shadow-[0_20px_35px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 md:hidden ${
-          open
-            ? "pointer-events-auto opacity-100 translate-y-3"
-            : "pointer-events-none -translate-y-2 opacity-0"
-        }`}
+        className={`absolute left-5 right-5 top-full z-30 rounded-3xl border border-white/15 bg-black/95 p-4 shadow-[0_20px_35px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 md:hidden ${open
+          ? "pointer-events-auto opacity-100 translate-y-3"
+          : "pointer-events-none -translate-y-2 opacity-0"
+          }`}
       >
         <div className="flex flex-col gap-3 text-sm font-medium text-white/80">
           {navLinks.map((link) => (
