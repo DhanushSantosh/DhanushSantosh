@@ -117,7 +117,7 @@ export function ExpertiseSection() {
                           />
                         </div>
                       ) : Icon ? (
-                        <Icon className={`text-4xl transition-all duration-300 ${isActive ? "text-[var(--hover-color)] drop-shadow-[0_0_10px_var(--hover-color)]" : "text-white/40 hover-hover:group-hover:text-[var(--hover-color)] hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]"}`} />
+                        <Icon className={`text-4xl transition-all duration-300 ${isActive ? "text-(--hover-color) drop-shadow-[0_0_10px_var(--hover-color)]" : "text-white/40 hover-hover:group-hover:text-(--hover-color) hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]"}`} />
                       ) : null}
                     </div>
                     <span className={`text-[10px] font-medium uppercase tracking-wider transition-colors duration-300 ${isActive ? "text-white/60" : "text-white/20 hover-hover:group-hover:text-white/60"}`}>
@@ -177,7 +177,7 @@ export function ExpertiseSection() {
                             style={{ fill: "url(#gemini-gradient)" }}
                           />
                         ) : (
-                          <Icon className={`text-4xl transition-all duration-300 ${isActive ? "text-[var(--hover-color)] drop-shadow-[0_0_10px_var(--hover-color)]" : "text-white/40 hover-hover:group-hover:text-[var(--hover-color)] hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]"}`} />
+                          <Icon className={`text-4xl transition-all duration-300 ${isActive ? "text-(--hover-color) drop-shadow-[0_0_10px_var(--hover-color)]" : "text-white/40 hover-hover:group-hover:text-(--hover-color) hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]"}`} />
                         )
                       ) : null}
                     </div>

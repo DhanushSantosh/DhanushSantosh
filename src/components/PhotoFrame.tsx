@@ -9,7 +9,7 @@ type PhotoFrameProps = {
 
 export function PhotoFrame({ imageUrl, alt = "Profile photo" }: PhotoFrameProps) {
   return (
-    <div className="relative aspect-square w-full max-w-sm lg:max-w-md">
+    <div className="relative aspect-square w-full max-w-sm select-none lg:max-w-md">
       {/* Animated arc segment 1 - travels around border */}
       <div className="absolute inset-0">
         <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
@@ -63,7 +63,7 @@ export function PhotoFrame({ imageUrl, alt = "Profile photo" }: PhotoFrameProps)
 
       {/* Profile image */}
       <div className="absolute inset-4 overflow-hidden rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/10">
-        <Image src={imageUrl} alt={alt} fill className="object-cover" priority />
+        <Image src={imageUrl} alt={alt} fill className="pointer-events-none object-cover" priority draggable={false} />
       </div>
 
       {/* Inner shadow for depth */}
