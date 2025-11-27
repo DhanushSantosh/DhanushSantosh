@@ -1,4 +1,4 @@
-# 🧠⚡️ Dhanush Santosh
+# Dhanush Santosh
 
 **`Digital Craftsman (Developer)`**
 
