@@ -78,6 +78,13 @@ export const experience = [
 
 export const projects = [
   {
+    title: "Intellex",
+    description:
+      "An AI-powered research assistant with multi-agent orchestration, structured planning, and workspace-based research management. Features guided research workflows, real-time chat interfaces, and provenance tracking.",
+    stack: ["Next.js", "TypeScript", "FastAPI", "Python", "Tailwind CSS", "Zustand"],
+    url: "https://intellex.xerocore.in",
+  },
+  {
     title: "DeskCrafter",
     description:
       "A beautiful, user-friendly Linux app for creating, managing, and launching custom desktop entries.",
