@@ -20,7 +20,7 @@ export default function Home() {
       <div className="relative mx-auto max-w-6xl px-4 pb-16 sm:px-8 sm:pb-20 lg:px-12">
         <div className="flex min-h-[100dvh] flex-col gap-1 sm:gap-2 lg:gap-3 pt-8 sm:pt-10 lg:pt-12">
           <SiteHeader navLinks={siteConfig.navLinks} name={hero.name} role={hero.role} />
-          <div className="flex flex-1 min-h-0 items-start justify-center py-6 sm:items-center sm:py-0">
+          <div className="flex flex-1 min-h-0 items-start justify-center py-6 sm:items-center sm:py-0 lg:-translate-y-9">
             <HeroSection />
           </div>
         </div>

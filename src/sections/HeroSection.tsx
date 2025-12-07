@@ -8,9 +8,9 @@ import SculptureViewportGate from "@/components/SculptureViewportGate";
 
 export function HeroSection() {
   return (
-    <section id="hero" className="flex h-full w-full flex-col justify-center gap-6 sm:gap-8">
-      <div className="flex flex-col gap-8 sm:gap-12 lg:flex-row lg:items-start lg:gap-16">
-        <Reveal className="w-full space-y-8 lg:flex-[0.65] lg:max-w-none">
+    <section id="hero" className="flex h-full w-full flex-col justify-center gap-5 sm:gap-7">
+      <div className="flex flex-col gap-8 sm:gap-12 lg:flex-row lg:items-start lg:gap-12">
+        <Reveal className="w-full space-y-6 lg:flex-[0.65] lg:max-w-none lg:space-y-7">
           <div className="space-y-4">
             <p className="text-xs uppercase tracking-[0.4em] text-white/50 sm:text-sm">{hero.location}</p>
             <h1 className="text-balance text-3xl font-semibold leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
@@ -39,7 +39,7 @@ export function HeroSection() {
           </div>
         </Reveal>
         <Reveal delay={0.2} className="flex w-full justify-center lg:flex-[0.35] lg:justify-end">
-          <SculptureViewportGate className="flex w-full max-w-[210px] justify-center sm:max-w-[280px] lg:max-w-[340px]">
+          <SculptureViewportGate className="flex w-full max-w-[240px] justify-center sm:max-w-[280px] lg:max-w-[340px]">
             <ClientSculpture />
           </SculptureViewportGate>
         </Reveal>
