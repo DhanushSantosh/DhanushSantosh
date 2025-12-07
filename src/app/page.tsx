@@ -18,14 +18,14 @@ export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <div className="relative mx-auto max-w-6xl px-4 pb-16 sm:px-8 sm:pb-20 lg:px-12">
-        <div className="flex h-[100dvh] flex-col gap-1 sm:gap-2 lg:gap-3 pt-8 sm:pt-10 lg:pt-12">
+        <div className="flex min-h-[100dvh] flex-col gap-1 sm:gap-2 lg:gap-3 pt-8 sm:pt-10 lg:pt-12">
           <SiteHeader navLinks={siteConfig.navLinks} name={hero.name} role={hero.role} />
-          <div className="flex flex-1 items-center justify-center -translate-y-3 sm:-translate-y-4 lg:-translate-y-5">
+          <div className="flex flex-1 min-h-0 items-start justify-center py-6 sm:items-center sm:py-0">
             <HeroSection />
           </div>
         </div>
 
-        <main className="mt-4 space-y-12 sm:mt-8 sm:space-y-14 lg:mt-10 lg:space-y-16">
+        <main className="mt-8 space-y-12 sm:mt-10 sm:space-y-14 lg:mt-12 lg:space-y-16">
           <ExpertiseSection />
           <StatsSection />
           <ExperienceSection />
