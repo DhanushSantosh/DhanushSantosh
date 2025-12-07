@@ -12,15 +12,20 @@ import ContactSection from "@/sections/ContactSection";
 
 // Static render with light revalidation to keep SSG fast while allowing updates.
 export const revalidate = 3600;
+const currentYear = new Date().getFullYear();
 
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 pb-16 pt-8 sm:gap-16 sm:px-8 sm:pb-20 sm:pt-12 lg:px-12">
-        <SiteHeader navLinks={siteConfig.navLinks} name={hero.name} role={hero.role} />
+      <div className="relative mx-auto max-w-6xl px-4 pb-16 sm:px-8 sm:pb-20 lg:px-12">
+        <div className="flex h-[100dvh] flex-col gap-1 sm:gap-2 lg:gap-3 pt-8 sm:pt-10 lg:pt-12">
+          <SiteHeader navLinks={siteConfig.navLinks} name={hero.name} role={hero.role} />
+          <div className="flex flex-1 items-center justify-center -translate-y-3 sm:-translate-y-4 lg:-translate-y-5">
+            <HeroSection />
+          </div>
+        </div>
 
-        <main className="space-y-16 sm:space-y-20 lg:space-y-24">
-          <HeroSection />
+        <main className="mt-4 space-y-12 sm:mt-8 sm:space-y-14 lg:mt-10 lg:space-y-16">
           <ExpertiseSection />
           <StatsSection />
           <ExperienceSection />
@@ -28,7 +33,7 @@ export default function Home() {
           <ContactSection />
         </main>
 
-        <Reveal>
+        <Reveal className="mt-12 sm:mt-16 lg:mt-20">
           <footer className="px-4 py-6 text-center text-sm text-white/80 sm:px-6">
             <p className="font-semibold tracking-[0.3em] text-white/60">Closure</p>
             <p
@@ -46,7 +51,7 @@ export default function Home() {
                 textShadow: "0 0 6px rgba(95,225,255,0.45), 0 0 14px rgba(95,225,255,0.15)",
               }}
             >
-              © {new Date().getFullYear()} {hero.name}
+              © {currentYear} {hero.name}
             </p>
           </footer>
         </Reveal>

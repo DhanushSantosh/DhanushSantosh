@@ -74,7 +74,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const bodyClassName = `${geistSans.variable} ${geistMono.variable} bg-black text-white antialiased`;
+  const bodyClassName = `${geistSans.className} ${geistSans.variable} ${geistMono.variable} bg-black text-white antialiased`;
 
   return (
     <html lang="en" suppressHydrationWarning>

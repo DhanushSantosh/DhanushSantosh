@@ -8,7 +8,7 @@ import SculptureViewportGate from "@/components/SculptureViewportGate";
 
 export function HeroSection() {
   return (
-    <section id="hero" className="flex flex-col gap-8 sm:gap-10">
+    <section id="hero" className="flex h-full w-full flex-col justify-center gap-8 sm:gap-10">
       <div className="flex flex-col gap-8 sm:gap-12 lg:flex-row lg:items-start lg:gap-16">
         <Reveal className="w-full space-y-8 lg:flex-[0.65] lg:max-w-none">
           <div className="space-y-4">

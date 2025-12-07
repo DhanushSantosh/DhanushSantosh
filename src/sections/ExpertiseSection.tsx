@@ -59,7 +59,7 @@ export function ExpertiseSection() {
   const [activeTech, setActiveTech] = useState<string | null>(null);
 
   return (
-    <section id="expertise" className="space-y-16 md:pt-24">
+    <section id="expertise" className="space-y-16">
       {/* Hidden SVG for Gemini Gradient Definitions */}
       <svg width="0" height="0" className="absolute">
         <defs>
@@ -113,6 +113,7 @@ export function ExpertiseSection() {
                             src={Icon}
                             alt={tech}
                             fill
+                            sizes="40px"
                             className={`object-contain transition-all duration-300 ${isActive ? "opacity-100 grayscale-0 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" : "opacity-50 grayscale hover-hover:group-hover:opacity-100 hover-hover:group-hover:grayscale-0 hover-hover:group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"}`}
                           />
                         </div>
@@ -161,6 +162,7 @@ export function ExpertiseSection() {
                             src={Icon}
                             alt={tech}
                             fill
+                            sizes="40px"
                             className={`object-contain transition-all duration-300 ${isActive ? "opacity-100 grayscale-0 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" : "opacity-50 grayscale hover-hover:group-hover:opacity-100 hover-hover:group-hover:grayscale-0 hover-hover:group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"}`}
                           />
                         </div>

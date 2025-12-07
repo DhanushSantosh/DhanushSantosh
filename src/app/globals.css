@@ -12,6 +12,9 @@
   --cursor-y: 50vh;
   --cursor-visible: 0;
   --cursor-glow-factor: 1;
+  --font-sans: var(--font-geist-sans), "Inter", "SF Pro Text", "Segoe UI", system-ui, -apple-system,
+    BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-mono: var(--font-geist-mono), "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono", monospace;
 }
 
 @theme inline {
@@ -19,9 +22,8 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
-  --font-sans: var(--font-geist-sans), "Inter", "SF Pro Text", "Segoe UI", system-ui, -apple-system,
-    BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-  --font-mono: var(--font-geist-mono), "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono", monospace;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 * {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FiMenu, FiX } from "react-icons/fi";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 
 type NavLink = {
@@ -41,27 +41,27 @@ export function SiteHeader({ navLinks, name, role }: SiteHeaderProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const toggleMenu = () => setOpen((prev) => !prev);
-  const closeMenu = () => setOpen(false);
-  const handleNavClick = (
-    event: MouseEvent<HTMLAnchorElement>,
-    href: string,
-  ) => {
-    if (href.startsWith("/#")) {
-      event.preventDefault();
-      closeMenu();
-      const targetId = href.replace("/#", "#");
-      const target = document.querySelector(targetId);
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+  const toggleMenu = useCallback(() => setOpen((prev) => !prev), []);
+  const closeMenu = useCallback(() => setOpen(false), []);
+  const handleNavClick = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+      if (href.startsWith("/#")) {
+        event.preventDefault();
+        closeMenu();
+        const targetId = href.replace("/#", "#");
+        const target = document.querySelector(targetId);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          // If target not found (e.g. on another page), navigate to home with hash
+          window.location.assign(href);
+        }
       } else {
-        // If target not found (e.g. on another page), navigate to home with hash
-        window.location.assign(href);
+        closeMenu();
       }
-    } else {
-      closeMenu();
-    }
-  };
+    },
+    [closeMenu],
+  );
 
   return (
     <header

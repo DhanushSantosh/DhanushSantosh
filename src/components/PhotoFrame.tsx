@@ -63,7 +63,15 @@ export function PhotoFrame({ imageUrl, alt = "Profile photo" }: PhotoFrameProps)
 
       {/* Profile image */}
       <div className="absolute inset-4 overflow-hidden rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/10">
-        <Image src={imageUrl} alt={alt} fill className="pointer-events-none object-cover" priority draggable={false} />
+        <Image
+          src={imageUrl}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 80vw, 448px"
+          className="pointer-events-none object-cover"
+          priority
+          draggable={false}
+        />
       </div>
 
       {/* Inner shadow for depth */}
