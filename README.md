@@ -19,7 +19,6 @@ I'm a product-minded engineer who ships AI products, automation workflows, and c
 
 ### 📊 Stats
 
-![](https://github-readme-stats.vercel.app/api?username=DhanushSantosh&theme=highcontrast&hide_border=false&include_all_commits=true&count_private=true)<br/>
 ![](https://nirzak-streak-stats.vercel.app/?user=DhanushSantosh&theme=highcontrast&hide_border=false)<br/>
 ![](https://github-readme-stats.vercel.app/api/top-langs/?username=DhanushSantosh&theme=highcontrast&hide_border=false&include_all_commits=true&count_private=true&layout=compact)
 
