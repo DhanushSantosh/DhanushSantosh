@@ -137,7 +137,7 @@ Used in `src/components/PhotoFrame.tsx`.
 While not a UI animation, the 3D hero is animated in `src/components/OrbitalSculpture.tsx`:
 - `react-three-fiber` + `useFrame` drive globe rotation, pulsing rings, and arc traversal.
 - `src/components/DynamicSculpture.tsx` chooses `full`, `lite`, or `static` mode based on device hints.
-- `src/components/SculptureViewportGate.tsx` defers mounting until the hero is near viewport.
+- `src/components/SculptureViewportGate.tsx` defers mounting until the hero is near viewport and prefetches the 3D bundle on idle when device hints allow it.
 - The full preset is the highest fidelity; adaptive DPR reduces load if needed.
 
 ## Client islands (SSR-first)

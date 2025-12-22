@@ -129,12 +129,17 @@ const ARC_TRAVELER_RADIUS = 0.035;
 const ARC_TRAVELER_SEGMENTS = 16;
 const ARC_PROGRESS_WRAP = 1;
 const ARC_PROGRESS_FALLBACK = 0;
+const ARC_PROGRESS_HASH_BASE = 31;
+const ARC_PROGRESS_HASH_MODULUS = 1_000_000;
+const ARC_PROGRESS_HASH_SCALE = 1_000_000;
 const ARC_OPACITY = 0.55;
 const ARC_EMISSIVE_INTENSITY = 0.9;
 const GLOBE_ROTATION_SPEED = 0.08;
 const ORBIT_AUTO_ROTATE_SPEED = 0.35;
 const PERFORMANCE_FACTOR_MIN = 0;
 const PERFORMANCE_FACTOR_MAX = 1;
+const PERFORMANCE_UPDATE_MIN_INTERVAL_MS = 600;
+const PERFORMANCE_UPDATE_THRESHOLD = 0.08;
 const DPR_MIN = 1;
 const DPR_MIN_MULTIPLIER = 0.7;
 const ARC_DENSITY_MIN_MULTIPLIER = 0.85;
@@ -202,6 +207,18 @@ function latLonToVector(lat: number, lon: number, radius: number) {
   const z = radius * Math.sin(phi) * Math.sin(theta);
   const y = radius * Math.cos(phi);
   return new THREE.Vector3(x, y, z);
+}
+
+function getArcKey(coords: [number, number, number, number]) {
+  return coords.join("-");
+}
+
+function seedArcProgress(key: string) {
+  let hash = 0;
+  for (let index = 0; index < key.length; index += 1) {
+    hash = (hash * ARC_PROGRESS_HASH_BASE + key.charCodeAt(index)) % ARC_PROGRESS_HASH_MODULUS;
+  }
+  return (hash % ARC_PROGRESS_HASH_SCALE) / ARC_PROGRESS_HASH_SCALE;
 }
 
 function MapOutlines({
@@ -405,6 +422,7 @@ function MarkerNetwork() {
 }
 
 type ArcData = {
+  key: string;
   coords: [number, number, number, number];
   points: THREE.Vector3[];
   curve: THREE.QuadraticBezierCurve3;
@@ -457,13 +475,11 @@ function updateDashOffset(
 
 function ArcConnections({ samples, density }: { samples: number; density: number }) {
   const arcData = useMemo<ArcData[]>(() => {
-    const clampedDensity = THREE.MathUtils.clamp(density, ARC_DENSITY_MIN, ARC_DENSITY_MAX);
-    const limit = Math.max(ARC_MIN_COUNT, Math.round(arcs.length * clampedDensity));
-
-    return arcs.slice(0, limit).map((coords, index) => {
+    return arcs.map((coords, index) => {
       const { points, curve } = buildArcCurve(coords, samples);
       const speed = ARC_SPEED_BASE + (index % ARC_SPEED_VARIANTS) * ARC_SPEED_STEP;
       return {
+        key: getArcKey(coords),
         coords,
         points,
         curve,
@@ -471,11 +487,21 @@ function ArcConnections({ samples, density }: { samples: number; density: number
         travelSpeed: speed * ARC_TRAVEL_SPEED,
       };
     });
-  }, [density, samples]);
+  }, [samples]);
+
+  const clampedDensity = useMemo(
+    () => THREE.MathUtils.clamp(density, ARC_DENSITY_MIN, ARC_DENSITY_MAX),
+    [density],
+  );
+  const activeCount = useMemo(() => {
+    const scaled = Math.max(ARC_MIN_COUNT, Math.round(arcData.length * clampedDensity));
+    return Math.min(arcData.length, scaled);
+  }, [arcData.length, clampedDensity]);
+  const visibleArcs = useMemo(() => arcData.slice(0, activeCount), [arcData, activeCount]);
 
   const lineRefs = useRef<Array<Line2 | LineSegments2 | null>>([]);
   const travelerRefs = useRef<Array<THREE.Mesh | null>>([]);
-  const progressRef = useRef<number[]>([]);
+  const progressRef = useRef<Record<string, number>>({});
 
   const setLineRef = useCallback(
     (index: number) => (node: Line2 | LineSegments2 | null) => {
@@ -491,18 +517,22 @@ function ArcConnections({ samples, density }: { samples: number; density: number
   );
 
   useEffect(() => {
-    progressRef.current = arcData.map(() => Math.random());
+    arcData.forEach((arc) => {
+      if (progressRef.current[arc.key] === undefined) {
+        progressRef.current[arc.key] = seedArcProgress(arc.key);
+      }
+    });
   }, [arcData]);
 
   useFrame((_, delta) => {
-    arcData.forEach((arc, index) => {
+    visibleArcs.forEach((arc, index) => {
       const line = lineRefs.current[index];
       if (line) {
         updateDashOffset(line.material, delta, arc.dashSpeed);
       }
-      const currentProgress = progressRef.current[index] ?? ARC_PROGRESS_FALLBACK;
+      const currentProgress = progressRef.current[arc.key] ?? ARC_PROGRESS_FALLBACK;
       const nextProgress = (currentProgress + delta * arc.travelSpeed) % ARC_PROGRESS_WRAP;
-      progressRef.current[index] = nextProgress;
+      progressRef.current[arc.key] = nextProgress;
       const traveler = travelerRefs.current[index];
       if (traveler) {
         traveler.position.copy(arc.curve.getPoint(nextProgress));
@@ -512,8 +542,8 @@ function ArcConnections({ samples, density }: { samples: number; density: number
 
   return (
     <group>
-      {arcData.map((arc, index) => (
-        <group key={arc.coords.join("-")}>
+      {visibleArcs.map((arc, index) => (
+        <group key={arc.key}>
           <Line
             ref={setLineRef(index)}
             points={arc.points}
@@ -599,10 +629,26 @@ type PerformanceTunerProps = {
 
 function PerformanceTuner({ minDpr, maxDpr, onQualityChange }: PerformanceTunerProps) {
   const setDpr = useThree((state) => state.setDpr);
+  const lastUpdateRef = useRef<{ time: number; factor: number } | null>(null);
 
   const applyPerformanceChange = useCallback(
     (api: PerformanceMonitorApi) => {
       const factor = THREE.MathUtils.clamp(api.factor, PERFORMANCE_FACTOR_MIN, PERFORMANCE_FACTOR_MAX);
+      const now =
+        typeof performance !== "undefined" && typeof performance.now === "function"
+          ? performance.now()
+          : Date.now();
+      const lastUpdate = lastUpdateRef.current;
+      if (lastUpdate) {
+        const delta = Math.abs(factor - lastUpdate.factor);
+        if (
+          delta < PERFORMANCE_UPDATE_THRESHOLD &&
+          now - lastUpdate.time < PERFORMANCE_UPDATE_MIN_INTERVAL_MS
+        ) {
+          return;
+        }
+      }
+      lastUpdateRef.current = { time: now, factor };
       const nextDpr = THREE.MathUtils.lerp(minDpr, maxDpr, factor);
       setDpr(nextDpr);
       onQualityChange(factor);

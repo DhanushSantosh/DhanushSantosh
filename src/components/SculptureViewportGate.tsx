@@ -1,12 +1,26 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { scheduleIdleTask } from "@/hooks/scheduleIdleTask";
 
 type SculptureViewportGateProps = {
   children: ReactNode;
   className?: string;
   rootMargin?: string;
 };
+
+type NavigatorWithHints = Navigator & {
+  connection?: {
+    saveData?: boolean;
+    effectiveType?: string;
+  };
+};
+
+const PREFETCH_IDLE_TIMEOUT_MS = 1200;
+const PREFETCH_FALLBACK_TIMEOUT_MS = 200;
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const SLOW_CONNECTION_TYPES = new Set(["slow-2g", "2g"]);
+let sculpturePrefetched = false;
 
 export function SculptureViewportGate({
   children,
@@ -15,6 +29,30 @@ export function SculptureViewportGate({
 }: SculptureViewportGateProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (sculpturePrefetched) return;
+
+    const nav = navigator as NavigatorWithHints;
+    const prefersReducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
+    const saveData = nav.connection?.saveData === true;
+    const slowNet = SLOW_CONNECTION_TYPES.has(nav.connection?.effectiveType ?? "");
+
+    if (prefersReducedMotion || saveData || slowNet) return;
+
+    const cancelIdle = scheduleIdleTask(
+      () => {
+        if (sculpturePrefetched) return;
+        sculpturePrefetched = true;
+        import("@/components/OrbitalSculpture").catch(() => {
+          // Prefetch is best-effort; ignore failures.
+        });
+      },
+      { timeoutMs: PREFETCH_IDLE_TIMEOUT_MS, fallbackMs: PREFETCH_FALLBACK_TIMEOUT_MS },
+    );
+
+    return () => cancelIdle();
+  }, []);
 
   useEffect(() => {
     const node = containerRef.current;
