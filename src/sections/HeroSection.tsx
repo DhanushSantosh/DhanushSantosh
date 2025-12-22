@@ -2,8 +2,8 @@ import Link from "next/link";
 import { FiArrowUpRight } from "react-icons/fi";
 import { hero } from "@/data/content";
 import { Reveal } from "@/components/Reveal";
-import { ClientSculpture } from "@/components/DynamicSculpture";
 import HeroSentenceCycler from "@/components/HeroSentenceCycler";
+import { ClientSculpture } from "@/components/DynamicSculpture";
 import SculptureViewportGate from "@/components/SculptureViewportGate";
 
 export function HeroSection() {

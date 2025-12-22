@@ -106,7 +106,6 @@ export function ClientSculpture() {
     };
   }, [applyMode]);
 
-
   if (mode === "idle") return <IdleSculptureFallback />;
   if (mode === "static") return <StaticSculptureFallback />;
 

@@ -128,9 +128,8 @@ Defined in `src/app/globals.css`:
 Used in `src/components/PhotoFrame.tsx`.
 
 ### Cursor glow (CSS + JS)
-- `body::before` renders a radial gradient that follows the pointer using CSS vars:
-  - `--cursor-x`, `--cursor-y`, `--cursor-visible`, `--cursor-glow-factor`
-- `src/components/CursorFluid.tsx` updates these vars on pointer move.
+- `#cursor-glow` in `src/app/layout.tsx` renders the radial gradient.
+- `src/components/CursorFluid.tsx` lerps the glow toward the pointer on `requestAnimationFrame` and toggles opacity based on `data-cursor-block`.
 - Automatically disabled for `prefers-reduced-motion`, no hover, or coarse pointers.
 
 ### 3D motion (Orbital sculpture)

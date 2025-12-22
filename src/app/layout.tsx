@@ -80,6 +80,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={bodyClassName}>
+        <div id="cursor-glow" aria-hidden="true" />
         <CursorFluid />
         <ScrollReset />
         <MotionProvider>{children}</MotionProvider>

@@ -142,8 +142,6 @@ const PERFORMANCE_UPDATE_MIN_INTERVAL_MS = 600;
 const PERFORMANCE_UPDATE_THRESHOLD = 0.08;
 const DPR_MIN = 1;
 const DPR_MIN_MULTIPLIER = 0.7;
-const ARC_DENSITY_MIN_MULTIPLIER = 0.85;
-const ARC_DENSITY_MAX_MULTIPLIER = 1;
 const ARC_DENSITY_MIN = 0;
 const ARC_DENSITY_MAX = 1;
 
@@ -624,10 +622,9 @@ function GlobeAssembly({
 type PerformanceTunerProps = {
   minDpr: number;
   maxDpr: number;
-  onQualityChange: (factor: number) => void;
 };
 
-function PerformanceTuner({ minDpr, maxDpr, onQualityChange }: PerformanceTunerProps) {
+function PerformanceTuner({ minDpr, maxDpr }: PerformanceTunerProps) {
   const setDpr = useThree((state) => state.setDpr);
   const lastUpdateRef = useRef<{ time: number; factor: number } | null>(null);
 
@@ -651,9 +648,8 @@ function PerformanceTuner({ minDpr, maxDpr, onQualityChange }: PerformanceTunerP
       lastUpdateRef.current = { time: now, factor };
       const nextDpr = THREE.MathUtils.lerp(minDpr, maxDpr, factor);
       setDpr(nextDpr);
-      onQualityChange(factor);
     },
-    [maxDpr, minDpr, onQualityChange, setDpr],
+    [maxDpr, minDpr, setDpr],
   );
 
   usePerformanceMonitor({
@@ -667,7 +663,6 @@ function PerformanceTuner({ minDpr, maxDpr, onQualityChange }: PerformanceTunerP
 export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
   const preset = qualityPresets[quality] ?? qualityPresets.full;
   const [isMobile, setIsMobile] = useState(false);
-  const [performanceFactor, setPerformanceFactor] = useState(PERFORMANCE_FACTOR_MAX);
   const [enhancedDetails, setEnhancedDetails] = useState(false);
   const worldLines = useWorldLines();
 
@@ -696,10 +691,6 @@ export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
     const legacyListener = (event: MediaQueryListEvent) => update(event);
     mql.addListener(legacyListener);
     return () => mql.removeListener(legacyListener);
-  }, []);
-
-  const handleQualityChange = useCallback((factor: number) => {
-    setPerformanceFactor(factor);
   }, []);
 
   const renderPreset = useMemo(() => {
@@ -731,18 +722,6 @@ export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
   const directionalIntensity = 1.4;
   const pointIntensity = 0.8;
   const arcDensity = isMobile ? 0.85 : 1.0;
-  const normalizedPerformance = useMemo(
-    () => THREE.MathUtils.clamp(performanceFactor, PERFORMANCE_FACTOR_MIN, PERFORMANCE_FACTOR_MAX),
-    [performanceFactor],
-  );
-  const tunedArcDensity = useMemo(() => {
-    const multiplier = THREE.MathUtils.lerp(
-      ARC_DENSITY_MIN_MULTIPLIER,
-      ARC_DENSITY_MAX_MULTIPLIER,
-      normalizedPerformance,
-    );
-    return arcDensity * multiplier;
-  }, [arcDensity, normalizedPerformance]);
 
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[32px] bg-black shadow-[0_0_80px_rgba(0,0,0,0.9)]">
@@ -756,7 +735,6 @@ export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
           <PerformanceTuner
             minDpr={minDeviceDpr}
             maxDpr={maxDeviceDpr}
-            onQualityChange={handleQualityChange}
           />
           <color attach="background" args={["#000000"]} />
           <ambientLight intensity={ambientIntensity} />
@@ -770,7 +748,7 @@ export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
             outlineColor={outlineColor}
             outlineOpacity={outlineOpacity}
             outlineWidth={outlineWidth}
-            arcDensity={tunedArcDensity}
+            arcDensity={arcDensity}
             outlinePaths={worldLines}
             showMarkers={enhancedDetails}
             showArcs={enhancedDetails}
