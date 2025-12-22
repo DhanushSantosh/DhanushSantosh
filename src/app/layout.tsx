@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { CursorFluid } from "@/components/CursorFluid";
+import MotionProvider from "@/components/MotionProvider";
 import ScrollReset from "@/components/ScrollReset";
 import { hero } from "@/data/content";
 
@@ -81,7 +82,7 @@ export default function RootLayout({
       <body suppressHydrationWarning className={bodyClassName}>
         <CursorFluid />
         <ScrollReset />
-        {children}
+        <MotionProvider>{children}</MotionProvider>
       </body>
     </html>
   );

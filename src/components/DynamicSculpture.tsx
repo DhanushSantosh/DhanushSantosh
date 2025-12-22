@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ComponentType } from "react";
+import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
+import usePerformanceAudit from "@/hooks/usePerformanceAudit";
+import { scheduleIdleTask } from "@/hooks/scheduleIdleTask";
 
 type RenderMode = "idle" | "static" | "lite" | "full";
 
@@ -14,6 +16,10 @@ type NavigatorWithHints = Navigator & {
 
 const fallbackStyles =
   "mx-auto flex h-[420px] w-full max-w-[420px] flex-col justify-between rounded-[32px] border border-white/10 bg-gradient-to-br from-white/5 via-white/[0.03] to-transparent p-6 text-left shadow-[0_0_45px_rgba(0,0,0,0.8)]";
+
+const MODE_IDLE_TIMEOUT_MS = 900;
+const MODE_FALLBACK_TIMEOUT_MS = 120;
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 function StaticSculptureFallback() {
   return (
@@ -40,7 +46,7 @@ function pickRenderMode(): RenderMode {
   if (typeof window === "undefined") return "idle";
 
   const nav = navigator as NavigatorWithHints;
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
   const saveData = nav.connection?.saveData === true;
   const slowNet = ["slow-2g", "2g"].includes(nav.connection?.effectiveType ?? "");
   const lowPower = prefersReducedMotion || saveData || slowNet;
@@ -58,10 +64,15 @@ function pickRenderMode(): RenderMode {
 export function ClientSculpture() {
   const [mode, setMode] = useState<RenderMode>("idle");
   const [Sculpture, setSculpture] = useState<ComponentType<{ quality?: "full" | "lite" }> | null>(null);
+  const isAudit = usePerformanceAudit();
+  const shouldLoadSculpture = useMemo(() => mode === "full" || mode === "lite", [mode]);
+  const applyMode = useCallback(() => setMode(isAudit ? "static" : pickRenderMode()), [isAudit]);
 
   // Lazy-load the heavy 3D component after we're on the client to avoid
   // triggering state updates during the render phase.
   useEffect(() => {
+    if (!shouldLoadSculpture || Sculpture) return;
+
     let cancelled = false;
 
     import("@/components/OrbitalSculpture")
@@ -72,46 +83,29 @@ export function ClientSculpture() {
       })
       .catch(() => {
         // If the import fails, stay on the lightweight placeholder.
-        cancelled = true;
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [Sculpture, shouldLoadSculpture]);
 
   useEffect(() => {
-    let idleId: number | undefined;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const cancelIdle = scheduleIdleTask(applyMode, {
+      timeoutMs: MODE_IDLE_TIMEOUT_MS,
+      fallbackMs: MODE_FALLBACK_TIMEOUT_MS,
+    });
 
-    const applyMode = () => setMode(pickRenderMode());
-    const scheduleApply = () => {
-      if ("requestIdleCallback" in window) {
-        idleId = (window as unknown as { requestIdleCallback: (cb: IdleRequestCallback, opts?: IdleRequestOptions) => number }).requestIdleCallback(
-          applyMode,
-          { timeout: 900 },
-        );
-        return;
-      }
-      timeoutId = globalThis.setTimeout(applyMode, 120);
-    };
-
-    scheduleApply();
-
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
     const onPreferenceChange = () => applyMode();
     mediaQuery.addEventListener("change", onPreferenceChange);
 
     return () => {
-      if (idleId !== undefined && "cancelIdleCallback" in window) {
-        (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
-      }
-      if (timeoutId !== undefined) {
-        globalThis.clearTimeout(timeoutId);
-      }
+      cancelIdle();
       mediaQuery.removeEventListener("change", onPreferenceChange);
     };
-  }, []);
+  }, [applyMode]);
+
 
   if (mode === "idle") return <IdleSculptureFallback />;
   if (mode === "static") return <StaticSculptureFallback />;

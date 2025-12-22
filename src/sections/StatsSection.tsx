@@ -3,7 +3,7 @@ import { Reveal } from "@/components/Reveal";
 
 export function StatsSection() {
   return (
-    <section id="stats">
+    <section id="stats" className="cv-auto">
       <Reveal>
         <div className="grid w-full grid-cols-1 gap-4 rounded-3xl border border-white/10 bg-black/80 p-5 shadow-[0_0_45px_rgba(0,0,0,0.8)] sm:grid-cols-3 sm:gap-6 sm:p-6">
           {stats.map((stat) => (

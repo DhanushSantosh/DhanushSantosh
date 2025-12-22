@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { FiArrowUp } from "react-icons/fi";
+import useRafScroll from "@/hooks/useRafScroll";
+
+const VISIBILITY_SCROLL_Y_THRESHOLD = 360;
 
 export function BackToTopButton() {
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setVisible(window.scrollY > 360);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+  const handleScroll = useCallback((scrollY: number) => {
+    const nextVisible = scrollY > VISIBILITY_SCROLL_Y_THRESHOLD;
+    setVisible((prev) => (prev === nextVisible ? prev : nextVisible));
   }, []);
+
+  useRafScroll(handleScroll);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });

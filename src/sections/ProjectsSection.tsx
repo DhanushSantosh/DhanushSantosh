@@ -1,16 +1,11 @@
-"use client";
-
 import { FiArrowUpRight, FiPlay } from "react-icons/fi";
 import { projects } from "@/data/content";
 import { Reveal } from "@/components/Reveal";
-import { useState } from "react";
-import { VideoModal } from "@/components/VideoModal";
+import { ProjectsDemoController } from "@/components/ProjectsDemoController";
 
 export function ProjectsSection() {
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-
   return (
-    <section id="projects" className="space-y-10">
+    <section id="projects" className="space-y-10 cv-auto">
       <Reveal as="section" className="space-y-4">
         <p className="text-sm uppercase tracking-[0.4em] text-white/50">Projects</p>
         <h2 className="text-balance text-3xl font-semibold text-white md:text-4xl">
@@ -51,7 +46,8 @@ export function ProjectsSection() {
                 </a>
                 {project.demo && (
                   <button
-                    onClick={() => setSelectedVideo(project.demo!)}
+                    type="button"
+                    data-project-demo={project.demo}
                     data-cursor-block
                     className="inline-flex items-center justify-center rounded-full border border-white/10 px-4 py-1.5 text-sm font-semibold text-white transition hover:border-white/40 hover:shadow-[0_0_28px_rgba(95,225,255,0.45)]"
                   >
@@ -64,11 +60,7 @@ export function ProjectsSection() {
           </Reveal>
         ))}
       </div>
-      <VideoModal
-        isOpen={!!selectedVideo}
-        onClose={() => setSelectedVideo(null)}
-        videoUrl={selectedVideo || ""}
-      />
+      <ProjectsDemoController />
     </section>
   );
 }

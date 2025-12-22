@@ -3,7 +3,7 @@ import { Reveal } from "@/components/Reveal";
 
 export function ExperienceSection() {
   return (
-    <section id="experience" className="space-y-10">
+    <section id="experience" className="space-y-10 cv-auto">
       <Reveal as="section">
         <p className="text-sm uppercase tracking-[0.4em] text-white/50">Experience</p>
         <h2 className="mt-4 text-balance text-3xl font-semibold text-white md:text-4xl">

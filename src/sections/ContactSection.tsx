@@ -6,7 +6,7 @@ export function ContactSection() {
   const { contact, socialLinks } = siteConfig;
 
   return (
-    <section id="contact">
+    <section id="contact" className="cv-auto">
       <Reveal className="rounded-[32px] border border-white/10 bg-black p-6 shadow-[0_0_60px_rgba(0,0,0,0.9)] sm:p-8 lg:p-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>

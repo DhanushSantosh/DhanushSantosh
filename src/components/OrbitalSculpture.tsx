@@ -1,15 +1,25 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
-import { AdaptiveEvents, Line, OrbitControls, Preload } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import {
+  AdaptiveEvents,
+  Line,
+  OrbitControls,
+  PerformanceMonitor,
+  Preload,
+  usePerformanceMonitor,
+  type PerformanceMonitorApi,
+} from "@react-three/drei";
+import { useCallback, useEffect, useMemo, useRef, useState, type Ref } from "react";
 import * as THREE from "three";
 import type { Line2, LineSegments2 } from "three-stdlib";
-import { worldLinePaths } from "@/data/worldLines";
+import { scheduleIdleTask } from "@/hooks/scheduleIdleTask";
 
 type OrbitalSculptureProps = {
   quality?: "full" | "lite";
 };
+
+type WorldLinePaths = Array<Array<[number, number]>>;
 
 const markers = [
   { lat: 40.7128, lon: -74, label: "NYC" },
@@ -85,13 +95,91 @@ const arcs: Array<[number, number, number, number]> = arcRoutes
   .filter(Boolean) as Array<[number, number, number, number]>;
 
 const globeRadius = 1.65;
+const OUTLINE_ELEVATION = 0.01;
+const OUTLINE_MIN_POINTS = 2;
+const MARKER_ELEVATION = 0.04;
+const ARC_ELEVATION = 0.04;
+const WORLD_LINES_IDLE_TIMEOUT_MS = 1200;
+const WORLD_LINES_FALLBACK_TIMEOUT_MS = 200;
+const DETAIL_ENHANCE_IDLE_TIMEOUT_MS = 1200;
+const DETAIL_ENHANCE_FALLBACK_TIMEOUT_MS = 200;
+const DETAIL_PREWARM_RATIO = 0.7;
+const MARKER_PULSE_SPEED = 2;
+const MARKER_PULSE_AMPLITUDE = 0.18;
+const MARKER_PULSE_PHASE_OFFSET = 0.7;
+const MARKER_PULSE_BASE = 1;
+const MARKER_ORBIT_ROTATION_SPEED = 1.5;
+const MARKER_GLOW_SPEED = 1.4;
+const MARKER_GLOW_BASE = 0.4;
+const MARKER_GLOW_VARIANCE = 0.15;
+const MARKER_GLOW_MIN = 0.2;
+const MARKER_GLOW_MAX = 0.6;
+const ARC_MIN_COUNT = 6;
+const ARC_SPEED_BASE = 0.6;
+const ARC_SPEED_STEP = 0.1;
+const ARC_SPEED_VARIANTS = 4;
+const ARC_DASH_SPEED = 0.3;
+const ARC_TRAVEL_SPEED = 0.04;
+const ARC_HEIGHT_FACTOR = 0.35;
+const ARC_MAX_HEIGHT = 1.35;
+const ARC_LINE_WIDTH = 1.2;
+const ARC_DASH_SIZE = 0.18;
+const ARC_GAP_SIZE = 0.32;
+const ARC_TRAVELER_RADIUS = 0.035;
+const ARC_TRAVELER_SEGMENTS = 16;
+const ARC_PROGRESS_WRAP = 1;
+const ARC_PROGRESS_FALLBACK = 0;
+const ARC_OPACITY = 0.55;
+const ARC_EMISSIVE_INTENSITY = 0.9;
+const GLOBE_ROTATION_SPEED = 0.08;
+const ORBIT_AUTO_ROTATE_SPEED = 0.35;
+const PERFORMANCE_FACTOR_MIN = 0;
+const PERFORMANCE_FACTOR_MAX = 1;
+const DPR_MIN = 1;
+const DPR_MIN_MULTIPLIER = 0.7;
+const ARC_DENSITY_MIN_MULTIPLIER = 0.85;
+const ARC_DENSITY_MAX_MULTIPLIER = 1;
+const ARC_DENSITY_MIN = 0;
+const ARC_DENSITY_MAX = 1;
+
+function useWorldLines() {
+  const [paths, setPaths] = useState<WorldLinePaths | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = () => {
+      import("@/data/worldLines")
+        .then((module) => {
+          if (!cancelled) {
+            setPaths(module.worldLinePaths);
+          }
+        })
+        .catch(() => {
+          // Keep map outlines disabled if the data chunk fails to load.
+        });
+    };
+
+    const cancelIdle = scheduleIdleTask(load, {
+      timeoutMs: WORLD_LINES_IDLE_TIMEOUT_MS,
+      fallbackMs: WORLD_LINES_FALLBACK_TIMEOUT_MS,
+    });
+
+    return () => {
+      cancelled = true;
+      cancelIdle();
+    };
+  }, []);
+
+  return paths;
+}
 
 const qualityPresets = {
   full: {
-    surfaceDetail: 150,
-    wireDetail: 96, // reduce wireframe rings/meridians for fewer globe lines
-    haloDetail: 96,
-    arcPoints: 96,
+    surfaceDetail: 200,
+    wireDetail: 140, // reduce wireframe rings/meridians for fewer globe lines
+    haloDetail: 140,
+    arcPoints: 140,
     dprMax: 3,
   },
   lite: {
@@ -103,6 +191,10 @@ const qualityPresets = {
   },
 } as const;
 
+function scaleDetail(value: number, minValue: number) {
+  return Math.max(minValue, Math.round(value * DETAIL_PREWARM_RATIO));
+}
+
 function latLonToVector(lat: number, lon: number, radius: number) {
   const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lon + 180) * (Math.PI / 180);
@@ -113,36 +205,46 @@ function latLonToVector(lat: number, lon: number, radius: number) {
 }
 
 function MapOutlines({
+  paths,
   color,
   lineWidth,
   opacity,
 }: {
+  paths: WorldLinePaths | null;
   color: string;
   lineWidth: number;
   opacity: number;
 }) {
-  const outlineLines = useMemo(() => {
-    return worldLinePaths
-      .map((path) =>
-        path.map(([lat, lon]) => latLonToVector(lat, lon, globeRadius + 0.01)),
-      )
-      .filter((points) => points.length >= 2);
-  }, []);
+  const outlineSegments = useMemo(() => {
+    if (!paths) return [];
+    const points: Array<[number, number, number]> = [];
+
+    paths.forEach((path) => {
+      if (path.length < OUTLINE_MIN_POINTS) return;
+      for (let index = 0; index < path.length - 1; index += 1) {
+        const [latA, lonA] = path[index];
+        const [latB, lonB] = path[index + 1];
+        const start = latLonToVector(latA, lonA, globeRadius + OUTLINE_ELEVATION);
+        const end = latLonToVector(latB, lonB, globeRadius + OUTLINE_ELEVATION);
+        points.push([start.x, start.y, start.z], [end.x, end.y, end.z]);
+      }
+    });
+
+    return points;
+  }, [paths]);
+
+  if (!outlineSegments.length) return null;
 
   return (
-    <group>
-      {outlineLines.map((points, index) => (
-        <Line
-          key={`outline-${index}`}
-          points={points}
-          color={color}
-          lineWidth={lineWidth}
-          transparent
-          opacity={opacity}
-          toneMapped={false}
-        />
-      ))}
-    </group>
+    <Line
+      points={outlineSegments}
+      segments
+      color={color}
+      lineWidth={lineWidth}
+      transparent
+      opacity={opacity}
+      toneMapped={false}
+    />
   );
 }
 
@@ -179,43 +281,27 @@ function GlobeSurface({
   );
 }
 
+type MeshRef = Ref<THREE.Mesh>;
+
 function CityNode({
   marker,
-  index,
+  ringRef,
+  orbitRef,
+  glowRef,
 }: {
   marker: (typeof markers)[number];
-  index: number;
+  ringRef: MeshRef;
+  orbitRef: MeshRef;
+  glowRef: MeshRef;
 }) {
   const position = useMemo(
-    () => latLonToVector(marker.lat, marker.lon, globeRadius + 0.04),
+    () => latLonToVector(marker.lat, marker.lon, globeRadius + MARKER_ELEVATION),
     [marker.lat, marker.lon],
   );
   const quaternion = useMemo(() => {
     const direction = position.clone().normalize();
     return new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
   }, [position]);
-
-  const ringRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
-  const orbitRef = useRef<THREE.Mesh>(null);
-
-  useFrame(({ clock }, delta) => {
-    if (ringRef.current) {
-      const pulse = 1 + Math.sin(clock.getElapsedTime() * 2 + index * 0.7) * 0.18;
-      ringRef.current.scale.setScalar(pulse);
-    }
-    if (orbitRef.current) {
-      orbitRef.current.rotation.y += delta * 1.5;
-    }
-    if (glowRef.current) {
-      const intensity = 0.4 + Math.sin(clock.getElapsedTime() * 1.4 + index) * 0.15;
-      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = THREE.MathUtils.clamp(
-        intensity,
-        0.2,
-        0.6,
-      );
-    }
-  });
 
   return (
     <group position={position} quaternion={quaternion}>
@@ -250,116 +336,205 @@ function CityNode({
 }
 
 function MarkerNetwork() {
-  return (
-    <group>
-      {markers.map((marker, index) => (
-        <CityNode key={marker.label} marker={marker} index={index} />
-      ))}
-    </group>
+  const ringRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const orbitRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const glowRefs = useRef<Array<THREE.Mesh | null>>([]);
+
+  const setRingRef = useCallback(
+    (index: number) => (node: THREE.Mesh | null) => {
+      ringRefs.current[index] = node;
+    },
+    [],
   );
-}
+  const setOrbitRef = useCallback(
+    (index: number) => (node: THREE.Mesh | null) => {
+      orbitRefs.current[index] = node;
+    },
+    [],
+  );
+  const setGlowRef = useCallback(
+    (index: number) => (node: THREE.Mesh | null) => {
+      glowRefs.current[index] = node;
+    },
+    [],
+  );
 
-function FlowingArc({
-  coords,
-  speed = 0.6,
-  samples = 72,
-}: {
-  coords: [number, number, number, number];
-  speed?: number;
-  samples?: number;
-}) {
-  const { points, curve } = useMemo(() => {
-    const [lat1, lon1, lat2, lon2] = coords;
-    const start = latLonToVector(lat1, lon1, globeRadius + 0.04);
-    const end = latLonToVector(lat2, lon2, globeRadius + 0.04);
-    const mid = start.clone().add(end).multiplyScalar(0.5);
-    const distance = start.distanceTo(end);
-    const height = Math.min(distance * 0.35, 1.35);
-    const control = mid.normalize().multiplyScalar(globeRadius + height);
+  useFrame(({ clock }, delta) => {
+    const time = clock.getElapsedTime();
 
-    const curve = new THREE.QuadraticBezierCurve3(start, control, end);
-    return {
-      curve,
-      points: curve.getPoints(samples),
-    };
-  }, [coords, samples]);
-
-  const lineRef = useRef<Line2 | LineSegments2 | null>(null);
-  const travelerRef = useRef<THREE.Mesh>(null);
-  const progressRef = useRef(0);
-
-  useEffect(() => {
-    progressRef.current = Math.random();
-  }, []);
-
-  useFrame((_, delta) => {
-    if (lineRef.current) {
-      const rawMaterial = lineRef.current.material;
-      const updateDash = (material: THREE.Material | undefined) => {
-        if (!material) return;
-        const maybeUniforms = material as THREE.ShaderMaterial & {
-          uniforms?: { dashOffset?: { value: number } };
-        };
-        if (maybeUniforms?.uniforms?.dashOffset) {
-          maybeUniforms.uniforms.dashOffset.value -= delta * speed * 0.3;
-        } else if ("dashOffset" in material) {
-          const dashyMaterial = material as THREE.Material & { dashOffset?: number };
-          if (typeof dashyMaterial.dashOffset === "number") {
-            dashyMaterial.dashOffset -= delta * speed * 0.3;
-          }
-        }
-      };
-
-      if (Array.isArray(rawMaterial)) {
-        rawMaterial.forEach(updateDash);
-      } else {
-        updateDash(rawMaterial);
+    markers.forEach((_, index) => {
+      const ring = ringRefs.current[index];
+      if (ring) {
+        const pulse =
+          MARKER_PULSE_BASE +
+          Math.sin(time * MARKER_PULSE_SPEED + index * MARKER_PULSE_PHASE_OFFSET) * MARKER_PULSE_AMPLITUDE;
+        ring.scale.setScalar(pulse);
       }
-    }
-    progressRef.current = (progressRef.current + delta * speed * 0.04) % 1;
-    if (travelerRef.current) {
-      travelerRef.current.position.copy(curve.getPoint(progressRef.current));
-    }
+
+      const orbit = orbitRefs.current[index];
+      if (orbit) {
+        orbit.rotation.y += delta * MARKER_ORBIT_ROTATION_SPEED;
+      }
+
+      const glow = glowRefs.current[index];
+      if (glow) {
+        const intensity =
+          MARKER_GLOW_BASE + Math.sin(time * MARKER_GLOW_SPEED + index) * MARKER_GLOW_VARIANCE;
+        (glow.material as THREE.MeshBasicMaterial).opacity = THREE.MathUtils.clamp(
+          intensity,
+          MARKER_GLOW_MIN,
+          MARKER_GLOW_MAX,
+        );
+      }
+    });
   });
 
   return (
-    <>
-      <Line
-        ref={lineRef}
-        points={points}
-        color="#5fe1ff"
-        lineWidth={1.2}
-        dashed
-        dashSize={0.18}
-        gapSize={0.32}
-        transparent
-        opacity={0.55}
-      />
-      <mesh ref={travelerRef}>
-        <sphereGeometry args={[0.035, 16, 16]} />
-        <meshStandardMaterial color="#ffffff" emissive="#5fe1ff" emissiveIntensity={0.9} />
-      </mesh>
-    </>
-  );
-}
-
-function ArcConnections({ samples, density }: { samples: number; density: number }) {
-  const limit = Math.max(6, Math.round(arcs.length * density));
-  const activeArcs = arcs.slice(0, limit);
-
-  return (
     <group>
-      {activeArcs.map((coords, index) => (
-        <FlowingArc
-          key={coords.join("-")}
-          coords={coords}
-          speed={0.6 + (index % 4) * 0.1}
-          samples={samples}
+      {markers.map((marker, index) => (
+        <CityNode
+          key={marker.label}
+          marker={marker}
+          ringRef={setRingRef(index)}
+          orbitRef={setOrbitRef(index)}
+          glowRef={setGlowRef(index)}
         />
       ))}
     </group>
   );
 }
+
+type ArcData = {
+  coords: [number, number, number, number];
+  points: THREE.Vector3[];
+  curve: THREE.QuadraticBezierCurve3;
+  dashSpeed: number;
+  travelSpeed: number;
+};
+
+function buildArcCurve(coords: [number, number, number, number], samples: number) {
+  const [lat1, lon1, lat2, lon2] = coords;
+  const start = latLonToVector(lat1, lon1, globeRadius + ARC_ELEVATION);
+  const end = latLonToVector(lat2, lon2, globeRadius + ARC_ELEVATION);
+  const mid = start.clone().add(end).multiplyScalar(0.5);
+  const distance = start.distanceTo(end);
+  const height = Math.min(distance * ARC_HEIGHT_FACTOR, ARC_MAX_HEIGHT);
+  const control = mid.normalize().multiplyScalar(globeRadius + height);
+
+  const curve = new THREE.QuadraticBezierCurve3(start, control, end);
+  return {
+    curve,
+    points: curve.getPoints(samples),
+  };
+}
+
+function updateDashOffset(
+  material: THREE.Material | THREE.Material[] | undefined,
+  delta: number,
+  dashSpeed: number,
+) {
+  const applyOffset = (target: THREE.Material | undefined) => {
+    if (!target) return;
+    const shaderMaterial = target as THREE.ShaderMaterial & {
+      uniforms?: { dashOffset?: { value: number } };
+    };
+    if (shaderMaterial.uniforms?.dashOffset) {
+      shaderMaterial.uniforms.dashOffset.value -= delta * dashSpeed;
+      return;
+    }
+    const dashMaterial = target as THREE.Material & { dashOffset?: number };
+    if (typeof dashMaterial.dashOffset === "number") {
+      dashMaterial.dashOffset -= delta * dashSpeed;
+    }
+  };
+
+  if (Array.isArray(material)) {
+    material.forEach(applyOffset);
+  } else {
+    applyOffset(material);
+  }
+}
+
+function ArcConnections({ samples, density }: { samples: number; density: number }) {
+  const arcData = useMemo<ArcData[]>(() => {
+    const clampedDensity = THREE.MathUtils.clamp(density, ARC_DENSITY_MIN, ARC_DENSITY_MAX);
+    const limit = Math.max(ARC_MIN_COUNT, Math.round(arcs.length * clampedDensity));
+
+    return arcs.slice(0, limit).map((coords, index) => {
+      const { points, curve } = buildArcCurve(coords, samples);
+      const speed = ARC_SPEED_BASE + (index % ARC_SPEED_VARIANTS) * ARC_SPEED_STEP;
+      return {
+        coords,
+        points,
+        curve,
+        dashSpeed: speed * ARC_DASH_SPEED,
+        travelSpeed: speed * ARC_TRAVEL_SPEED,
+      };
+    });
+  }, [density, samples]);
+
+  const lineRefs = useRef<Array<Line2 | LineSegments2 | null>>([]);
+  const travelerRefs = useRef<Array<THREE.Mesh | null>>([]);
+  const progressRef = useRef<number[]>([]);
+
+  const setLineRef = useCallback(
+    (index: number) => (node: Line2 | LineSegments2 | null) => {
+      lineRefs.current[index] = node;
+    },
+    [],
+  );
+  const setTravelerRef = useCallback(
+    (index: number) => (node: THREE.Mesh | null) => {
+      travelerRefs.current[index] = node;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    progressRef.current = arcData.map(() => Math.random());
+  }, [arcData]);
+
+  useFrame((_, delta) => {
+    arcData.forEach((arc, index) => {
+      const line = lineRefs.current[index];
+      if (line) {
+        updateDashOffset(line.material, delta, arc.dashSpeed);
+      }
+      const currentProgress = progressRef.current[index] ?? ARC_PROGRESS_FALLBACK;
+      const nextProgress = (currentProgress + delta * arc.travelSpeed) % ARC_PROGRESS_WRAP;
+      progressRef.current[index] = nextProgress;
+      const traveler = travelerRefs.current[index];
+      if (traveler) {
+        traveler.position.copy(arc.curve.getPoint(nextProgress));
+      }
+    });
+  });
+
+  return (
+    <group>
+      {arcData.map((arc, index) => (
+        <group key={arc.coords.join("-")}>
+          <Line
+            ref={setLineRef(index)}
+            points={arc.points}
+            color="#5fe1ff"
+            lineWidth={ARC_LINE_WIDTH}
+            dashed
+            dashSize={ARC_DASH_SIZE}
+            gapSize={ARC_GAP_SIZE}
+            transparent
+            opacity={ARC_OPACITY}
+          />
+          <mesh ref={setTravelerRef(index)}>
+            <sphereGeometry args={[ARC_TRAVELER_RADIUS, ARC_TRAVELER_SEGMENTS, ARC_TRAVELER_SEGMENTS]} />
+            <meshStandardMaterial color="#ffffff" emissive="#5fe1ff" emissiveIntensity={ARC_EMISSIVE_INTENSITY} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 
 function GlobeAssembly({
   surfaceDetail,
@@ -370,6 +545,9 @@ function GlobeAssembly({
   outlineOpacity,
   outlineWidth,
   arcDensity,
+  outlinePaths,
+  showMarkers,
+  showArcs,
 }: {
   surfaceDetail: number;
   wireDetail: number;
@@ -379,6 +557,9 @@ function GlobeAssembly({
   outlineOpacity: number;
   outlineWidth: number;
   arcDensity: number;
+  outlinePaths: WorldLinePaths | null;
+  showMarkers: boolean;
+  showArcs: boolean;
 }) {
   const assemblyRef = useRef<THREE.Group>(null);
 
@@ -391,23 +572,67 @@ function GlobeAssembly({
 
   useFrame((_, delta) => {
     if (assemblyRef.current) {
-      assemblyRef.current.rotation.y += delta * 0.08;
+      assemblyRef.current.rotation.y += delta * GLOBE_ROTATION_SPEED;
     }
   });
 
   return (
     <group ref={assemblyRef}>
       <GlobeSurface surfaceDetail={surfaceDetail} wireDetail={wireDetail} haloDetail={haloDetail} />
-      <MapOutlines color={outlineColor} lineWidth={outlineWidth} opacity={outlineOpacity} />
-      <MarkerNetwork />
-      <ArcConnections samples={arcSamples} density={arcDensity} />
+      <MapOutlines
+        paths={outlinePaths}
+        color={outlineColor}
+        lineWidth={outlineWidth}
+        opacity={outlineOpacity}
+      />
+      {showMarkers ? <MarkerNetwork /> : null}
+      {showArcs ? <ArcConnections samples={arcSamples} density={arcDensity} /> : null}
     </group>
   );
+}
+
+type PerformanceTunerProps = {
+  minDpr: number;
+  maxDpr: number;
+  onQualityChange: (factor: number) => void;
+};
+
+function PerformanceTuner({ minDpr, maxDpr, onQualityChange }: PerformanceTunerProps) {
+  const setDpr = useThree((state) => state.setDpr);
+
+  const applyPerformanceChange = useCallback(
+    (api: PerformanceMonitorApi) => {
+      const factor = THREE.MathUtils.clamp(api.factor, PERFORMANCE_FACTOR_MIN, PERFORMANCE_FACTOR_MAX);
+      const nextDpr = THREE.MathUtils.lerp(minDpr, maxDpr, factor);
+      setDpr(nextDpr);
+      onQualityChange(factor);
+    },
+    [maxDpr, minDpr, onQualityChange, setDpr],
+  );
+
+  usePerformanceMonitor({
+    onChange: applyPerformanceChange,
+    onFallback: applyPerformanceChange,
+  });
+
+  return null;
 }
 
 export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
   const preset = qualityPresets[quality] ?? qualityPresets.full;
   const [isMobile, setIsMobile] = useState(false);
+  const [performanceFactor, setPerformanceFactor] = useState(PERFORMANCE_FACTOR_MAX);
+  const [enhancedDetails, setEnhancedDetails] = useState(false);
+  const worldLines = useWorldLines();
+
+  useEffect(() => {
+    const cancelIdle = scheduleIdleTask(() => setEnhancedDetails(true), {
+      timeoutMs: DETAIL_ENHANCE_IDLE_TIMEOUT_MS,
+      fallbackMs: DETAIL_ENHANCE_FALLBACK_TIMEOUT_MS,
+    });
+
+    return () => cancelIdle();
+  }, []);
 
   useEffect(() => {
     const mql = window.matchMedia("(max-width: 768px)");
@@ -427,11 +652,32 @@ export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
     return () => mql.removeListener(legacyListener);
   }, []);
 
+  const handleQualityChange = useCallback((factor: number) => {
+    setPerformanceFactor(factor);
+  }, []);
+
+  const renderPreset = useMemo(() => {
+    if (enhancedDetails || quality !== "full") {
+      return preset;
+    }
+    const minPreset = qualityPresets.lite;
+    return {
+      ...preset,
+      surfaceDetail: scaleDetail(preset.surfaceDetail, minPreset.surfaceDetail),
+      wireDetail: scaleDetail(preset.wireDetail, minPreset.wireDetail),
+      haloDetail: scaleDetail(preset.haloDetail, minPreset.haloDetail),
+      arcPoints: scaleDetail(preset.arcPoints, minPreset.arcPoints),
+    };
+  }, [enhancedDetails, preset, quality]);
+
+  const dprCap = enhancedDetails
+    ? preset.dprMax
+    : Math.min(preset.dprMax, qualityPresets.lite.dprMax);
   const maxDeviceDpr =
     typeof window !== "undefined"
-      ? Math.min(window.devicePixelRatio || 1, preset.dprMax)
-      : preset.dprMax;
-  const dprRange: [number, number] = [1, maxDeviceDpr];
+      ? Math.min(window.devicePixelRatio || 1, dprCap)
+      : dprCap;
+  const minDeviceDpr = Math.max(DPR_MIN, maxDeviceDpr * DPR_MIN_MULTIPLIER);
   const outlineColor = isMobile ? "#5ad8f0" : "#6fe6ff";
   const outlineOpacity = isMobile ? 0.22 : 0.35;
   const outlineWidth = isMobile ? 0.72 : 0.9;
@@ -439,32 +685,59 @@ export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
   const directionalIntensity = 1.4;
   const pointIntensity = 0.8;
   const arcDensity = isMobile ? 0.85 : 1.0;
+  const normalizedPerformance = useMemo(
+    () => THREE.MathUtils.clamp(performanceFactor, PERFORMANCE_FACTOR_MIN, PERFORMANCE_FACTOR_MAX),
+    [performanceFactor],
+  );
+  const tunedArcDensity = useMemo(() => {
+    const multiplier = THREE.MathUtils.lerp(
+      ARC_DENSITY_MIN_MULTIPLIER,
+      ARC_DENSITY_MAX_MULTIPLIER,
+      normalizedPerformance,
+    );
+    return arcDensity * multiplier;
+  }, [arcDensity, normalizedPerformance]);
 
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[32px] bg-black shadow-[0_0_80px_rgba(0,0,0,0.9)]">
       <Canvas
         camera={{ position: [0, 0, 6], fov: 38 }}
-        dpr={dprRange}
+        dpr={maxDeviceDpr}
         gl={{ antialias: true, powerPreference: "high-performance" }}
         className="absolute inset-0"
       >
-        <color attach="background" args={["#000000"]} />
-        <ambientLight intensity={ambientIntensity} />
-        <directionalLight position={[4, 4, 5]} intensity={directionalIntensity} color="#ffffff" />
-        <pointLight position={[-4, -3, -2]} intensity={pointIntensity} color="#5fe1ff" />
-        <GlobeAssembly
-          surfaceDetail={preset.surfaceDetail}
-          wireDetail={preset.wireDetail}
-          haloDetail={preset.haloDetail}
-          arcSamples={preset.arcPoints}
-          outlineColor={outlineColor}
-          outlineOpacity={outlineOpacity}
-          outlineWidth={outlineWidth}
-          arcDensity={arcDensity}
-        />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.35} />
-        <AdaptiveEvents />
-        <Preload all />
+        <PerformanceMonitor>
+          <PerformanceTuner
+            minDpr={minDeviceDpr}
+            maxDpr={maxDeviceDpr}
+            onQualityChange={handleQualityChange}
+          />
+          <color attach="background" args={["#000000"]} />
+          <ambientLight intensity={ambientIntensity} />
+          <directionalLight position={[4, 4, 5]} intensity={directionalIntensity} color="#ffffff" />
+          <pointLight position={[-4, -3, -2]} intensity={pointIntensity} color="#5fe1ff" />
+          <GlobeAssembly
+            surfaceDetail={renderPreset.surfaceDetail}
+            wireDetail={renderPreset.wireDetail}
+            haloDetail={renderPreset.haloDetail}
+            arcSamples={renderPreset.arcPoints}
+            outlineColor={outlineColor}
+            outlineOpacity={outlineOpacity}
+            outlineWidth={outlineWidth}
+            arcDensity={tunedArcDensity}
+            outlinePaths={worldLines}
+            showMarkers={enhancedDetails}
+            showArcs={enhancedDetails}
+          />
+          <OrbitControls
+            enableZoom={false}
+            enablePan={false}
+            autoRotate
+            autoRotateSpeed={ORBIT_AUTO_ROTATE_SPEED}
+          />
+          <AdaptiveEvents />
+          <Preload all />
+        </PerformanceMonitor>
       </Canvas>
     </div>
   );

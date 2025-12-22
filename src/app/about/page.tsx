@@ -37,7 +37,7 @@ export default function AboutPage() {
 
         <main className="space-y-16 sm:space-y-20 lg:space-y-24">
           <Reveal>
-            <section id="bio" className="space-y-6">
+            <section id="bio" className="space-y-6 cv-auto">
               <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">
                 <div className="w-full max-w-xs shrink-0 lg:w-80 lg:max-w-sm">
                   <PhotoFrame imageUrl="/profile-photo.jpg" />
@@ -64,7 +64,7 @@ export default function AboutPage() {
           </Reveal>
 
           <Reveal>
-            <section id="skills" className="space-y-6">
+            <section id="skills" className="space-y-6 cv-auto">
               <h2 className="text-2xl font-semibold tracking-wide text-white sm:text-3xl">Technical Arsenal</h2>
               <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                 <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-white/20">
@@ -91,7 +91,7 @@ export default function AboutPage() {
           </Reveal>
 
           <Reveal>
-            <section id="journey" className="space-y-6">
+            <section id="journey" className="space-y-6 cv-auto">
               <h2 className="text-2xl font-semibold tracking-wide text-white sm:text-3xl">Journey</h2>
               <div className="space-y-8 border-l-2 border-white/10 pl-8">
                 <div className="relative">
@@ -115,7 +115,7 @@ export default function AboutPage() {
           </Reveal>
 
           <Reveal>
-            <section id="interests" className="space-y-6">
+            <section id="interests" className="space-y-6 cv-auto">
               <h2 className="text-2xl font-semibold tracking-wide text-white sm:text-3xl">Beyond Code</h2>
               <p className="text-lg text-white/80">
                 When I&apos;m not coding, you can find me exploring new technologies, contributing to open source, or

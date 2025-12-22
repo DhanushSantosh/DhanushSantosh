@@ -12,6 +12,7 @@
   --cursor-y: 50vh;
   --cursor-visible: 0;
   --cursor-glow-factor: 1;
+  --section-intrinsic-size: 900px;
   --font-sans: var(--font-geist-sans), "Inter", "SF Pro Text", "Segoe UI", system-ui, -apple-system,
     BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   --font-mono: var(--font-geist-mono), "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono", monospace;
@@ -69,6 +70,11 @@ html {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: var(--section-intrinsic-size);
 }
 
 ::selection {
@@ -133,4 +139,23 @@ body::before {
 .animate-arc-reverse {
   animation: arc-reverse 12s linear infinite;
   transform-origin: center;
+}
+
+
+.tech-item[data-active="true"] .tech-icon-wrap {
+  transform: translateY(-0.25rem);
+}
+
+.tech-item[data-active="true"] .tech-icon {
+  color: var(--hover-color);
+  filter: drop-shadow(0 0 10px var(--hover-color));
+}
+
+.tech-item[data-active="true"] .tech-image {
+  opacity: 1;
+  filter: grayscale(0) drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+}
+
+.tech-item[data-active="true"] .tech-label {
+  color: rgba(255, 255, 255, 0.6);
 }

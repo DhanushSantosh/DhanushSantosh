@@ -4,6 +4,14 @@ import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
 
+const allowedDevOriginsEnvVar = "NEXT_ALLOWED_DEV_ORIGINS";
+const defaultAllowedDevOrigin = "http://100.117.16.122:3000";
+const allowedDevOrigins =
+  process.env[allowedDevOriginsEnvVar]
+    ?.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean) ?? [defaultAllowedDevOrigin];
+
 const withPWAConfig = withPWA({
   dest: "public",
   disable: process.env.NODE_ENV === "development" || process.env.NEXT_DISABLE_PWA === "true",
@@ -28,6 +36,7 @@ if (isAnalyze) {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  allowedDevOrigins,
   compiler: {
     // Keep console errors in production, strip noisy logs for smaller bundles.
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false,

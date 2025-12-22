@@ -4,6 +4,10 @@ import Link from "next/link";
 import { FiMenu, FiX } from "react-icons/fi";
 import { useCallback, useEffect, useState } from "react";
 import type { MouseEvent } from "react";
+import useRafScroll from "@/hooks/useRafScroll";
+
+const HEADER_SCROLL_Y_THRESHOLD = 24;
+const DESKTOP_BREAKPOINT_PX = 768;
 
 type NavLink = {
   label: string;
@@ -20,19 +24,16 @@ export function SiteHeader({ navLinks, name, role }: SiteHeaderProps) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 24);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+  const handleScroll = useCallback((scrollY: number) => {
+    const nextScrolled = scrollY > HEADER_SCROLL_Y_THRESHOLD;
+    setScrolled((prev) => (prev === nextScrolled ? prev : nextScrolled));
   }, []);
+
+  useRafScroll(handleScroll);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
+      if (window.innerWidth >= DESKTOP_BREAKPOINT_PX) {
         setOpen(false);
       }
     };
