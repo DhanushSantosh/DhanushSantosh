@@ -9,15 +9,19 @@ interface VideoModalProps {
 }
 
 export function VideoModal({ isOpen, onClose, videoUrl }: VideoModalProps) {
-    // Lock body scroll when modal is open
+    // Lock body scroll when modal is open, compensate for scrollbar disappearing
     useEffect(() => {
         if (isOpen) {
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
             document.body.style.overflow = "hidden";
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
         } else {
-            document.body.style.overflow = "unset";
+            document.body.style.overflow = "";
+            document.body.style.paddingRight = "";
         }
         return () => {
-            document.body.style.overflow = "unset";
+            document.body.style.overflow = "";
+            document.body.style.paddingRight = "";
         };
     }, [isOpen]);
 

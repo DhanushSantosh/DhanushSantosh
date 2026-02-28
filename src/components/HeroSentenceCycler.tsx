@@ -153,6 +153,7 @@ export function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCycl
               variants={SENTENCE_VARIANTS}
               transition={{ duration: SENTENCE_BLUR_DURATION_S, ease: SENTENCE_BLUR_EASING }}
               className="absolute left-0 top-0 w-full"
+              style={{ willChange: "transform, opacity" }}
             >
               <m.span
                 initial="hidden"
@@ -176,7 +177,7 @@ export function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCycl
                         key={charIndex}
                         variants={CHARACTER_VARIANTS}
                         transition={{ duration: CHARACTER_ANIMATION_DURATION_S, ease: CHARACTER_EASING }}
-                        className="inline-block will-change-transform"
+                        className="inline-block"
                       >
                         {char}
                       </m.span>

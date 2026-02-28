@@ -143,6 +143,10 @@ html {
 }
 
 
+.tech-icon-wrap {
+  contain: style paint;
+}
+
 .tech-item[data-active="true"] .tech-icon-wrap {
   transform: translateY(-0.25rem);
 }

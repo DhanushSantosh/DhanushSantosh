@@ -152,10 +152,11 @@ function useWorldLines() {
     let cancelled = false;
 
     const load = () => {
-      import("@/data/worldLines")
-        .then((module) => {
+      fetch("/data/world-lines.json")
+        .then((r) => r.json() as Promise<WorldLinePaths>)
+        .then((data) => {
           if (!cancelled) {
-            setPaths(module.worldLinePaths);
+            setPaths(data);
           }
         })
         .catch(() => {
