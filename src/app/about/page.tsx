@@ -7,6 +7,7 @@ import PhotoFrame from "@/components/PhotoFrame";
 import { Reveal } from "@/components/Reveal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { hero } from "@/data/content";
+import ExperienceSection from "@/sections/ExperienceSection";
 
 export const metadata: Metadata = {
   title: "About Me",
@@ -16,8 +17,8 @@ export const metadata: Metadata = {
 const aboutNavLinks = [
   { label: "Bio", href: "#bio" },
   { label: "Skills", href: "#skills" },
-  { label: "Journey", href: "#journey" },
-  { label: "Interests", href: "#interests" },
+  { label: "Experience", href: "#experience" },
+  { label: "Focus", href: "#focus" },
 ] as const;
 
 export default function AboutPage() {
@@ -47,15 +48,15 @@ export default function AboutPage() {
                   <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">About Me</h1>
                   <div className="prose prose-invert max-w-none text-lg text-white/80">
                     <p>
-                      I&apos;m a creative developer with a passion for building immersive digital experiences. My journey
-                      began with a curiosity about how things work on the web, which quickly evolved into a career
-                      crafting high-performance applications and interactive interfaces.
+                      I&apos;m a developer who enjoys building thoughtful digital experiences where interface design,
+                      engineering, and AI-aware product thinking work together. I care about software that feels clear,
+                      polished, and genuinely useful from the first interaction.
                     </p>
                     <p className="mt-4">
-                      I specialize in the intersection of design and engineering, ensuring that every pixel serves a
-                      purpose and every interaction feels natural. Whether it&apos;s optimizing rendering performance or
-                      designing a complex system architecture, I approach every challenge with a problem-solving
-                      mindset.
+                      This stage of my journey is about turning curiosity into strong professional practice. Alongside
+                      building projects and sharpening my frontend craft, I started my internship at Payoda
+                      Technologies on June 8, 2026, where I&apos;m learning how real teams collaborate, ship work, and
+                      grow through responsibility.
                     </p>
                   </div>
                 </div>
@@ -72,55 +73,49 @@ export default function AboutPage() {
                   <ul className="list-inside list-disc space-y-2 text-white/70">
                     <li>TypeScript / JavaScript (ES6+)</li>
                     <li>Python</li>
-                    <li>HTML5 & CSS3 (Modern Features)</li>
-                    <li>SQL / NoSQL</li>
+                    <li>Problem solving and product thinking</li>
+                    <li>Performance-aware frontend implementation</li>
                   </ul>
                 </div>
                 <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-white/20">
                   <h3 className="text-xl font-medium text-white">Frameworks & Tools</h3>
                   <ul className="list-inside list-disc space-y-2 text-white/70">
                     <li>Next.js / React</li>
-                    <li>Tailwind CSS</li>
-                    <li>Node.js / Express</li>
-                    <li>PostgreSQL / MongoDB</li>
-                    <li>Docker / Kubernetes</li>
+                    <li>Tailwind CSS / Framer Motion</li>
+                    <li>Three.js / React Three Fiber</li>
+                    <li>Node.js / Vercel</li>
+                    <li>OpenAI / Claude / Gemini</li>
                   </ul>
                 </div>
               </div>
             </section>
           </Reveal>
 
+          <ExperienceSection />
+
           <Reveal>
-            <section id="journey" className="space-y-6 cv-auto">
-              <h2 className="text-2xl font-semibold tracking-wide text-white sm:text-3xl">Journey</h2>
-              <div className="space-y-8 border-l-2 border-white/10 pl-8">
-                <div className="relative">
-                  <div className="absolute -left-[41px] top-1 h-5 w-5 rounded-full border-4 border-black bg-white" />
-                  <h3 className="text-xl font-medium text-white">Senior Frontend Engineer</h3>
-                  <p className="text-sm text-white/50">2023 - Present</p>
-                  <p className="mt-2 text-white/70">
-                    Leading frontend architecture and design system implementation for enterprise-scale applications.
+            <section id="focus" className="space-y-6 cv-auto">
+              <h2 className="text-2xl font-semibold tracking-wide text-white sm:text-3xl">Current Focus</h2>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/75">
+                  <h3 className="text-sm uppercase tracking-[0.3em] text-white/50">Frontend Craft</h3>
+                  <p className="mt-3 text-sm leading-relaxed">
+                    Building interfaces that feel fast, clear, and visually intentional across desktop and mobile.
                   </p>
                 </div>
-                <div className="relative">
-                  <div className="absolute -left-[41px] top-1 h-5 w-5 rounded-full border-4 border-black bg-white/50" />
-                  <h3 className="text-xl font-medium text-white">Full Stack Developer</h3>
-                  <p className="text-sm text-white/50">2021 - 2023</p>
-                  <p className="mt-2 text-white/70">
-                    Built and maintained full-stack web solutions, focusing on performance and user experience.
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/75">
+                  <h3 className="text-sm uppercase tracking-[0.3em] text-white/50">AI Product Work</h3>
+                  <p className="mt-3 text-sm leading-relaxed">
+                    Learning how AI features, automation, and product usability come together in practical workflows.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/75">
+                  <h3 className="text-sm uppercase tracking-[0.3em] text-white/50">Career Growth</h3>
+                  <p className="mt-3 text-sm leading-relaxed">
+                    Growing through real collaboration, consistent practice, and the habits that turn learning into delivery.
                   </p>
                 </div>
               </div>
-            </section>
-          </Reveal>
-
-          <Reveal>
-            <section id="interests" className="space-y-6 cv-auto">
-              <h2 className="text-2xl font-semibold tracking-wide text-white sm:text-3xl">Beyond Code</h2>
-              <p className="text-lg text-white/80">
-                When I&apos;m not coding, you can find me exploring new technologies, contributing to open source, or
-                enjoying the outdoors. I believe in a balanced life where creativity is fueled by diverse experiences.
-              </p>
             </section>
           </Reveal>
         </main>

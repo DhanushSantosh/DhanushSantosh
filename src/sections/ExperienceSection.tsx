@@ -7,7 +7,7 @@ export function ExperienceSection() {
       <Reveal as="section">
         <p className="text-sm uppercase tracking-[0.4em] text-white/50">Experience</p>
         <h2 className="mt-4 text-balance text-3xl font-semibold text-white md:text-4xl">
-          Leadership across AI product squads and creative studios.
+          Professional experience and current growth journey.
         </h2>
       </Reveal>
       <div className="space-y-8">
@@ -18,7 +18,7 @@ export function ExperienceSection() {
                 <div>
                   <p className="text-sm uppercase tracking-[0.4em] text-white/50">{item.period}</p>
                   <h3 className="text-2xl font-semibold text-white">
-                    {item.role} · {item.company}
+                    {item.role} - {item.company}
                   </h3>
                 </div>
                 <p className="text-sm leading-relaxed text-white/65 sm:text-base">{item.summary}</p>

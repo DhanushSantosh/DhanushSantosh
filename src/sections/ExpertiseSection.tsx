@@ -8,28 +8,32 @@ import {
   SiReact,
   SiTypescript,
   SiTailwindcss,
+  SiFramer,
+  SiThreedotjs,
   SiNodedotjs,
-  SiDocker,
+  SiVercel,
   SiOpenai,
   SiAnthropic,
   SiMeta,
+  SiPython,
   SiHuggingface,
-  SiSupabase,
 } from "react-icons/si";
 
 const iconMap: Record<string, React.ElementType | string> = {
   "Next.js": SiNextdotjs,
   React: SiReact,
   TypeScript: SiTypescript,
-  TailwindCSS: SiTailwindcss,
+  "Tailwind CSS": SiTailwindcss,
+  "Framer Motion": SiFramer,
+  "Three.js": SiThreedotjs,
   "Node.js": SiNodedotjs,
-  Docker: SiDocker,
-  Supabase: SiSupabase,
-  "GPT-5": SiOpenai,
-  "Claude 3.5": SiAnthropic,
-  "Llama 3": SiMeta,
-  "Gemini Pro": "/icons/gemini.png", // User provided image
+  Vercel: SiVercel,
+  OpenAI: SiOpenai,
+  Claude: SiAnthropic,
+  Llama: SiMeta,
+  Gemini: "/icons/gemini.png", // User provided image
   Cursor: "/icons/cursor.png", // User provided image
+  Python: SiPython,
   "Hugging Face": SiHuggingface,
 };
 
@@ -37,15 +41,17 @@ const colorMap: Record<string, string> = {
   "Next.js": "#ffffff", // White (Next.js brand)
   React: "#61DAFB", // Cyan
   TypeScript: "#3178C6", // Blue
-  TailwindCSS: "#06B6D4", // Cyan
+  "Tailwind CSS": "#06B6D4", // Cyan
+  "Framer Motion": "#ffffff", // Neutral to fit current monochrome visual system
+  "Three.js": "#ffffff", // White (Three.js mark)
   "Node.js": "#339933", // Green
-  Docker: "#2496ED", // Blue
-  Supabase: "#3ECF8E", // Supabase Green
-  "GPT-5": "#ffffff", // White (User preference)
-  "Claude 3.5": "#D97757", // Anthropic Clay
-  "Llama 3": "#0490EA", // Meta Blue
-  "Gemini Pro": "#8E75B2", // Image handles color; keep a fallback for active states
+  Vercel: "#ffffff", // White (Vercel mark)
+  OpenAI: "#ffffff", // White (current site preference)
+  Claude: "#D97757", // Anthropic Clay
+  Llama: "#0490EA", // Meta Blue
+  Gemini: "#8E75B2", // Image handles color; keep a fallback for active states
   Cursor: "", // Image handles color
+  Python: "#3776AB", // Python Blue
   "Hugging Face": "#FFD21E", // Hugging Face Yellow
 };
 
@@ -146,7 +152,7 @@ export function ExpertiseSection() {
               {techStack.ai.map((tech) => {
                 const Icon = iconMap[tech];
                 const hoverColor = hoverColorMap[tech] || "#ffffff";
-                const isGemini = tech === "Gemini Pro";
+                const isGemini = tech === "Gemini";
 
                 return (
                   <button

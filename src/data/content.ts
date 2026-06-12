@@ -1,11 +1,11 @@
 export const hero = {
   name: "Dhanush Santosh",
   role: "Full-Stack AI Developer",
-  location: "Remote • Worldwide",
+  location: "Remote - Worldwide",
   tagline:
     "I architect AI-native product systems where resilient infra, delightful UX, and reliable models operate as a single surface.",
   summary:
-    "Across fintech, creative tooling, and B2B SaaS I lead squads shipping AI copilots, realtime dashboards, and automation platforms. I balance research velocity with production rigor—wrapping model orchestration, evals, and design systems into experiences that scale beyond demos.",
+    "Across fintech, creative tooling, and B2B SaaS I focus on shipping AI copilots, realtime dashboards, and automation experiences with strong frontend craft and production-minded thinking.",
   email: "contact@xerocore.in",
   resume: "https://resume.xerocore.dev",
 };
@@ -39,39 +39,15 @@ export const expertise = [
 
 export const experience = [
   {
-    role: "Lead AI Product Engineer",
-    company: "Nebula Studio",
-    period: "2022 — Present",
+    role: "Intern",
+    company: "Payoda Technologies",
+    period: "June 8, 2026 - July 20, 2026",
     summary:
-      "Leading full-stack squads delivering AI-first marketing platforms and internal copilots for global brand launches.",
+      "Started a six-week internship focused on learning inside a professional engineering environment with real teams, real work, and real responsibilities.",
     highlights: [
-      "Architected Nebula OS, a multi-tenant Next.js + Edge runtime powering generative landing pages for six premium campaigns.",
-      "Built an inference orchestration layer with OpenAI + Anthropic failovers and pgvector retrieval, improving factual accuracy by 38%.",
-      "Established automated evals, tracing, and feature flags that cut regressions to near-zero post release.",
-    ],
-  },
-  {
-    role: "Senior Full-Stack Engineer",
-    company: "Volt Finance",
-    period: "2019 — 2022",
-    summary:
-      "Owned mission-critical trading surfaces and rolled out AI-driven risk analysis for quant teams.",
-    highlights: [
-      "Migrated the dashboard from CRA to Next.js/Node microservices, slicing load time by 63% while introducing streaming data widgets.",
-      "Launched Volt Sense, an AI assistant watching risk policies and alerting PMs in Slack via retrieval + function calling.",
-      "Partnered with research to codify a shared component library and testing harness adopted by four teams.",
-    ],
-  },
-  {
-    role: "Product Engineer",
-    company: "Independent / Labs",
-    period: "2016 — 2019",
-    summary:
-      "Shipped automation-heavy prototypes, data viz, and AI experiments for agencies, creators, and seed-stage founders.",
-    highlights: [
-      "Delivered 25+ bespoke builds spanning creative marketing sites, realtime dashboards, and voice interfaces.",
-      "Experimented with reinforcement-learning powered personalization, multi-agent storytelling, and WebGL interactions.",
-      "Served as embedded partner from research sprints through deployment, observability, and iteration.",
+      "Beginning the transition from learning concepts to contributing inside a real team with real responsibilities.",
+      "Using the internship to build stronger professional habits, communication, and confidence through day-to-day work.",
+      "Joining Payoda Technologies with a mindset centered on learning, consistency, and long-term growth.",
     ],
   },
 ];
@@ -107,17 +83,19 @@ export const techStack = {
     "Next.js",
     "React",
     "TypeScript",
-    "TailwindCSS",
+    "Tailwind CSS",
+    "Framer Motion",
+    "Three.js",
     "Node.js",
-    "Docker",
-    "Supabase",
+    "Vercel",
   ],
   ai: [
-    "GPT-5",
-    "Claude 3.5",
-    "Llama 3",
-    "Gemini Pro",
+    "OpenAI",
+    "Claude",
+    "Gemini",
+    "Llama",
     "Cursor",
+    "Python",
     "Hugging Face",
   ],
 };
