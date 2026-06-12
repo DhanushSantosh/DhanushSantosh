@@ -31,7 +31,8 @@ These are exposed to Tailwind as:
 ### Global resets & utilities
 Defined in `src/app/globals.css`:
 - `html { scroll-behavior: smooth; }`
-- `.no-scrollbar` removes scrollbars across browsers.
+- Native page scrollbars are hidden globally while scrolling stays enabled.
+- `.no-scrollbar` is still available for local container use.
 - `@variant hover-hover (@media (hover: hover));` is used to scope hover-only interactions.
 
 ## Base surfaces + layout patterns
@@ -70,10 +71,17 @@ See `src/sections/HeroSection.tsx`, `src/sections/ProjectsSection.tsx`, `src/sec
 Use the `hover-hover:` variant to avoid hover effects on touch devices:
 - Example: `hover-hover:group-hover:-translate-y-1` in `src/sections/ExpertiseSection.tsx`
 
-### Cursor glow blocking
-The cursor glow effect can be disabled per element:
+### Custom cursor behavior
+The site uses a custom desktop cursor instead of the default pointer:
+- The cursor is rendered from layered orbit, ring, and core shapes in `src/app/layout.tsx`.
+- Motion and pointer state are controlled in `src/components/CursorFluid.tsx`.
+- Styling lives in `src/app/globals.css` and follows the same black-glass, thin-border, soft-cyan accent language as the rest of the site.
+- It is automatically disabled for `prefers-reduced-motion`, no-hover, or coarse-pointer devices.
+
+### Cursor interaction targeting
+Interactive elements can still influence cursor behavior:
 - Add `data-cursor-block` to interactive elements.
-- `src/components/CursorFluid.tsx` checks `[data-cursor-block]` and suppresses glow.
+- `src/components/CursorFluid.tsx` checks `[data-cursor-block]` and switches the cursor into its interactive state.
 - Common usage is on buttons/links in `HeroSection`, `ProjectsSection`, `ContactSection`, `SiteHeader`.
 
 ## Animation system (how it works)
@@ -127,9 +135,10 @@ Defined in `src/app/globals.css`:
 - `.animate-arc-rotate` and `.animate-arc-reverse` apply constant rotation.
 Used in `src/components/PhotoFrame.tsx`.
 
-### Cursor glow (CSS + JS)
-- `#cursor-glow` in `src/app/layout.tsx` renders the radial gradient.
-- `src/components/CursorFluid.tsx` lerps the glow toward the pointer on `requestAnimationFrame` and toggles opacity based on `data-cursor-block`.
+### Custom cursor (CSS + JS)
+- `#site-cursor` in `src/app/layout.tsx` renders the layered orbit, ring, and core.
+- `src/components/CursorFluid.tsx` lerps the cursor toward the pointer on `requestAnimationFrame` and toggles between default and interactive states based on hover target.
+- `src/app/globals.css` hides native scrollbars globally and also hides the native pointer when the custom cursor is active.
 - Automatically disabled for `prefers-reduced-motion`, no hover, or coarse pointers.
 
 ### 3D motion (Orbital sculpture)
@@ -152,5 +161,5 @@ Use server-rendered sections with small client controllers to keep hydration min
 2. Wrap new sections in `<Reveal>` to keep entry motion consistent, and pass `delay` if you need a staggered layout.
 3. Keep sections server-rendered when possible; add a small client controller if interactivity is required.
 4. For new `framer-motion` components, rely on `MotionProvider` and respect reduced-motion behavior.
-5. Use `hover-hover:` for hover-only interactions and `data-cursor-block` on interactive elements to tame the cursor glow.
+5. Use `hover-hover:` for hover-only interactions and `data-cursor-block` on interactive elements to shift the custom cursor into its active state.
 6. Reuse button styles (filled vs outlined) before inventing new patterns.

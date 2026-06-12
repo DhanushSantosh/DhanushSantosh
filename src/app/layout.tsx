@@ -22,7 +22,7 @@ const geistMono = localFont({
   display: "swap",
 });
 
-const profileTitle = `${hero.name} — ${hero.role}`;
+const profileTitle = `${hero.name} - ${hero.role}`;
 const profileDescription =
   `Portfolio for ${hero.name}, a creative developer crafting cinematic interfaces with Next.js, WebGL, and motion.`;
 
@@ -47,12 +47,18 @@ export const metadata: Metadata = {
     siteName: hero.name,
     images: [
       {
-        url: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=1200",
+        url: "/api/brand-preview",
         width: 1200,
         height: 630,
-        alt: `${hero.name} — ${hero.role}`,
+        alt: `${hero.name} - ${hero.role}`,
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: profileTitle,
+    description: profileDescription,
+    images: ["/api/brand-preview"],
   },
   icons: {
     icon: [
@@ -80,7 +86,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={bodyClassName}>
-        <div id="cursor-glow" aria-hidden="true" />
+        <div id="site-cursor" aria-hidden="true" data-visible="false" data-state="default">
+          <div className="site-cursor-orbit" />
+          <div className="site-cursor-core" />
+        </div>
         <CursorFluid />
         <ScrollReset />
         <MotionProvider>{children}</MotionProvider>

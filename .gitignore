@@ -46,3 +46,4 @@ performance/
 *.skill
 
 .codex
+.codex-runtime/

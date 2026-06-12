@@ -48,9 +48,9 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     screenshots: [
       {
-        src: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=1280",
+        src: "/api/brand-preview?variant=wide",
         sizes: "1280x720",
-        type: "image/jpeg",
+        type: "image/png",
         label: "Hero landing screen",
       },
     ],
