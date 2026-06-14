@@ -10,12 +10,6 @@ export const hero = {
   resume: "https://resume.xerocore.dev",
 };
 
-export const stats = [
-  { label: "AI-native launches shipped", value: "18" },
-  { label: "Automation hours saved yearly", value: "12K+" },
-  { label: "Avg. inference latency", value: "<450ms" },
-];
-
 export const expertise = [
   {
     title: "AI Product Engineering",
@@ -52,32 +46,6 @@ export const experience = [
   },
 ];
 
-export const projects = [
-  {
-    title: "Intellex",
-    description:
-      "An AI-powered research assistant with multi-agent orchestration, structured planning, and workspace-based research management. Features guided research workflows, real-time chat interfaces, and provenance tracking.",
-    stack: ["Next.js", "TypeScript", "FastAPI", "Python", "Tailwind CSS", "Zustand"],
-    url: "https://intellex.xerocore.in",
-  },
-  {
-    title: "DeskCrafter",
-    description:
-      "A beautiful, user-friendly Linux app for creating, managing, and launching custom desktop entries.",
-    stack: ["Python", "PyQt5", "Linux"],
-    url: "https://github.com/DhanushSantosh/DeskCrafter",
-    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-  },
-  {
-    title: "WinePrefix-Automation",
-    description:
-      "Wine Prefix Automation simplifies the process of creating and managing Wine prefixes through an intuitive graphical interface.",
-    stack: ["Shell", "Bash", "Wine", "Lutris"],
-    url: "https://github.com/DhanushSantosh/WinePrefix-Automation",
-    demo: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-  },
-];
-
 export const techStack = {
   fullStack: [
     "Next.js",
@@ -99,3 +67,4 @@ export const techStack = {
     "Hugging Face",
   ],
 };
+

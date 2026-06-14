@@ -1,23 +1,24 @@
-import { techStack, hero } from "@/data/content";
-import { Reveal } from "@/components/Reveal";
-import { ExpertiseSelectionController } from "@/components/ExpertiseSelectionController";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import {
-  SiNextdotjs,
-  SiReact,
-  SiTypescript,
-  SiTailwindcss,
-  SiFramer,
-  SiThreedotjs,
-  SiNodedotjs,
-  SiVercel,
-  SiOpenai,
   SiAnthropic,
-  SiMeta,
-  SiPython,
+  SiFramer,
   SiHuggingface,
+  SiMeta,
+  SiNextdotjs,
+  SiNodedotjs,
+  SiOpenai,
+  SiPython,
+  SiReact,
+  SiTailwindcss,
+  SiThreedotjs,
+  SiTypescript,
+  SiVercel,
 } from "react-icons/si";
+
+import { ExpertiseSelectionController } from "@/components/ExpertiseSelectionController";
+import { Reveal } from "@/components/Reveal";
+import { hero, techStack } from "@/data/content";
 
 const iconMap: Record<string, React.ElementType | string> = {
   "Next.js": SiNextdotjs,
@@ -62,10 +63,10 @@ const hoverColorMap: Record<string, string> = {
 
 const SECONDARY_REVEAL_DELAY_S = 0.1;
 
-export function ExpertiseSection() {
+export async function ExpertiseSection() {
   return (
     <section id="expertise" className="cv-auto relative overflow-hidden bg-transparent">
-      <div className="relative z-10 mx-auto w-full max-w-6xl space-y-16 px-6 py-12 sm:px-12 md:px-16 md:py-16">
+      <div className="relative z-10 mx-auto w-full max-w-6xl space-y-16 px-4 sm:px-8 lg:px-12 py-12 md:py-16">
         <Reveal as="section" className="space-y-6">
           <p className="text-sm uppercase tracking-[0.4em] text-white/50">Expertise</p>
           <h2 className="text-balance text-3xl font-semibold text-white md:text-4xl lg:text-5xl">
@@ -105,11 +106,11 @@ export function ExpertiseSection() {
                               alt={tech}
                               fill
                               sizes="40px"
-                              className="tech-image object-contain transition-all duration-300 opacity-100 grayscale brightness-150 hover-hover:group-hover:grayscale-0 hover-hover:group-hover:brightness-100 hover-hover:group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                              className="tech-image object-contain opacity-100 grayscale brightness-150 transition-all duration-300 hover-hover:group-hover:grayscale-0 hover-hover:group-hover:brightness-100 hover-hover:group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
                             />
                           </div>
                         ) : Icon ? (
-                          <Icon className="tech-icon text-4xl transition-all duration-300 text-white/70 hover-hover:group-hover:text-(--hover-color) hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]" />
+                          <Icon className="tech-icon text-4xl text-white/70 transition-all duration-300 hover-hover:group-hover:text-(--hover-color) hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]" />
                         ) : null}
                       </div>
                       <span className="tech-label text-[10px] font-medium uppercase tracking-wider text-white/40 transition-colors duration-300 hover-hover:group-hover:text-white/70">
@@ -152,11 +153,11 @@ export function ExpertiseSection() {
                               alt={tech}
                               fill
                               sizes="40px"
-                              className="tech-image object-contain transition-all duration-300 opacity-100 grayscale brightness-150 hover-hover:group-hover:grayscale-0 hover-hover:group-hover:brightness-100 hover-hover:group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                              className="tech-image object-contain opacity-100 grayscale brightness-150 transition-all duration-300 hover-hover:group-hover:grayscale-0 hover-hover:group-hover:brightness-100 hover-hover:group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
                             />
                           </div>
                         ) : Icon ? (
-                          <Icon className="tech-icon text-4xl transition-all duration-300 text-white/70 hover-hover:group-hover:text-(--hover-color) hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]" />
+                          <Icon className="tech-icon text-4xl text-white/70 transition-all duration-300 hover-hover:group-hover:text-(--hover-color) hover-hover:group-hover:drop-shadow-[0_0_10px_var(--hover-color)]" />
                         ) : null}
                       </div>
                       <span className="tech-label text-[10px] font-medium uppercase tracking-wider text-white/40 transition-colors duration-300 hover-hover:group-hover:text-white/70">

@@ -8,7 +8,7 @@ export function ContactSection() {
   return (
     <section id="contact" className="cv-auto bg-transparent">
       <Reveal className="relative overflow-hidden">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between relative z-10 py-16 px-6 sm:px-12 md:px-16 w-full max-w-6xl mx-auto">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between relative z-10 py-16 px-4 sm:px-8 lg:px-12 w-full max-w-6xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-8 lg:items-center flex-1">
             <div className="text-center lg:text-left">
               <p className="text-sm uppercase tracking-[0.4em] text-white/50">Contact</p>

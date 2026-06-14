@@ -7,9 +7,10 @@ import { siteConfig } from "@/config/site";
 import { hero } from "@/data/content";
 import ContactSection from "@/sections/ContactSection";
 import ExpertiseSection from "@/sections/ExpertiseSection";
+import GitHubActivitySection from "@/sections/GitHubActivitySection";
+import GitHubHighlightsSection from "@/sections/GitHubHighlightsSection";
 import HeroSection from "@/sections/HeroSection";
 import ProjectsSection from "@/sections/ProjectsSection";
-import StatsSection from "@/sections/StatsSection";
 
 export const revalidate = 3600;
 
@@ -29,13 +30,17 @@ export default function Home() {
 
       <main className="mt-8 w-full sm:mt-10 lg:mt-12">
         <div className="relative w-full">
-          <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="pointer-events-none absolute inset-0 z-0">
             <ClientExpertiseSculpture />
           </div>
           <div className="relative z-10 flex flex-col space-y-4 sm:space-y-6 lg:space-y-8">
             <ExpertiseSection />
-            <StatsSection />
+            <GitHubHighlightsSection />
           </div>
+        </div>
+
+        <div className="mt-12 sm:mt-14 lg:mt-16">
+          <GitHubActivitySection />
         </div>
 
         <div className="mt-12 sm:mt-14 lg:mt-16">
@@ -43,13 +48,13 @@ export default function Home() {
         </div>
 
         <div className="relative mt-12 w-full sm:mt-14 lg:mt-16">
-          <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="pointer-events-none absolute inset-0 z-0">
             <ClientContactSculpture />
           </div>
           <div className="relative z-10 flex flex-col space-y-4 rounded-3xl border border-white/[0.12] bg-black/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),inset_0_-1px_0_0_rgba(255,255,255,0.05),0_0_30px_rgba(0,0,0,0.4)] backdrop-blur-[3px] sm:space-y-6 lg:space-y-8">
             <ContactSection />
             <Reveal>
-              <footer className="mx-auto w-full max-w-6xl px-4 py-6 pb-16 text-center text-sm text-white/80 sm:px-6 sm:pb-20">
+              <footer className="mx-auto w-full max-w-6xl px-4 sm:px-8 lg:px-12 py-6 pb-16 text-center text-sm text-white/80 sm:pb-20">
                 <p className="font-semibold tracking-[0.3em] text-white/60">Closure</p>
                 <p
                   className="mx-auto mt-2 font-poetic text-2xl leading-snug text-white sm:mt-3 sm:text-[29px]"
@@ -66,7 +71,7 @@ export default function Home() {
                     textShadow: "0 0 6px rgba(95,225,255,0.45), 0 0 14px rgba(95,225,255,0.15)",
                   }}
                 >
-                  © {currentYear} {hero.name}
+                  &copy; {currentYear} {hero.name}
                 </p>
               </footer>
             </Reveal>
