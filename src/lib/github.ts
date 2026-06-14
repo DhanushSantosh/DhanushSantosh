@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { featuredRepos, featuredRepoLookup, type FeaturedRepoConfig } from "@/config/featuredRepos";
+import { projectOverrideLookup, type ProjectOverrideConfig } from "@/config/projectOverrides";
 
 const DEFAULT_REVALIDATE_SECONDS = 3600;
 const DEFAULT_GITHUB_USERNAME = "DhanushSantosh";
@@ -13,6 +14,7 @@ export const GITHUB_TAGS = {
   profile: "github-profile",
   activity: "github-activity",
   featured: "github-featured",
+  projects: "github-projects",
 } as const;
 
 type GitHubTag = (typeof GITHUB_TAGS)[keyof typeof GITHUB_TAGS];
@@ -79,10 +81,32 @@ export type GitHubPortfolioData = {
   featuredRepos: GitHubFeaturedRepo[];
   lastSyncedAt: string;
   profile: GitHubProfileSummary | null;
+  projects: GitHubProject[];
   recentEvents: GitHubRecentEvent[];
   source: "graphql" | "rest-fallback" | "unavailable";
   totalFeaturedStars: number;
   weeks: GitHubContributionWeek[];
+};
+
+export type GitHubProject = {
+  accent: string;
+  defaultBranch: string | null;
+  demoUrl: string | null;
+  forkCount: number | null;
+  homepageUrl: string | null;
+  isArchived: boolean;
+  isFork: boolean;
+  languageName: string | null;
+  liveUrl: string | null;
+  name: string;
+  nameWithOwner: string;
+  openIssues: number | null;
+  pushedAt: string | null;
+  repoUrl: string;
+  stack: string[];
+  stars: number | null;
+  summary: string;
+  topics: string[];
 };
 
 type GraphQLLanguage = {
@@ -256,6 +280,34 @@ async function fetchGitHubRest<T>(path: string, tags: GitHubTag[]): Promise<T | 
   return (await response.json()) as T;
 }
 
+async function fetchGitHubRestPaginated<T>(path: string, tags: GitHubTag[], maxPages = 10): Promise<T[]> {
+  const token = getGitHubToken();
+  const items: T[] = [];
+
+  for (let page = 1; page <= maxPages; page += 1) {
+    const separator = path.includes("?") ? "&" : "?";
+    const response = await fetch(`${GITHUB_REST_ENDPOINT}${path}${separator}page=${page}`, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      next: {
+        revalidate: DEFAULT_REVALIDATE_SECONDS,
+        tags: uniqueTags(tags),
+      },
+    });
+
+    if (!response.ok) break;
+
+    const pageItems = (await response.json()) as T[];
+    items.push(...pageItems);
+
+    if (pageItems.length < 100) break;
+  }
+
+  return items;
+}
+
 function buildFeaturedRepositorySelection() {
   return featuredRepos
     .filter((project) => !project.hidden)
@@ -351,6 +403,11 @@ function normalizeStack(repoTopics: string[], config: FeaturedRepoConfig, langua
   return items.slice(0, 6);
 }
 
+function normalizeProjectStack(repoTopics: string[], languageName: string | null) {
+  const items = [...(languageName ? [languageName] : []), ...repoTopics];
+  return Array.from(new Set(items)).slice(0, 6);
+}
+
 function normalizeGraphQLRepo(
   repoNode: GraphQLRepositoryNode | null | undefined,
   config: FeaturedRepoConfig,
@@ -406,6 +463,53 @@ function normalizeRestRepo(repo: GitHubRestRepo | null, config: FeaturedRepoConf
     summary: config.summaryOverride ?? repo?.description ?? "A curated featured project.",
     topics,
   };
+}
+
+function normalizeProjectRepo(repo: GitHubRestRepo, override?: ProjectOverrideConfig): GitHubProject {
+  const topics = repo.topics ?? [];
+  const liveUrl = normalizeOptionalText(override?.liveUrl) ?? normalizeOptionalText(repo.homepage);
+  const accent =
+    override?.accent ?? (repo.archived ? "Archived Repo" : repo.fork ? "Forked Build" : "Open Source");
+
+  return {
+    accent,
+    defaultBranch: repo.default_branch ?? null,
+    demoUrl: override?.demoUrl ?? null,
+    forkCount: repo.forks_count ?? null,
+    homepageUrl: normalizeOptionalText(repo.homepage),
+    isArchived: repo.archived,
+    isFork: repo.fork,
+    languageName: repo.language ?? null,
+    liveUrl,
+    name: repo.name,
+    nameWithOwner: repo.full_name,
+    openIssues: repo.open_issues_count ?? null,
+    pushedAt: repo.pushed_at ?? null,
+    repoUrl: repo.html_url,
+    stack: normalizeProjectStack(topics, repo.language ?? null),
+    stars: repo.stargazers_count ?? null,
+    summary: override?.summaryOverride ?? repo.description ?? "Repository details will appear here once GitHub data is connected.",
+    topics,
+  };
+}
+
+async function getGitHubProjects(username: string) {
+  const repos = await fetchGitHubRestPaginated<GitHubRestRepo>(
+    `/users/${username}/repos?per_page=100&sort=updated&direction=desc&type=public`,
+    [GITHUB_TAGS.projects],
+  );
+
+  return repos
+    .map((repo) => {
+      const override = projectOverrideLookup.get(repo.full_name.toLowerCase());
+      return override?.hidden ? null : normalizeProjectRepo(repo, override);
+    })
+    .filter((repo): repo is GitHubProject => Boolean(repo))
+    .sort((left, right) => {
+      const leftTime = left.pushedAt ? Date.parse(left.pushedAt) : 0;
+      const rightTime = right.pushedAt ? Date.parse(right.pushedAt) : 0;
+      return rightTime - leftTime;
+    });
 }
 
 function normalizeActivityEvent(event: GitHubRestEvent): GitHubRecentEvent | null {
@@ -508,6 +612,8 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
 
   if (!payload?.user) return null;
 
+  const projects = await getGitHubProjects(username);
+
   const featured = buildFeaturedRepositorySelection().map(({ alias, config }) =>
     normalizeGraphQLRepo(payload[alias], config),
   );
@@ -542,6 +648,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
       totalContributions: payload.user.contributionsCollection.contributionCalendar.totalContributions,
       url: payload.user.url,
     },
+    projects,
     recentEvents,
     source: "graphql",
     totalFeaturedStars: featured.reduce((sum, repo) => sum + (repo.stars ?? 0), 0),
@@ -550,9 +657,10 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
 }
 
 async function getRestFallbackPortfolioData(username: string): Promise<GitHubPortfolioData> {
-  const [user, events] = await Promise.all([
+  const [user, events, projects] = await Promise.all([
     fetchGitHubRest<GitHubRestUser>(`/users/${username}`, [GITHUB_TAGS.profile]),
     fetchGitHubRest<GitHubRestEvent[]>(`/users/${username}/events/public?per_page=12`, [GITHUB_TAGS.activity]),
+    getGitHubProjects(username),
   ]);
 
   const featured = await Promise.all(
@@ -566,7 +674,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
   );
 
   return {
-    available: Boolean(user || featured.length),
+    available: Boolean(user || featured.length || projects.length),
     featuredRepos: featured.sort((a, b) => {
       const aOrder = featuredRepos.find((item) => item.titleOverride === a.name || item.repo === a.nameWithOwner)?.order ?? 0;
       const bOrder = featuredRepos.find((item) => item.titleOverride === b.name || item.repo === b.nameWithOwner)?.order ?? 0;
@@ -587,6 +695,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
           url: user.html_url,
         }
       : null,
+    projects,
     recentEvents: (events ?? [])
       .map(normalizeActivityEvent)
       .filter((event): event is GitHubRecentEvent => Boolean(event))

@@ -21,10 +21,10 @@ export async function GET(request: Request) {
   revalidateTag(GITHUB_TAGS.profile, "max");
   revalidateTag(GITHUB_TAGS.activity, "max");
   revalidateTag(GITHUB_TAGS.featured, "max");
+  revalidateTag(GITHUB_TAGS.projects, "max");
 
   return NextResponse.json({
     ok: true,
-    refreshed: ["github-profile", "github-activity", "github-featured"],
+    refreshed: ["github-profile", "github-activity", "github-featured", "github-projects"],
   });
 }
-

@@ -29,18 +29,8 @@ export const featuredRepos: FeaturedRepoConfig[] = [
     stackOverride: ["TypeScript", "Rust", "Tauri", "React", "Linux"],
     accent: "Open Source",
   },
-  {
-    repo: "DhanushSantosh/WinePrefix-Automation",
-    order: 2,
-    demoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-    summaryOverride:
-      "Wine Prefix Automation simplifies the process of creating and managing Wine prefixes through an intuitive graphical interface.",
-    stackOverride: ["Shell", "Bash", "Wine", "Lutris", "Linux"],
-    accent: "Open Source",
-  },
 ];
 
 export const featuredRepoLookup = new Set(
   featuredRepos.flatMap((project) => (project.repo ? [project.repo.toLowerCase()] : [])),
 );
-

@@ -23,6 +23,7 @@ function verifyGitHubWebhookSignature(payload: string, signature: string | null,
 function revalidateGitHubTags(includeFeatured: boolean) {
   revalidateTag(GITHUB_TAGS.profile, "max");
   revalidateTag(GITHUB_TAGS.activity, "max");
+  revalidateTag(GITHUB_TAGS.projects, "max");
   if (includeFeatured) {
     revalidateTag(GITHUB_TAGS.featured, "max");
   }
@@ -58,7 +59,8 @@ export async function POST(request: Request) {
     ok: true,
     event,
     repo: repoFullName,
-    refreshed: includeFeatured ? ["github-profile", "github-activity", "github-featured"] : ["github-profile", "github-activity"],
+    refreshed: includeFeatured
+      ? ["github-profile", "github-activity", "github-projects", "github-featured"]
+      : ["github-profile", "github-activity", "github-projects"],
   });
 }
-
