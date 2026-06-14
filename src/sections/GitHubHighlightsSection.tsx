@@ -32,17 +32,7 @@ function GitHubProofCard({
 export default async function GitHubHighlightsSection() {
   const data = await getGitHubPortfolioData();
   const profile = data.profile;
-  const achievements = data.recentEvents
-    .slice()
-    .sort((left, right) => {
-      const leftPriority = left.kind === "pull_request" || left.kind === "release" ? 0 : left.kind === "visibility" ? 1 : 2;
-      const rightPriority = right.kind === "pull_request" || right.kind === "release" ? 0 : right.kind === "visibility" ? 1 : 2;
-      return leftPriority - rightPriority;
-    })
-    .filter((event, index, collection) => {
-      return collection.findIndex((candidate) => candidate.summary === event.summary && candidate.repoName === event.repoName) === index;
-    })
-    .slice(0, 3);
+
 
   return (
     <section id="github-highlights" className="cv-auto relative overflow-hidden pb-12 bg-transparent">
@@ -68,13 +58,7 @@ export default async function GitHubHighlightsSection() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <GitHubProofCard
-                icon={<FiAward />}
-                label="Achievements"
-                value={String(achievements.length)}
-                hint={achievements.length > 0 ? "recent public milestones tracked live" : "new public milestones will appear here"}
-              />
+            <div className="grid gap-4 sm:grid-cols-3">
               <GitHubProofCard
                 icon={<FiActivity />}
                 label="Contributions"
@@ -93,43 +77,6 @@ export default async function GitHubHighlightsSection() {
                 value={String(profile?.publicRepos ?? 0)}
                 hint={profile ? `${profile.followers} followers tracking the journey` : "profile summary appears when GitHub data is reachable"}
               />
-            </div>
-
-            <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-              <div className="rounded-3xl border border-white/8 bg-black/45 p-5">
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/80">
-                    <FiUsers />
-                  </span>
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.3em] text-white/45">Profile Pulse</p>
-                    <p className="mt-1 text-white/70">
-                      @{profile?.login ?? "DhanushSantosh"} with {profile?.followers ?? 0} followers and {data.featuredRepos.length} curated builds in rotation.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-3xl border border-white/8 bg-black/45 p-5">
-                <p className="text-sm uppercase tracking-[0.3em] text-white/45">Recent Achievements</p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {achievements.length > 0 ? (
-                    achievements.map((event) => (
-                      <a
-                        key={event.id}
-                        href={event.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 transition hover:border-white/25 hover:bg-white/8"
-                      >
-                        {event.summary}
-                      </a>
-                    ))
-                  ) : (
-                    <p className="text-sm text-white/55">Recent public achievements will appear here as GitHub activity comes in.</p>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </Reveal>

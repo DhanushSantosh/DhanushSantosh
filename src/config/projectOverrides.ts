@@ -9,6 +9,10 @@ export type ProjectOverrideConfig = {
 
 export const projectOverrides: ProjectOverrideConfig[] = [
   {
+    repo: "DhanushSantosh/DhanushSantosh",
+    hidden: true,
+  },
+  {
     repo: "DhanushSantosh/DeskCrafter",
     accent: "Open Source",
   },
