@@ -3,6 +3,7 @@ import { ClientContactSculpture } from "@/components/ContactSculpture";
 import { ClientExpertiseSculpture } from "@/components/ExpertiseSculpture";
 import { Reveal } from "@/components/Reveal";
 import { SiteHeader } from "@/components/SiteHeader";
+import { cvConfig } from "@/config/cv";
 import { siteConfig } from "@/config/site";
 import { hero } from "@/data/content";
 import ContactSection from "@/sections/ContactSection";
@@ -21,7 +22,12 @@ export default function Home() {
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <div className="relative mx-auto max-w-6xl px-4 sm:px-8 lg:px-12">
         <div className="flex min-h-[100dvh] flex-col gap-1 pt-8 sm:gap-2 sm:pt-10 lg:gap-3 lg:pt-12">
-          <SiteHeader name={hero.name} role={hero.role} resumeUrl={hero.resume} githubUrl={siteConfig.socialLinks.find(link => link.label === "GitHub")?.href ?? "https://github.com"} />
+          <SiteHeader
+            name={hero.name}
+            role={hero.role}
+            cvPageUrl={cvConfig.pageUrl}
+            githubUrl={siteConfig.socialLinks.find((link) => link.label === "GitHub")?.href ?? "https://github.com"}
+          />
           <div className="flex min-h-0 flex-1 items-start justify-center py-6 sm:items-center sm:py-0 lg:-translate-y-9">
             <HeroSection />
           </div>

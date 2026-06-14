@@ -6,6 +6,7 @@ import BackToTopButton from "@/components/BackToTopButton";
 import PhotoFrame from "@/components/PhotoFrame";
 import { Reveal } from "@/components/Reveal";
 import { SiteHeader } from "@/components/SiteHeader";
+import { cvConfig } from "@/config/cv";
 import { siteConfig } from "@/config/site";
 import { hero } from "@/data/content";
 import ExperienceSection from "@/sections/ExperienceSection";
@@ -15,18 +16,16 @@ export const metadata: Metadata = {
   description: "Learn more about my background, skills, and journey as a creative developer.",
 };
 
-const aboutNavLinks = [
-  { label: "Bio", href: "#bio" },
-  { label: "Skills", href: "#skills" },
-  { label: "Experience", href: "#experience" },
-  { label: "Focus", href: "#focus" },
-] as const;
-
 export default function AboutPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 pb-16 pt-8 sm:gap-16 sm:px-8 sm:pb-20 sm:pt-12 lg:px-12">
-        <SiteHeader name={hero.name} role={hero.role} resumeUrl={hero.resume} githubUrl={siteConfig.socialLinks.find(link => link.label === "GitHub")?.href ?? "https://github.com"} />
+        <SiteHeader
+          name={hero.name}
+          role={hero.role}
+          cvPageUrl={cvConfig.pageUrl}
+          githubUrl={siteConfig.socialLinks.find((link) => link.label === "GitHub")?.href ?? "https://github.com"}
+        />
 
         <Link
           href="/"
@@ -39,7 +38,7 @@ export default function AboutPage() {
 
         <main className="space-y-16 sm:space-y-20 lg:space-y-24">
           <Reveal>
-            <section id="bio" className="space-y-6 cv-auto">
+            <section id="bio" className="cv-auto space-y-6">
               <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">
                 <div className="w-full max-w-xs shrink-0 lg:w-80 lg:max-w-sm">
                   <PhotoFrame imageUrl="/profile-photo.jpg" />
@@ -66,11 +65,11 @@ export default function AboutPage() {
           </Reveal>
 
           <Reveal>
-            <section id="skills" className="space-y-6 cv-auto">
+            <section id="skills" className="cv-auto space-y-6">
               <h2 className="text-2xl font-semibold tracking-wide text-white sm:text-3xl">Technical Arsenal</h2>
               <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                 <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-white/20">
-                  <h3 className="text-xl font-medium text-white">Languages & Core</h3>
+                  <h3 className="text-xl font-medium text-white">Languages &amp; Core</h3>
                   <ul className="list-inside list-disc space-y-2 text-white/70">
                     <li>TypeScript / JavaScript (ES6+)</li>
                     <li>Python</li>
@@ -79,7 +78,7 @@ export default function AboutPage() {
                   </ul>
                 </div>
                 <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-white/20">
-                  <h3 className="text-xl font-medium text-white">Frameworks & Tools</h3>
+                  <h3 className="text-xl font-medium text-white">Frameworks &amp; Tools</h3>
                   <ul className="list-inside list-disc space-y-2 text-white/70">
                     <li>Next.js / React</li>
                     <li>Tailwind CSS / Framer Motion</li>
@@ -95,7 +94,7 @@ export default function AboutPage() {
           <ExperienceSection />
 
           <Reveal>
-            <section id="focus" className="space-y-6 cv-auto">
+            <section id="focus" className="cv-auto space-y-6">
               <h2 className="text-2xl font-semibold tracking-wide text-white sm:text-3xl">Current Focus</h2>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/75">
@@ -123,7 +122,7 @@ export default function AboutPage() {
 
         <Reveal>
           <footer className="px-4 py-6 text-center text-sm text-white/80 sm:px-6">
-            <p className="mt-3 text-xs text-white/60">© {new Date().getFullYear()} {hero.name}</p>
+            <p className="mt-3 text-xs text-white/60">&copy; {new Date().getFullYear()} {hero.name}</p>
           </footer>
         </Reveal>
       </div>

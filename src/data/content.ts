@@ -7,7 +7,6 @@ export const hero = {
   summary:
     "Across fintech, creative tooling, and B2B SaaS I focus on shipping AI copilots, realtime dashboards, and automation experiences with strong frontend craft and production-minded thinking.",
   email: "contact@xerocore.in",
-  resume: "https://resume.xerocore.dev",
 };
 
 export const expertise = [
@@ -67,4 +66,3 @@ export const techStack = {
     "Hugging Face",
   ],
 };
-
