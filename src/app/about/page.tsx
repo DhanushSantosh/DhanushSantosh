@@ -6,6 +6,7 @@ import BackToTopButton from "@/components/BackToTopButton";
 import PhotoFrame from "@/components/PhotoFrame";
 import { Reveal } from "@/components/Reveal";
 import { SiteHeader } from "@/components/SiteHeader";
+import { siteConfig } from "@/config/site";
 import { hero } from "@/data/content";
 import ExperienceSection from "@/sections/ExperienceSection";
 
@@ -25,7 +26,7 @@ export default function AboutPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4 pb-16 pt-8 sm:gap-16 sm:px-8 sm:pb-20 sm:pt-12 lg:px-12">
-        <SiteHeader navLinks={aboutNavLinks} name={hero.name} role={hero.role} />
+        <SiteHeader name={hero.name} role={hero.role} resumeUrl={hero.resume} githubUrl={siteConfig.socialLinks.find(link => link.label === "GitHub")?.href ?? "https://github.com"} />
 
         <Link
           href="/"

@@ -1,27 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { FiMenu, FiX } from "react-icons/fi";
-import { useCallback, useEffect, useState } from "react";
-import type { MouseEvent } from "react";
+import { useCallback, useState } from "react";
+import { FiArrowUpRight, FiGithub } from "react-icons/fi";
 import useRafScroll from "@/hooks/useRafScroll";
 
 const HEADER_SCROLL_Y_THRESHOLD = 24;
-const DESKTOP_BREAKPOINT_PX = 768;
-
-type NavLink = {
-  label: string;
-  href: string;
-};
 
 type SiteHeaderProps = {
-  navLinks: ReadonlyArray<NavLink>;
   name: string;
   role: string;
+  resumeUrl: string;
+  githubUrl: string;
 };
 
-export function SiteHeader({ navLinks, name, role }: SiteHeaderProps) {
-  const [open, setOpen] = useState(false);
+export function SiteHeader({ name, role, resumeUrl, githubUrl }: SiteHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
 
   const handleScroll = useCallback((scrollY: number) => {
@@ -31,39 +23,6 @@ export function SiteHeader({ navLinks, name, role }: SiteHeaderProps) {
 
   useRafScroll(handleScroll);
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= DESKTOP_BREAKPOINT_PX) {
-        setOpen(false);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const toggleMenu = useCallback(() => setOpen((prev) => !prev), []);
-  const closeMenu = useCallback(() => setOpen(false), []);
-  const handleNavClick = useCallback(
-    (event: MouseEvent<HTMLAnchorElement>, href: string) => {
-      if (href.startsWith("/#")) {
-        event.preventDefault();
-        closeMenu();
-        const targetId = href.replace("/#", "#");
-        const target = document.querySelector(targetId);
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-        } else {
-          // If target not found (e.g. on another page), navigate to home with hash
-          window.location.assign(href);
-        }
-      } else {
-        closeMenu();
-      }
-    },
-    [closeMenu],
-  );
-
   return (
     <header
       className={`relative rounded-2xl border border-white/10 bg-black/85 p-5 shadow-[0_0_30px_rgba(0,0,0,0.6)] transition-all duration-300 ${scrolled ? "backdrop-blur supports-[backdrop-filter]:bg-black/65 sticky top-4 z-30" : ""
@@ -71,55 +30,37 @@ export function SiteHeader({ navLinks, name, role }: SiteHeaderProps) {
     >
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.5em] text-white/45">
+          <p className="text-[10px] sm:text-xs uppercase tracking-[0.5em] text-white/45">
             Portfolio
           </p>
-          <p className="mt-1 text-lg font-semibold text-white">
-            {name} — {role}
+          <p className="mt-1 text-sm sm:text-lg font-semibold text-white">
+            {name} — <span className="hidden sm:inline">{role}</span>
           </p>
         </div>
-        <nav className="hidden flex-wrap gap-4 text-sm text-white/70 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              onClick={(event) => handleNavClick(event, link.href)}
-              data-cursor-block
-              className="rounded-full border border-white/10 px-4 py-2 text-white/70 transition hover:border-white/40 hover:text-white hover:shadow-[0_0_28px_rgba(95,225,255,0.45)]"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        <button
-          type="button"
-          aria-label="Toggle navigation"
-          aria-expanded={open}
-          onClick={toggleMenu}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white transition hover:border-white/40 md:hidden"
-        >
-          {open ? <FiX size={20} /> : <FiMenu size={20} />}
-        </button>
-      </div>
-      <div
-        className={`absolute left-5 right-5 top-full z-30 rounded-3xl border border-white/15 bg-black/95 p-4 shadow-[0_20px_35px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 md:hidden ${open
-          ? "pointer-events-auto opacity-100 translate-y-3"
-          : "pointer-events-none -translate-y-2 opacity-0"
-          }`}
-      >
-        <div className="flex flex-col gap-3 text-sm font-medium text-white/80">
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              onClick={(event) => handleNavClick(event, link.href)}
-              data-cursor-block
-              className="rounded-2xl border border-white/10 px-4 py-3 text-center hover:border-white/30 hover:bg-white/5"
-            >
-              {link.label}
-            </Link>
-          ))}
+        
+        <div className="flex items-center gap-3">
+          <a
+            href={githubUrl}
+            target="_blank"
+            rel="noreferrer"
+            data-cursor-block
+            className="flex h-10 w-10 sm:h-auto sm:w-auto items-center justify-center sm:px-4 sm:py-2 rounded-full border border-white/10 text-white transition hover:border-white/40 hover:shadow-[0_0_28px_rgba(95,225,255,0.45)] text-sm font-medium"
+            aria-label="GitHub Profile"
+          >
+            <FiGithub className="sm:mr-2 text-[15px]" />
+            <span className="hidden sm:inline">GitHub</span>
+          </a>
+          <a
+            href={resumeUrl}
+            target="_blank"
+            rel="noreferrer"
+            data-cursor-block
+            className="group inline-flex items-center justify-center rounded-full border border-white bg-white px-4 sm:px-5 py-2 sm:py-2.5 text-[11px] sm:text-xs uppercase tracking-widest font-bold text-black transition hover:bg-white hover:shadow-[0_0_35px_rgba(255,255,255,0.55)]"
+          >
+            <span className="hidden sm:inline">Download CV</span>
+            <span className="sm:hidden">CV</span>
+            <FiArrowUpRight className="ml-1.5 text-black transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </a>
         </div>
       </div>
     </header>

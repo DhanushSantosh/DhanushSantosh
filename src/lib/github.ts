@@ -84,6 +84,7 @@ export type GitHubPortfolioData = {
   projects: GitHubProject[];
   recentEvents: GitHubRecentEvent[];
   source: "graphql" | "rest-fallback" | "unavailable";
+  starredRepos: GitHubStarredRepo[];
   totalFeaturedStars: number;
   weeks: GitHubContributionWeek[];
 };
@@ -107,6 +108,14 @@ export type GitHubProject = {
   stars: number | null;
   summary: string;
   topics: string[];
+};
+
+export type GitHubStarredRepo = {
+  description: string | null;
+  languageName: string | null;
+  name: string;
+  nameWithOwner: string;
+  url: string;
 };
 
 type GraphQLLanguage = {
@@ -408,6 +417,16 @@ function normalizeProjectStack(repoTopics: string[], languageName: string | null
   return Array.from(new Set(items)).slice(0, 6);
 }
 
+function normalizeRestStarredRepo(repo: GitHubRestRepo): GitHubStarredRepo {
+  return {
+    description: normalizeOptionalText(repo.description),
+    languageName: repo.language ?? null,
+    name: repo.name,
+    nameWithOwner: repo.full_name,
+    url: repo.html_url,
+  };
+}
+
 function normalizeGraphQLRepo(
   repoNode: GraphQLRepositoryNode | null | undefined,
   config: FeaturedRepoConfig,
@@ -491,6 +510,15 @@ function normalizeProjectRepo(repo: GitHubRestRepo, override?: ProjectOverrideCo
     summary: override?.summaryOverride ?? repo.description ?? "Repository details will appear here once GitHub data is connected.",
     topics,
   };
+}
+
+async function getGitHubStarredRepos(username: string) {
+  const repos = await fetchGitHubRestPaginated<GitHubRestRepo>(
+    `/users/${username}/starred?per_page=100`,
+    [GITHUB_TAGS.activity],
+  );
+
+  return repos.map(normalizeRestStarredRepo);
 }
 
 async function getGitHubProjects(username: string) {
@@ -613,6 +641,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
   if (!payload?.user) return null;
 
   const projects = await getGitHubProjects(username);
+  const starredRepos = await getGitHubStarredRepos(username);
 
   const featured = buildFeaturedRepositorySelection().map(({ alias, config }) =>
     normalizeGraphQLRepo(payload[alias], config),
@@ -651,16 +680,18 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
     projects,
     recentEvents,
     source: "graphql",
+    starredRepos,
     totalFeaturedStars: featured.reduce((sum, repo) => sum + (repo.stars ?? 0), 0),
     weeks: payload.user.contributionsCollection.contributionCalendar.weeks,
   };
 }
 
 async function getRestFallbackPortfolioData(username: string): Promise<GitHubPortfolioData> {
-  const [user, events, projects] = await Promise.all([
+  const [user, events, projects, starredRepos] = await Promise.all([
     fetchGitHubRest<GitHubRestUser>(`/users/${username}`, [GITHUB_TAGS.profile]),
     fetchGitHubRest<GitHubRestEvent[]>(`/users/${username}/events/public?per_page=12`, [GITHUB_TAGS.activity]),
     getGitHubProjects(username),
+    getGitHubStarredRepos(username),
   ]);
 
   const featured = await Promise.all(
@@ -701,6 +732,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
       .filter((event): event is GitHubRecentEvent => Boolean(event))
       .slice(0, 6),
     source: user ? "rest-fallback" : "unavailable",
+    starredRepos,
     totalFeaturedStars: featured.reduce((sum, repo) => sum + (repo.stars ?? 0), 0),
     weeks: [],
   };

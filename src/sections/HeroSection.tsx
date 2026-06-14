@@ -27,15 +27,6 @@ export function HeroSection() {
               About Me
               <FiArrowUpRight className="ml-2 text-black transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
-            <a
-              href={hero.resume}
-              target="_blank"
-              rel="noreferrer"
-              data-cursor-block
-              className="inline-flex w-full items-center justify-center rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/40 hover:shadow-[0_0_28px_rgba(95,225,255,0.45)] sm:w-auto"
-            >
-              Download CV
-            </a>
           </div>
         </Reveal>
         <Reveal delay={0.2} className="flex w-full justify-center lg:flex-[0.35] lg:justify-end">
