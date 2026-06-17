@@ -8,13 +8,6 @@ import {
   getGitHubPortfolioData,
 } from "@/lib/github";
 
-function formatTimestamp(dateString: string) {
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(dateString));
-}
-
 function formatShortDate(dateString: string) {
   return new Intl.DateTimeFormat("en", {
     day: "numeric",
@@ -22,8 +15,9 @@ function formatShortDate(dateString: string) {
   }).format(new Date(dateString));
 }
 
-function getSourceLabel(source: "graphql" | "rest-fallback" | "unavailable") {
+function getSourceLabel(source: "graphql" | "live-partial" | "rest-fallback" | "unavailable") {
   if (source === "graphql") return "Full Live Sync";
+  if (source === "live-partial") return "Partial Live Sync";
   if (source === "rest-fallback") return "Live Public Sync";
   return "Safe Fallback";
 }
@@ -90,20 +84,12 @@ function getActiveDays(days: GitHubContributionDay[]) {
   return days.filter((day) => day.contributionCount > 0).length;
 }
 
-function getPeakContributionDay(days: GitHubContributionDay[]) {
-  return days.reduce<GitHubContributionDay | null>((peak, day) => {
-    if (!peak || day.contributionCount > peak.contributionCount) return day;
-    return peak;
-  }, null);
-}
-
 export default async function GitHubActivitySection() {
   const data = await getGitHubPortfolioData();
   const profile = data.profile;
   const contributionDays = flattenContributionDays(data.weeks.map((week) => week.contributionDays));
   const activeDays = getActiveDays(contributionDays);
   const currentStreak = getCurrentStreak(contributionDays);
-  const peakDay = getPeakContributionDay(contributionDays);
 
   const weeksWithMonthLabels = data.weeks.map((week, index) => {
     const date = new Date(week.firstDay);
@@ -127,7 +113,7 @@ export default async function GitHubActivitySection() {
     };
   });
 
-  const isLive = data.source === "graphql" || data.source === "rest-fallback";
+  const isLive = data.source !== "unavailable";
 
   return (
     <section id="github-activity" className="cv-auto relative overflow-hidden pb-12 bg-transparent">
@@ -210,9 +196,13 @@ export default async function GitHubActivitySection() {
                     </div>
                   ) : (
                     <div className="rounded-xl border border-dashed border-white/10 bg-black/30 p-4 text-center my-3">
-                      <p className="text-xs font-medium text-white/80">Public activity is live.</p>
+                      <p className="text-xs font-medium text-white/80">
+                        {data.source === "unavailable" ? "GitHub sync is temporarily unavailable." : "Public activity is live."}
+                      </p>
                       <p className="mt-1 text-[10px] text-white/40 max-w-sm mx-auto leading-relaxed">
-                        Recent events are syncing. The full contribution graph will appear when GraphQL data becomes available.
+                        {data.source === "unavailable"
+                          ? "Recent events and contributions will reappear automatically once GitHub data is reachable again."
+                          : "Recent events are syncing. The full contribution graph will appear when GraphQL contribution data becomes available."}
                       </p>
                     </div>
                   )}
@@ -335,7 +325,9 @@ export default async function GitHubActivitySection() {
                 <div>
                   <p className="text-sm uppercase tracking-[0.3em] text-white/45">Profile Pulse</p>
                   <p className="mt-1 text-white/70">
-                    @{profile?.login ?? "DhanushSantosh"} with {profile?.followers ?? 0} followers and {data.projects.length} public repos tracked live.
+                    {profile
+                      ? `@${profile.login} with ${profile.followers} followers and ${data.projects.length} public repos currently visible.`
+                      : `${data.projects.length} public repos are currently visible while the GitHub profile summary reconnects.`}
                   </p>
                 </div>
               </div>
@@ -359,8 +351,8 @@ export default async function GitHubActivitySection() {
                 <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1">Followers</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-medium text-white tracking-tight">{data.featuredRepos.length}</span>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1">Featured</span>
+                <span className="text-xl font-medium text-white tracking-tight">{data.projects.length}</span>
+                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1">Projects</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-white tracking-tight mt-1">{formatShortDate(data.lastSyncedAt)}</span>

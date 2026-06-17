@@ -83,9 +83,9 @@ export type GitHubPortfolioData = {
   profile: GitHubProfileSummary | null;
   projects: GitHubProject[];
   recentEvents: GitHubRecentEvent[];
-  source: "graphql" | "rest-fallback" | "unavailable";
+  source: "graphql" | "live-partial" | "rest-fallback" | "unavailable";
   starredRepos: GitHubStarredRepo[];
-  totalFeaturedStars: number;
+  totalProjectStars: number;
   weeks: GitHubContributionWeek[];
 };
 
@@ -144,6 +144,18 @@ type GraphQLRepositoryNode = {
 type GraphQLResponse<T> = {
   data?: T;
   errors?: Array<{ message: string }>;
+};
+
+type GitHubFetchResult<T> = {
+  data: T | null;
+  ok: boolean;
+  partial: boolean;
+};
+
+type GitHubCollectionFetchResult<T> = {
+  items: T[];
+  ok: boolean;
+  partial: boolean;
 };
 
 type GitHubGraphQLPayload = {
@@ -247,55 +259,60 @@ async function fetchGitHubGraphQL<T>(
   query: string,
   variables: Record<string, string>,
   tags: GitHubTag[],
-): Promise<T | null> {
+): Promise<GitHubFetchResult<T>> {
   const token = getGitHubToken();
-  if (!token) return null;
+  if (!token) {
+    return {
+      data: null,
+      ok: false,
+      partial: false,
+    };
+  }
 
-  const response = await fetch(GITHUB_GRAPHQL_ENDPOINT, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ query, variables }),
-    next: {
-      revalidate: DEFAULT_REVALIDATE_SECONDS,
-      tags: uniqueTags(tags),
-    },
-  });
+  try {
+    const response = await fetch(GITHUB_GRAPHQL_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query, variables }),
+      next: {
+        revalidate: DEFAULT_REVALIDATE_SECONDS,
+        tags: uniqueTags(tags),
+      },
+    });
 
-  if (!response.ok) return null;
+    if (!response.ok) {
+      return {
+        data: null,
+        ok: false,
+        partial: false,
+      };
+    }
 
-  const payload = (await response.json()) as GraphQLResponse<T>;
-  if (!payload.data || payload.errors?.length) return null;
+    const payload = (await response.json()) as GraphQLResponse<T>;
+    const data = payload.data ?? null;
+    const hasErrors = Boolean(payload.errors?.length);
 
-  return payload.data;
+    return {
+      data,
+      ok: Boolean(data) && !hasErrors,
+      partial: Boolean(data) && hasErrors,
+    };
+  } catch {
+    return {
+      data: null,
+      ok: false,
+      partial: false,
+    };
+  }
 }
 
-async function fetchGitHubRest<T>(path: string, tags: GitHubTag[]): Promise<T | null> {
+async function fetchGitHubRest<T>(path: string, tags: GitHubTag[]): Promise<GitHubFetchResult<T>> {
   const token = getGitHubToken();
-  const response = await fetch(`${GITHUB_REST_ENDPOINT}${path}`, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    next: {
-      revalidate: DEFAULT_REVALIDATE_SECONDS,
-      tags: uniqueTags(tags),
-    },
-  });
-
-  if (!response.ok) return null;
-  return (await response.json()) as T;
-}
-
-async function fetchGitHubRestPaginated<T>(path: string, tags: GitHubTag[], maxPages = 10): Promise<T[]> {
-  const token = getGitHubToken();
-  const items: T[] = [];
-
-  for (let page = 1; page <= maxPages; page += 1) {
-    const separator = path.includes("?") ? "&" : "?";
-    const response = await fetch(`${GITHUB_REST_ENDPOINT}${path}${separator}page=${page}`, {
+  try {
+    const response = await fetch(`${GITHUB_REST_ENDPOINT}${path}`, {
       headers: {
         Accept: "application/vnd.github+json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -306,15 +323,82 @@ async function fetchGitHubRestPaginated<T>(path: string, tags: GitHubTag[], maxP
       },
     });
 
-    if (!response.ok) break;
+    if (!response.ok) {
+      return {
+        data: null,
+        ok: false,
+        partial: false,
+      };
+    }
 
-    const pageItems = (await response.json()) as T[];
-    items.push(...pageItems);
+    return {
+      data: (await response.json()) as T,
+      ok: true,
+      partial: false,
+    };
+  } catch {
+    return {
+      data: null,
+      ok: false,
+      partial: false,
+    };
+  }
+}
 
-    if (pageItems.length < 100) break;
+async function fetchGitHubRestPaginated<T>(
+  path: string,
+  tags: GitHubTag[],
+  maxPages = 10,
+): Promise<GitHubCollectionFetchResult<T>> {
+  const token = getGitHubToken();
+  const items: T[] = [];
+
+  for (let page = 1; page <= maxPages; page += 1) {
+    const separator = path.includes("?") ? "&" : "?";
+    try {
+      const response = await fetch(`${GITHUB_REST_ENDPOINT}${path}${separator}page=${page}`, {
+        headers: {
+          Accept: "application/vnd.github+json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        next: {
+          revalidate: DEFAULT_REVALIDATE_SECONDS,
+          tags: uniqueTags(tags),
+        },
+      });
+
+      if (!response.ok) {
+        return {
+          items,
+          ok: false,
+          partial: items.length > 0,
+        };
+      }
+
+      const pageItems = (await response.json()) as T[];
+      items.push(...pageItems);
+
+      if (pageItems.length < 100) {
+        return {
+          items,
+          ok: true,
+          partial: false,
+        };
+      }
+    } catch {
+      return {
+        items,
+        ok: false,
+        partial: items.length > 0,
+      };
+    }
   }
 
-  return items;
+  return {
+    items,
+    ok: true,
+    partial: false,
+  };
 }
 
 function buildFeaturedRepositorySelection() {
@@ -512,32 +596,44 @@ function normalizeProjectRepo(repo: GitHubRestRepo, override?: ProjectOverrideCo
   };
 }
 
-async function getGitHubStarredRepos(username: string) {
-  const repos = await fetchGitHubRestPaginated<GitHubRestRepo>(
+function countProjectStars(projects: GitHubProject[]) {
+  return projects.reduce((sum, project) => sum + (project.stars ?? 0), 0);
+}
+
+async function getGitHubStarredRepos(username: string): Promise<GitHubCollectionFetchResult<GitHubStarredRepo>> {
+  const result = await fetchGitHubRestPaginated<GitHubRestRepo>(
     `/users/${username}/starred?per_page=100`,
     [GITHUB_TAGS.activity],
   );
 
-  return repos.map(normalizeRestStarredRepo);
+  return {
+    items: result.items.map(normalizeRestStarredRepo),
+    ok: result.ok,
+    partial: result.partial,
+  };
 }
 
-async function getGitHubProjects(username: string) {
-  const repos = await fetchGitHubRestPaginated<GitHubRestRepo>(
+async function getGitHubProjects(username: string): Promise<GitHubCollectionFetchResult<GitHubProject>> {
+  const result = await fetchGitHubRestPaginated<GitHubRestRepo>(
     `/users/${username}/repos?per_page=100&sort=updated&direction=desc&type=public`,
     [GITHUB_TAGS.projects],
   );
 
-  return repos
-    .map((repo) => {
-      const override = projectOverrideLookup.get(repo.full_name.toLowerCase());
-      return override?.hidden ? null : normalizeProjectRepo(repo, override);
-    })
-    .filter((repo): repo is GitHubProject => Boolean(repo))
-    .sort((left, right) => {
-      const leftTime = left.pushedAt ? Date.parse(left.pushedAt) : 0;
-      const rightTime = right.pushedAt ? Date.parse(right.pushedAt) : 0;
-      return rightTime - leftTime;
-    });
+  return {
+    items: result.items
+      .map((repo) => {
+        const override = projectOverrideLookup.get(repo.full_name.toLowerCase());
+        return override?.hidden ? null : normalizeProjectRepo(repo, override);
+      })
+      .filter((repo): repo is GitHubProject => Boolean(repo))
+      .sort((left, right) => {
+        const leftTime = left.pushedAt ? Date.parse(left.pushedAt) : 0;
+        const rightTime = right.pushedAt ? Date.parse(right.pushedAt) : 0;
+        return rightTime - leftTime;
+      }),
+    ok: result.ok,
+    partial: result.partial,
+  };
 }
 
 function normalizeActivityEvent(event: GitHubRestEvent): GitHubRecentEvent | null {
@@ -628,7 +724,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
   from.setUTCDate(today.getUTCDate() - 364);
 
   const query = buildGitHubGraphQLQuery();
-  const payload = await fetchGitHubGraphQL<GitHubGraphQLPayload>(
+  const payloadResult = await fetchGitHubGraphQL<GitHubGraphQLPayload>(
     query,
     {
       from: from.toISOString(),
@@ -638,24 +734,28 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
     [GITHUB_TAGS.profile, GITHUB_TAGS.activity, GITHUB_TAGS.featured],
   );
 
+  const payload = payloadResult.data;
   if (!payload?.user) return null;
 
-  const projects = await getGitHubProjects(username);
-  const starredRepos = await getGitHubStarredRepos(username);
+  const [projectsResult, starredReposResult, recentEventsResult] = await Promise.all([
+    getGitHubProjects(username),
+    getGitHubStarredRepos(username),
+    fetchGitHubRest<GitHubRestEvent[]>(`/users/${username}/events/public?per_page=12`, [GITHUB_TAGS.activity]),
+  ]);
 
   const featured = buildFeaturedRepositorySelection().map(({ alias, config }) =>
     normalizeGraphQLRepo(payload[alias], config),
   );
 
-  const recentEventsRaw = await fetchGitHubRest<GitHubRestEvent[]>(
-    `/users/${username}/events/public?per_page=12`,
-    [GITHUB_TAGS.activity],
-  );
-
-  const recentEvents = (recentEventsRaw ?? [])
+  const recentEvents = (recentEventsResult.data ?? [])
     .map(normalizeActivityEvent)
     .filter((event): event is GitHubRecentEvent => Boolean(event))
     .slice(0, 6);
+
+  const source =
+    payloadResult.ok && projectsResult.ok && starredReposResult.ok && recentEventsResult.ok
+      ? "graphql"
+      : "live-partial";
 
   return {
     available: true,
@@ -677,63 +777,83 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
       totalContributions: payload.user.contributionsCollection.contributionCalendar.totalContributions,
       url: payload.user.url,
     },
-    projects,
+    projects: projectsResult.items,
     recentEvents,
-    source: "graphql",
-    starredRepos,
-    totalFeaturedStars: featured.reduce((sum, repo) => sum + (repo.stars ?? 0), 0),
+    source,
+    starredRepos: starredReposResult.items,
+    totalProjectStars: countProjectStars(projectsResult.items),
     weeks: payload.user.contributionsCollection.contributionCalendar.weeks,
   };
 }
 
 async function getRestFallbackPortfolioData(username: string): Promise<GitHubPortfolioData> {
-  const [user, events, projects, starredRepos] = await Promise.all([
+  const [userResult, eventsResult, projectsResult, starredReposResult] = await Promise.all([
     fetchGitHubRest<GitHubRestUser>(`/users/${username}`, [GITHUB_TAGS.profile]),
     fetchGitHubRest<GitHubRestEvent[]>(`/users/${username}/events/public?per_page=12`, [GITHUB_TAGS.activity]),
     getGitHubProjects(username),
     getGitHubStarredRepos(username),
   ]);
 
-  const featured = await Promise.all(
+  const featuredResults = await Promise.all(
     featuredRepos
       .filter((project) => !project.hidden)
       .map(async (config) => {
-        if (!config.repo) return normalizeRestRepo(null, config);
-        const repo = await fetchGitHubRest<GitHubRestRepo>(`/repos/${config.repo}`, [GITHUB_TAGS.featured]);
-        return normalizeRestRepo(repo, config);
+        if (!config.repo) {
+          return {
+            repo: normalizeRestRepo(null, config),
+            ok: true,
+          };
+        }
+
+        const repoResult = await fetchGitHubRest<GitHubRestRepo>(`/repos/${config.repo}`, [GITHUB_TAGS.featured]);
+        return {
+          repo: normalizeRestRepo(repoResult.data, config),
+          ok: repoResult.ok,
+        };
       }),
   );
 
+  const featured = featuredResults.map((result) => result.repo);
+  const isRestFallbackComplete =
+    userResult.ok &&
+    eventsResult.ok &&
+    projectsResult.ok &&
+    starredReposResult.ok &&
+    featuredResults.every((result) => result.ok);
+
+  const hasAnyLiveData = Boolean(userResult.data || featured.length || projectsResult.items.length);
+  const source = !hasAnyLiveData ? "unavailable" : isRestFallbackComplete ? "rest-fallback" : "live-partial";
+
   return {
-    available: Boolean(user || featured.length || projects.length),
+    available: hasAnyLiveData,
     featuredRepos: featured.sort((a, b) => {
       const aOrder = featuredRepos.find((item) => item.titleOverride === a.name || item.repo === a.nameWithOwner)?.order ?? 0;
       const bOrder = featuredRepos.find((item) => item.titleOverride === b.name || item.repo === b.nameWithOwner)?.order ?? 0;
       return aOrder - bOrder;
     }),
     lastSyncedAt: new Date().toISOString(),
-    profile: user
+    profile: userResult.data
       ? {
-          avatarUrl: user.avatar_url,
-          bio: user.bio,
-          followers: user.followers,
-          following: user.following,
-          login: user.login,
-          name: user.name,
-          publicRepos: user.public_repos,
+          avatarUrl: userResult.data.avatar_url,
+          bio: userResult.data.bio,
+          followers: userResult.data.followers,
+          following: userResult.data.following,
+          login: userResult.data.login,
+          name: userResult.data.name,
+          publicRepos: userResult.data.public_repos,
           starredCount: null,
           totalContributions: null,
-          url: user.html_url,
+          url: userResult.data.html_url,
         }
       : null,
-    projects,
-    recentEvents: (events ?? [])
+    projects: projectsResult.items,
+    recentEvents: (eventsResult.data ?? [])
       .map(normalizeActivityEvent)
       .filter((event): event is GitHubRecentEvent => Boolean(event))
       .slice(0, 6),
-    source: user ? "rest-fallback" : "unavailable",
-    starredRepos,
-    totalFeaturedStars: featured.reduce((sum, repo) => sum + (repo.stars ?? 0), 0),
+    source,
+    starredRepos: starredReposResult.items,
+    totalProjectStars: countProjectStars(projectsResult.items),
     weeks: [],
   };
 }

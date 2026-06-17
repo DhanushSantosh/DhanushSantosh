@@ -1,8 +1,15 @@
 import type { ReactNode } from "react";
-import { FiActivity, FiAward, FiFolder, FiStar, FiUsers } from "react-icons/fi";
+import { FiActivity, FiFolder, FiStar } from "react-icons/fi";
 
 import { Reveal } from "@/components/Reveal";
 import { getGitHubPortfolioData } from "@/lib/github";
+
+function getHighlightsSourceLabel(source: "graphql" | "live-partial" | "rest-fallback" | "unavailable") {
+  if (source === "graphql") return "GraphQL + REST";
+  if (source === "live-partial") return "Partial live data";
+  if (source === "rest-fallback") return "REST fallback";
+  return "Static-safe mode";
+}
 
 function GitHubProofCard({
   icon,
@@ -54,7 +61,7 @@ export default async function GitHubHighlightsSection() {
               </div>
 
               <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.26em] text-white/55">
-                {data.source === "graphql" ? "GraphQL + REST" : data.source === "rest-fallback" ? "REST fallback" : "Static-safe mode"}
+                {getHighlightsSourceLabel(data.source)}
               </div>
             </div>
 
@@ -62,20 +69,32 @@ export default async function GitHubHighlightsSection() {
               <GitHubProofCard
                 icon={<FiActivity />}
                 label="Contributions"
-                value={profile?.totalContributions != null ? String(profile.totalContributions) : "REST mode"}
-                hint="last 365 days of GitHub contribution activity"
+                value={
+                  profile?.totalContributions != null
+                    ? String(profile.totalContributions)
+                    : data.source === "unavailable"
+                      ? "Offline"
+                      : "REST mode"
+                }
+                hint="last 365 days of GitHub contribution activity when GraphQL is available"
               />
               <GitHubProofCard
                 icon={<FiStar />}
                 label="Stars"
-                value={String(data.totalFeaturedStars)}
-                hint="stars accumulated across curated featured repositories"
+                value={String(data.totalProjectStars)}
+                hint="stars accumulated across public GitHub repos currently visible on the site"
               />
               <GitHubProofCard
                 icon={<FiFolder />}
                 label="Public Repos"
                 value={String(profile?.publicRepos ?? 0)}
-                hint={profile ? `${profile.followers} followers tracking the journey` : "profile summary appears when GitHub data is reachable"}
+                hint={
+                  profile
+                    ? `${profile.followers} followers tracking the journey`
+                    : data.source === "unavailable"
+                      ? "profile summary reconnects when GitHub is reachable again"
+                      : "profile summary is syncing from public GitHub data"
+                }
               />
             </div>
           </div>
