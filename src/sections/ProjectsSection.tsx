@@ -46,13 +46,13 @@ export default async function ProjectsSection() {
                           <p className="text-[11px] uppercase tracking-[0.4em] text-white/50">{project.accent}</p>
                           <h3 className="text-2xl font-semibold text-white">{project.name}</h3>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
                           {project.languageName ? (
                             <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/55">
                               {project.languageName}
                             </span>
                           ) : null}
-                          <div className="flex items-center gap-4 text-[11px] uppercase tracking-[0.2em] text-white/45">
+                          <div className="flex items-center gap-4 whitespace-nowrap text-[11px] uppercase tracking-[0.2em] text-white/45">
                             {project.stars != null ? (
                               <span className="inline-flex items-center gap-1.5">
                                 <FiStar className="text-[13px]" />

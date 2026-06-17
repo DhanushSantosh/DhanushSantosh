@@ -496,9 +496,8 @@ function normalizeStack(repoTopics: string[], config: FeaturedRepoConfig, langua
   return items.slice(0, 6);
 }
 
-function normalizeProjectStack(repoTopics: string[], languageName: string | null) {
-  const items = [...(languageName ? [languageName] : []), ...repoTopics];
-  return Array.from(new Set(items)).slice(0, 6);
+function normalizeProjectStack(repoTopics: string[]) {
+  return Array.from(new Set(repoTopics)).slice(0, 6);
 }
 
 function normalizeRestStarredRepo(repo: GitHubRestRepo): GitHubStarredRepo {
@@ -589,7 +588,7 @@ function normalizeProjectRepo(repo: GitHubRestRepo, override?: ProjectOverrideCo
     openIssues: repo.open_issues_count ?? null,
     pushedAt: repo.pushed_at ?? null,
     repoUrl: repo.html_url,
-    stack: normalizeProjectStack(topics, repo.language ?? null),
+    stack: normalizeProjectStack(topics),
     stars: repo.stargazers_count ?? null,
     summary: override?.summaryOverride ?? repo.description ?? "Repository details will appear here once GitHub data is connected.",
     topics,
