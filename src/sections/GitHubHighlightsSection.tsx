@@ -76,7 +76,7 @@ export default async function GitHubHighlightsSection() {
                       ? "Offline"
                       : "REST mode"
                 }
-                hint="last 365 days of GitHub contribution activity when GraphQL is available"
+                hint="all GitHub contributions across every contribution year when GraphQL is available"
               />
               <GitHubProofCard
                 icon={<FiStar />}

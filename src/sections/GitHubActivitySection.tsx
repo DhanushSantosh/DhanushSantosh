@@ -212,8 +212,8 @@ export default async function GitHubActivitySection() {
                 {data.weeks.length > 0 && (
                   <div className="flex flex-wrap gap-x-8 gap-y-4 mt-5 pt-4 border-t border-white/[0.05]">
                     <div className="flex flex-col">
-                      <span className="text-xl font-medium text-white tracking-tight leading-none">{profile?.totalContributions ?? "N/A"}</span>
-                      <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1.5">Total Year</span>
+                      <span className="text-xl font-medium text-white tracking-tight leading-none">{profile?.lastYearContributions ?? "N/A"}</span>
+                      <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1.5">Last 365D</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xl font-medium text-white tracking-tight leading-none">{activeDays}</span>

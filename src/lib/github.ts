@@ -9,6 +9,7 @@ const DEFAULT_REVALIDATE_SECONDS = 3600;
 const DEFAULT_GITHUB_USERNAME = "DhanushSantosh";
 const GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql";
 const GITHUB_REST_ENDPOINT = "https://api.github.com";
+const GITHUB_WEB_ENDPOINT = "https://github.com";
 
 export const GITHUB_TAGS = {
   profile: "github-profile",
@@ -37,6 +38,7 @@ export type GitHubProfileSummary = {
   bio: string | null;
   followers: number;
   following: number;
+  lastYearContributions: number | null;
   login: string;
   name: string | null;
   publicRepos: number;
@@ -170,6 +172,7 @@ type GitHubGraphQLPayload = {
           firstDay: string;
         }>;
       };
+      contributionYears: number[];
     };
     followers: { totalCount: number };
     following: { totalCount: number };
@@ -180,6 +183,12 @@ type GitHubGraphQLPayload = {
     url: string;
   } | null;
 } & Record<string, GraphQLRepositoryNode | undefined | null>;
+
+type GitHubContributionSummary = {
+  lastYear: number | null;
+  totalAllTime: number | null;
+  ok: boolean;
+};
 
 type GitHubRestUser = {
   avatar_url: string;
@@ -345,6 +354,40 @@ async function fetchGitHubRest<T>(path: string, tags: GitHubTag[]): Promise<GitH
   }
 }
 
+async function fetchGitHubHtml(path: string, tags: GitHubTag[]): Promise<GitHubFetchResult<string>> {
+  try {
+    const response = await fetch(`${GITHUB_WEB_ENDPOINT}${path}`, {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+      },
+      next: {
+        revalidate: DEFAULT_REVALIDATE_SECONDS,
+        tags: uniqueTags(tags),
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        data: null,
+        ok: false,
+        partial: false,
+      };
+    }
+
+    return {
+      data: await response.text(),
+      ok: true,
+      partial: false,
+    };
+  } catch {
+    return {
+      data: null,
+      ok: false,
+      partial: false,
+    };
+  }
+}
+
 async function fetchGitHubRestPaginated<T>(
   path: string,
   tags: GitHubTag[],
@@ -440,6 +483,7 @@ function buildGitHubGraphQLQuery() {
           totalCount
         }
         contributionsCollection(from: $from, to: $to) {
+          contributionYears
           contributionCalendar {
             totalContributions
             weeks {
@@ -487,6 +531,51 @@ function buildGitHubGraphQLQuery() {
       }
     }
   `;
+}
+
+function parseContributionHeadlineCount(html: string) {
+  const match = html.match(/<h2[^>]*>\s*([\d,]+)\s*contributions?/i);
+  if (!match) return null;
+
+  const count = Number.parseInt(match[1]?.replace(/,/g, "") ?? "", 10);
+  return Number.isFinite(count) ? count : null;
+}
+
+async function getGitHubContributionSummary(username: string, years: number[]): Promise<GitHubContributionSummary> {
+  const lastYearResult = await fetchGitHubHtml(`/users/${username}/contributions`, [GITHUB_TAGS.profile, GITHUB_TAGS.activity]);
+  const lastYear = lastYearResult.data ? parseContributionHeadlineCount(lastYearResult.data) : null;
+
+  if (years.length === 0) {
+    return {
+      lastYear,
+      totalAllTime: 0,
+      ok: lastYearResult.ok,
+    };
+  }
+
+  const yearResults = await Promise.all(
+    years.map(async (year) => {
+      const from = `${year}-01-01`;
+      const to = `${year}-12-31`;
+      const result = await fetchGitHubHtml(`/users/${username}/contributions?from=${from}&to=${to}`, [
+        GITHUB_TAGS.profile,
+        GITHUB_TAGS.activity,
+      ]);
+
+      return {
+        count: result.data ? parseContributionHeadlineCount(result.data) : null,
+        ok: result.ok,
+      };
+    }),
+  );
+
+  const totalAllTime = yearResults.reduce((sum, result) => sum + (result.count ?? 0), 0);
+
+  return {
+    lastYear,
+    totalAllTime,
+    ok: lastYearResult.ok && yearResults.every((result) => result.ok),
+  };
 }
 
 function normalizeStack(repoTopics: string[], config: FeaturedRepoConfig, languageName: string | null) {
@@ -736,10 +825,11 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
   const payload = payloadResult.data;
   if (!payload?.user) return null;
 
-  const [projectsResult, starredReposResult, recentEventsResult] = await Promise.all([
+  const [projectsResult, starredReposResult, recentEventsResult, contributionSummaryResult] = await Promise.all([
     getGitHubProjects(username),
     getGitHubStarredRepos(username),
     fetchGitHubRest<GitHubRestEvent[]>(`/users/${username}/events/public?per_page=12`, [GITHUB_TAGS.activity]),
+    getGitHubContributionSummary(username, payload.user.contributionsCollection.contributionYears),
   ]);
 
   const featured = buildFeaturedRepositorySelection().map(({ alias, config }) =>
@@ -752,7 +842,11 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
     .slice(0, 6);
 
   const source =
-    payloadResult.ok && projectsResult.ok && starredReposResult.ok && recentEventsResult.ok
+    payloadResult.ok &&
+    projectsResult.ok &&
+    starredReposResult.ok &&
+    recentEventsResult.ok &&
+    contributionSummaryResult.ok
       ? "graphql"
       : "live-partial";
 
@@ -769,11 +863,13 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
       bio: payload.user.bio,
       followers: payload.user.followers.totalCount,
       following: payload.user.following.totalCount,
+      lastYearContributions:
+        contributionSummaryResult.lastYear ?? payload.user.contributionsCollection.contributionCalendar.totalContributions,
       login: payload.user.login,
       name: payload.user.name,
       publicRepos: payload.user.repositories.totalCount,
       starredCount: payload.user.starredRepositories.totalCount,
-      totalContributions: payload.user.contributionsCollection.contributionCalendar.totalContributions,
+      totalContributions: contributionSummaryResult.totalAllTime,
       url: payload.user.url,
     },
     projects: projectsResult.items,
@@ -837,6 +933,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
           bio: userResult.data.bio,
           followers: userResult.data.followers,
           following: userResult.data.following,
+          lastYearContributions: null,
           login: userResult.data.login,
           name: userResult.data.name,
           publicRepos: userResult.data.public_repos,
