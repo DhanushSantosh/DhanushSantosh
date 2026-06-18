@@ -1,12 +1,20 @@
 <div align="center">
-  <a href="https://xerocore.in">
-    <img src="./assets/bento-hero.svg" alt="Dhanush Santosh Hero" width="100%" style="margin-bottom: 8px;">
-  </a>
-  <br>
-  <img src="./assets/bento-skills.svg" alt="Tech Stack" width="49%">
-  <img src="./assets/bento-stats.svg" alt="GitHub Stats" width="49%">
-  <br>
-  <a href="https://xerocore.in">
-    <img src="./assets/bento-contact.svg" alt="Contact" width="100%" style="margin-top: 8px;">
-  </a>
+
+# Dhanush Santosh
+
+*Full-Stack AI Developer & Cinematic UI Engineer*<br>
+Crafting AI-native products where resilient infra, delightful UX, and reliable models operate as a single surface.
+
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DhanushSantosh/DhanushSantosh/output/github-contribution-grid-snake-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DhanushSantosh/DhanushSantosh/output/github-contribution-grid-snake.svg">
+  <img alt="github contribution grid snake animation" src="https://raw.githubusercontent.com/DhanushSantosh/DhanushSantosh/output/github-contribution-grid-snake.svg">
+</picture>
+
+<br><br>
+
+<a href="https://xerocore.in">xerocore.in</a> • <a href="mailto:contact@xerocore.in">contact@xerocore.in</a>
+
 </div>
