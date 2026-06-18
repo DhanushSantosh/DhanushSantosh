@@ -33,6 +33,12 @@ export type GitHubContributionWeek = {
   firstDay: string;
 };
 
+export type GitHubContributionYear = {
+  totalContributions: number | null;
+  weeks: GitHubContributionWeek[];
+  year: number;
+};
+
 export type GitHubProfileSummary = {
   avatarUrl: string | null;
   bio: string | null;
@@ -80,6 +86,7 @@ export type GitHubFeaturedRepo = {
 
 export type GitHubPortfolioData = {
   available: boolean;
+  contributionYears: GitHubContributionYear[];
   featuredRepos: GitHubFeaturedRepo[];
   lastSyncedAt: string;
   profile: GitHubProfileSummary | null;
@@ -187,6 +194,7 @@ type GitHubGraphQLPayload = {
 type GitHubContributionSummary = {
   lastYear: number | null;
   totalAllTime: number | null;
+  years: GitHubContributionYear[];
   ok: boolean;
 };
 
@@ -541,6 +549,83 @@ function parseContributionHeadlineCount(html: string) {
   return Number.isFinite(count) ? count : null;
 }
 
+function parseContributionTooltipCount(label: string) {
+  if (/No contributions/i.test(label)) return 0;
+
+  const match = label.match(/([\d,]+)\s+contributions?/i);
+  if (!match) return 0;
+
+  const count = Number.parseInt(match[1]?.replace(/,/g, "") ?? "", 10);
+  return Number.isFinite(count) ? count : 0;
+}
+
+function mapContributionLevel(level: number) {
+  switch (level) {
+    case 1:
+      return "FIRST_QUARTILE";
+    case 2:
+      return "SECOND_QUARTILE";
+    case 3:
+      return "THIRD_QUARTILE";
+    case 4:
+      return "FOURTH_QUARTILE";
+    default:
+      return "NONE";
+  }
+}
+
+function parseContributionWeeks(html: string) {
+  const tooltipById = new Map<string, string>();
+  const tooltipRegex = /<tool-tip([^>]*)>([^<]+)<\/tool-tip>/g;
+
+  for (const match of html.matchAll(tooltipRegex)) {
+    const attributes = match[1] ?? "";
+    const targetId = attributes.match(/\sfor="([^"]+)"/)?.[1];
+    const label = match[2]?.trim();
+
+    if (targetId && label) {
+      tooltipById.set(targetId, label);
+    }
+  }
+
+  const weeksByIndex = new Map<number, GitHubContributionDay[]>();
+  const dayRegex = /<td([^>]*class="ContributionCalendar-day"[^>]*)><\/td>/g;
+
+  for (const match of html.matchAll(dayRegex)) {
+    const attributes = match[1] ?? "";
+    const weekIndex = Number.parseInt(attributes.match(/\sdata-ix="(\d+)"/)?.[1] ?? "", 10);
+    const date = attributes.match(/\sdata-date="([^"]+)"/)?.[1];
+    const level = Number.parseInt(attributes.match(/\sdata-level="(\d+)"/)?.[1] ?? "0", 10);
+    const elementId = attributes.match(/\sid="([^"]+)"/)?.[1];
+
+    if (!Number.isFinite(weekIndex) || !date || !elementId) continue;
+
+    const count = parseContributionTooltipCount(tooltipById.get(elementId) ?? "");
+    const day: GitHubContributionDay = {
+      color: "",
+      contributionCount: count,
+      contributionLevel: mapContributionLevel(level),
+      date,
+      weekday: new Date(`${date}T00:00:00Z`).getUTCDay(),
+    };
+
+    const week = weeksByIndex.get(weekIndex) ?? [];
+    week.push(day);
+    weeksByIndex.set(weekIndex, week);
+  }
+
+  return Array.from(weeksByIndex.entries())
+    .sort((left, right) => left[0] - right[0])
+    .map(([, days]) => {
+      const contributionDays = days.sort((left, right) => left.date.localeCompare(right.date));
+      return {
+        contributionDays,
+        firstDay: contributionDays[0]?.date ?? "",
+      };
+    })
+    .filter((week) => week.firstDay);
+}
+
 async function getGitHubContributionSummary(username: string, years: number[]): Promise<GitHubContributionSummary> {
   const lastYearResult = await fetchGitHubHtml(`/users/${username}/contributions`, [GITHUB_TAGS.profile, GITHUB_TAGS.activity]);
   const lastYear = lastYearResult.data ? parseContributionHeadlineCount(lastYearResult.data) : null;
@@ -549,6 +634,7 @@ async function getGitHubContributionSummary(username: string, years: number[]): 
     return {
       lastYear,
       totalAllTime: 0,
+      years: [],
       ok: lastYearResult.ok,
     };
   }
@@ -564,7 +650,9 @@ async function getGitHubContributionSummary(username: string, years: number[]): 
 
       return {
         count: result.data ? parseContributionHeadlineCount(result.data) : null,
+        weeks: result.data ? parseContributionWeeks(result.data) : [],
         ok: result.ok,
+        year,
       };
     }),
   );
@@ -574,6 +662,11 @@ async function getGitHubContributionSummary(username: string, years: number[]): 
   return {
     lastYear,
     totalAllTime,
+    years: yearResults.map((result) => ({
+      totalContributions: result.count,
+      weeks: result.weeks,
+      year: result.year,
+    })),
     ok: lastYearResult.ok && yearResults.every((result) => result.ok),
   };
 }
@@ -852,6 +945,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
 
   return {
     available: true,
+    contributionYears: contributionSummaryResult.years,
     featuredRepos: featured.sort((a, b) => {
       const aOrder = featuredRepos.find((item) => (item.repo ?? item.titleOverride) === (a.nameWithOwner ?? a.name))?.order ?? 0;
       const bOrder = featuredRepos.find((item) => (item.repo ?? item.titleOverride) === (b.nameWithOwner ?? b.name))?.order ?? 0;
@@ -877,7 +971,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
     source,
     starredRepos: starredReposResult.items,
     totalProjectStars: countProjectStars(projectsResult.items),
-    weeks: payload.user.contributionsCollection.contributionCalendar.weeks,
+    weeks: contributionSummaryResult.years[0]?.weeks ?? payload.user.contributionsCollection.contributionCalendar.weeks,
   };
 }
 
@@ -921,6 +1015,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
 
   return {
     available: hasAnyLiveData,
+    contributionYears: [],
     featuredRepos: featured.sort((a, b) => {
       const aOrder = featuredRepos.find((item) => item.titleOverride === a.name || item.repo === a.nameWithOwner)?.order ?? 0;
       const bOrder = featuredRepos.find((item) => item.titleOverride === b.name || item.repo === b.nameWithOwner)?.order ?? 0;

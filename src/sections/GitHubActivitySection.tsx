@@ -1,25 +1,15 @@
 import { FiArrowUpRight, FiGithub, FiUsers } from "react-icons/fi";
 
+import GitHubContributionExplorer from "@/components/GitHubContributionExplorer";
 import { Reveal } from "@/components/Reveal";
 import StarredReposCarousel from "@/components/StarredReposCarousel";
-import {
-  type GitHubContributionDay,
-  type GitHubRecentEvent,
-  getGitHubPortfolioData,
-} from "@/lib/github";
+import { type GitHubRecentEvent, getGitHubPortfolioData } from "@/lib/github";
 
 function formatShortDate(dateString: string) {
   return new Intl.DateTimeFormat("en", {
     day: "numeric",
     month: "short",
   }).format(new Date(dateString));
-}
-
-function getSourceLabel(source: "graphql" | "live-partial" | "rest-fallback" | "unavailable") {
-  if (source === "graphql") return "Full Live Sync";
-  if (source === "live-partial") return "Partial Live Sync";
-  if (source === "rest-fallback") return "Live Public Sync";
-  return "Safe Fallback";
 }
 
 function getEventKindLabel(kind: GitHubRecentEvent["kind"]) {
@@ -31,89 +21,10 @@ function getEventKindLabel(kind: GitHubRecentEvent["kind"]) {
   return "Push";
 }
 
-function getContributionColor(day: GitHubContributionDay) {
-  if (day.contributionCount === 0) return "rgba(255, 255, 255, 0.03)";
-  
-  switch (day.contributionLevel) {
-    case "FIRST_QUARTILE":
-      return "rgba(95, 225, 255, 0.22)";
-    case "SECOND_QUARTILE":
-      return "rgba(95, 225, 255, 0.45)";
-    case "THIRD_QUARTILE":
-      return "rgba(95, 225, 255, 0.70)";
-    case "FOURTH_QUARTILE":
-      return "rgba(95, 225, 255, 1.0)";
-    default:
-      if (day.contributionCount <= 2) return "rgba(95, 225, 255, 0.3)";
-      if (day.contributionCount <= 5) return "rgba(95, 225, 255, 0.6)";
-      return "rgba(95, 225, 255, 1.0)";
-  }
-}
-
-function ContributionCell({ day }: { day: GitHubContributionDay }) {
-  const color = getContributionColor(day);
-  return (
-    <div
-      className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[1.5px] transition-all duration-200 hover:scale-150 hover:z-10 cursor-pointer"
-      style={{ backgroundColor: color }}
-      title={`${day.contributionCount} contribution${day.contributionCount === 1 ? "" : "s"} on ${day.date}`}
-    />
-  );
-}
-
-function flattenContributionDays(days: GitHubContributionDay[][]) {
-  return days.flat().sort((left, right) => left.date.localeCompare(right.date));
-}
-
-function getCurrentStreak(days: GitHubContributionDay[]) {
-  let streak = 0;
-
-  for (let index = days.length - 1; index >= 0; index -= 1) {
-    if (days[index]?.contributionCount > 0) {
-      streak += 1;
-      continue;
-    }
-
-    break;
-  }
-
-  return streak;
-}
-
-function getActiveDays(days: GitHubContributionDay[]) {
-  return days.filter((day) => day.contributionCount > 0).length;
-}
-
 export default async function GitHubActivitySection() {
   const data = await getGitHubPortfolioData();
   const profile = data.profile;
-  const contributionDays = flattenContributionDays(data.weeks.map((week) => week.contributionDays));
-  const activeDays = getActiveDays(contributionDays);
-  const currentStreak = getCurrentStreak(contributionDays);
-
-  const weeksWithMonthLabels = data.weeks.map((week, index) => {
-    const date = new Date(week.firstDay);
-    const monthLabel = new Intl.DateTimeFormat("en", { month: "short" }).format(date);
-    
-    let showLabel = false;
-    if (index === 0) {
-      showLabel = true;
-    } else {
-      const prevDate = new Date(data.weeks[index - 1].firstDay);
-      const prevMonthLabel = new Intl.DateTimeFormat("en", { month: "short" }).format(prevDate);
-      if (monthLabel !== prevMonthLabel) {
-        showLabel = true;
-      }
-    }
-    
-    return {
-      ...week,
-      monthLabel,
-      showLabel,
-    };
-  });
-
-  const isLive = data.source !== "unavailable";
+  const hasContributionData = data.contributionYears.some((entry) => entry.weeks.length > 0);
 
   return (
     <section id="github-activity" className="cv-auto relative overflow-hidden pb-12 bg-transparent">
@@ -134,97 +45,7 @@ export default async function GitHubActivitySection() {
               
               {/* Left Side: Contribution Grid & Metrics */}
               <div className="flex-1 p-5 sm:p-7 flex flex-col min-w-0 justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-4 sm:mb-5">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-[13px] font-medium text-white/90">Contribution Rhythm</h3>
-                      {isLive && (
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-500"></span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center">
-                      <span className="rounded-full border border-white/[0.08] bg-white/[0.02] px-2 py-0.5 text-[8px] uppercase tracking-[0.2em] text-white/50 font-mono">
-                        {getSourceLabel(data.source)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {data.weeks.length > 0 ? (
-                    <div className="overflow-x-auto no-scrollbar pb-2 pt-2 -mx-2 px-2 sm:-mx-4 sm:px-4">
-                      <div className="flex gap-[3px] sm:gap-1 min-w-max items-end">
-                        {/* Weekday Labels */}
-                        <div className="flex flex-col gap-[2px] sm:gap-[3px] pr-1 sm:pr-1.5 pb-[2px] sm:pb-[3px] select-none text-[7px] text-white/30 font-mono">
-                          <span className="h-2 sm:h-2.5 flex items-center justify-end"></span>
-                          <span className="h-2 sm:h-2.5 flex items-center justify-end">Mon</span>
-                          <span className="h-2 sm:h-2.5 flex items-center justify-end"></span>
-                          <span className="h-2 sm:h-2.5 flex items-center justify-end">Wed</span>
-                          <span className="h-2 sm:h-2.5 flex items-center justify-end"></span>
-                          <span className="h-2 sm:h-2.5 flex items-center justify-end">Fri</span>
-                          <span className="h-2 sm:h-2.5 flex items-center justify-end"></span>
-                        </div>
-
-                        {/* Contribution Grid */}
-                        <div className="flex flex-col gap-[2px] sm:gap-[3px]">
-                          {/* Month Markers */}
-                          <div className="flex gap-[2px] sm:gap-[3px] text-[7px] text-white/35 h-2.5 relative select-none font-mono">
-                            {weeksWithMonthLabels.map((week) => (
-                              <div key={week.firstDay} className="w-2 sm:w-2.5 relative shrink-0 font-sans">
-                                {week.showLabel && (
-                                  <span className="absolute left-0 bottom-0 whitespace-nowrap uppercase tracking-wider text-[7px]">
-                                    {week.monthLabel}
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Grid Cells */}
-                          <div className="flex gap-[2px] sm:gap-[3px]">
-                            {weeksWithMonthLabels.map((week) => (
-                              <div key={week.firstDay} className="flex flex-col gap-[2px] sm:gap-[3px] shrink-0">
-                                {week.contributionDays.map((day) => (
-                                  <ContributionCell key={day.date} day={day} />
-                                ))}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl border border-dashed border-white/10 bg-black/30 p-4 text-center my-3">
-                      <p className="text-xs font-medium text-white/80">
-                        {data.source === "unavailable" ? "GitHub sync is temporarily unavailable." : "Public activity is live."}
-                      </p>
-                      <p className="mt-1 text-[10px] text-white/40 max-w-sm mx-auto leading-relaxed">
-                        {data.source === "unavailable"
-                          ? "Recent events and contributions will reappear automatically once GitHub data is reachable again."
-                          : "Recent events are syncing. The full contribution graph will appear when GraphQL contribution data becomes available."}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Inline Metrics */}
-                {data.weeks.length > 0 && (
-                  <div className="flex flex-wrap gap-x-8 gap-y-4 mt-5 pt-4 border-t border-white/[0.05]">
-                    <div className="flex flex-col">
-                      <span className="text-xl font-medium text-white tracking-tight leading-none">{profile?.lastYearContributions ?? "N/A"}</span>
-                      <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1.5">Last 365D</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xl font-medium text-white tracking-tight leading-none">{activeDays}</span>
-                      <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1.5">Active Days</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xl font-medium text-white tracking-tight leading-none">{currentStreak}</span>
-                      <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1.5">Day Streak</span>
-                    </div>
-                  </div>
-                )}
+                <GitHubContributionExplorer contributionYears={data.contributionYears} source={data.source} />
               </div>
 
               {/* Right Side: Timeline (Limited to 3) */}
@@ -340,7 +161,7 @@ export default async function GitHubActivitySection() {
           </div>
           
           {/* Fallback Metrics (when weeks length is 0) */}
-          {data.weeks.length === 0 && (
+          {!hasContributionData && (
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mt-6">
               <div className="flex flex-col">
                 <span className="text-xl font-medium text-white tracking-tight">{data.recentEvents.length}</span>
