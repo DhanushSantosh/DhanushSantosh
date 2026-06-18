@@ -1,41 +1,46 @@
-# Dhanush Santosh
-
-**`Digital Craftsman (Developer)`**
-
-**Coding is like writing poetry for computers – carefully crafting lines to bring functionality to life.**
+<div align="center">
+  <a href="https://xerocore.in">
+    <img src="./assets/hero-banner.svg" alt="Dhanush Santosh Hero Banner" width="100%">
+  </a>
+  <br>
+  <i>Crafting AI-native products where resilient infra, delightful UX, and reliable models operate as a single surface.</i>
+</div>
 
 ---
 
-I'm a product-minded engineer who ships AI products, automation workflows, and cinematic UI—from planning and orchestration to polish and observability. Every launch in my portfolio is built end-to-end: data contracts, retrieval/evals, Temporal pipelines, design systems, and high-performance deployment.
+### ✦ About Me
 
-#
+I'm a product-minded engineer specializing in **AI orchestration, automation workflows, and cinematic UIs**. I focus on shipping high-performance applications from the ground up—bridging data contracts, Temporal pipelines, design systems, and robust deployment architectures.
 
-### 🧰 Languages and Tools
+Currently building and scaling LLM copilots, realtime dashboards, and intelligent automation for B2B SaaS. Check out my full interactive portfolio at **[xerocore.in](https://xerocore.in)**.
 
-![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white) ![Sentry](https://img.shields.io/badge/sentry-%23362D59.svg?style=for-the-badge&logo=sentry&logoColor=white) ![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
+<br>
 
-#
+### ✦ Engineering Arsenal
 
+<div align="center">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=ts,react,nextjs,nodejs,py,aws,supabase,git,vercel&theme=dark&perline=9" />
+  </a>
+</div>
 
-### 📊 Stats
+<br>
 
-![](https://nirzak-streak-stats.vercel.app/?user=DhanushSantosh&theme=highcontrast&hide_border=false)<br/>
-![](https://github-readme-stats.vercel.app/api/top-langs/?username=DhanushSantosh&theme=highcontrast&hide_border=false&include_all_commits=true&count_private=true&layout=compact)
+### ✦ Activity & Metrics
 
-#
+<div align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=DhanushSantosh&show_icons=true&hide_border=true&bg_color=050505&title_color=ffffff&icon_color=2dd4bf&text_color=a3a3a3&ring_color=a78bfa" alt="GitHub Stats" width="48%">
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=DhanushSantosh&hide_border=true&bg_color=050505&title_color=ffffff&text_color=a3a3a3&layout=compact" alt="Top Languages" width="48%">
+</div>
 
-<details>
- <summary><h3>Welcome to My Journey 🚀</h3></summary>
-Hello and welcome!
+<br>
 
-I started by modding Android ROMs, and that curiosity spiraled into a decade of building software: automation scripts, full-stack platforms, Linux experiments, and now AI-first products. Today I lead squads shipping copilots, realtime dashboards, and ops automation—linking research ideas to production-ready, measurable outcomes.
+---
 
-On [xerocore](https://xerocore.in) you'll find:
-
-- AI product engineering case studies (Atlas Copilot, Volt Sense, Muse Autopilot).
-- Experience & expertise sections detailing LLM orchestration, automation, and data/MLOps work.
-- A cinematic Three.js hero that adapts to the viewport and a contact flow with a ready-to-send template.
-
-Thanks for stopping by—let's ship something intelligent together. 😊
-
-</details>
+<div align="center">
+  <p><b>"Let's ship something intelligent together."</b></p>
+  <p>
+    <a href="mailto:contact@xerocore.in">contact@xerocore.in</a> • 
+    <a href="https://xerocore.in">xerocore.in</a>
+  </p>
+</div>
