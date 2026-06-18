@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-import type { GitHubContributionDay, GitHubContributionYear, GitHubPortfolioData, GitHubContributionWeek } from "@/lib/github";
+import type { GitHubContributionDay, GitHubContributionWeek, GitHubContributionYear, GitHubPortfolioData } from "@/lib/github";
 
 function getSourceLabel(source: GitHubPortfolioData["source"]) {
   if (source === "graphql") return "Full Live Sync";
@@ -38,6 +38,31 @@ function ContributionCell({ day }: { day: GitHubContributionDay }) {
       title={`${day.contributionCount} contribution${day.contributionCount === 1 ? "" : "s"} on ${day.date}`}
     />
   );
+}
+
+function flattenContributionDays(weeks: GitHubContributionWeek[]) {
+  return weeks.flatMap((week) => week.contributionDays).sort((left, right) => left.date.localeCompare(right.date));
+}
+
+function getActiveDays(days: GitHubContributionDay[]) {
+  return days.filter((day) => day.contributionCount > 0).length;
+}
+
+function getPeakContributionDay(days: GitHubContributionDay[]) {
+  return days.reduce<GitHubContributionDay | null>((peak, day) => {
+    if (!peak || day.contributionCount > peak.contributionCount) return day;
+    return peak;
+  }, null);
+}
+
+function formatPeakDate(date: string | null) {
+  if (!date) return "No active day";
+
+  return new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${date}T00:00:00Z`));
 }
 
 type TimelineWeek = GitHubContributionWeek & {
@@ -87,6 +112,13 @@ export default function GitHubContributionExplorer({
 }: GitHubContributionExplorerProps) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const timelineWeeks = useMemo(() => buildTimelineWeeks(contributionYears), [contributionYears]);
+  const contributionDays = useMemo(() => flattenContributionDays(timelineWeeks), [timelineWeeks]);
+  const totalContributions = useMemo(
+    () => contributionYears.reduce((sum, year) => sum + (year.totalContributions ?? 0), 0),
+    [contributionYears],
+  );
+  const activeDays = useMemo(() => getActiveDays(contributionDays), [contributionDays]);
+  const peakDay = useMemo(() => getPeakContributionDay(contributionDays), [contributionDays]);
   const hasContributionData = timelineWeeks.length > 0;
   const isLive = source !== "unavailable";
 
@@ -118,10 +150,7 @@ export default function GitHubContributionExplorer({
 
       {hasContributionData ? (
         <div className="overflow-hidden rounded-[24px] border border-white/[0.06] bg-black/25">
-          <div
-            ref={scrollContainerRef}
-            className="overflow-x-auto no-scrollbar px-3 pb-3 pt-4 sm:px-4 sm:pb-4"
-          >
+          <div ref={scrollContainerRef} className="overflow-x-auto no-scrollbar px-3 pb-3 pt-4 sm:px-4 sm:pb-4">
             <div className="flex min-w-max items-end gap-[3px] sm:gap-1">
               <div className="flex select-none flex-col gap-[2px] pb-[2px] pr-1 text-[7px] font-mono text-white/30 sm:gap-[3px] sm:pb-[3px] sm:pr-1.5">
                 <span className="flex h-3 items-center justify-end sm:h-3.5"></span>
@@ -183,6 +212,25 @@ export default function GitHubContributionExplorer({
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 border-t border-white/[0.05] px-4 py-4 sm:grid-cols-3 sm:px-5">
+            <div className="flex flex-col">
+              <span className="text-xl font-medium leading-none tracking-tight text-white">{totalContributions}</span>
+              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40">
+                Total Contributions
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-medium leading-none tracking-tight text-white">{activeDays}</span>
+              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40">Active Days</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-medium leading-none tracking-tight text-white">{peakDay?.contributionCount ?? 0}</span>
+              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40">
+                Peak Day · {formatPeakDate(peakDay?.date ?? null)}
+              </span>
             </div>
           </div>
         </div>
