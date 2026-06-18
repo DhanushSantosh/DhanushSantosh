@@ -1,0 +1,55 @@
+<svg width="1000" height="300" viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a" />
+      <stop offset="100%" stop-color="#050505" />
+    </linearGradient>
+
+    <!-- Ambient Glows -->
+    <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(45, 212, 191, 0.15)" />
+      <stop offset="100%" stop-color="rgba(45, 212, 191, 0)" />
+    </radialGradient>
+    <radialGradient id="glow2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(167, 139, 250, 0.15)" />
+      <stop offset="100%" stop-color="rgba(167, 139, 250, 0)" />
+    </radialGradient>
+
+    <filter id="blur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="60" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1000" height="300" rx="24" fill="url(#bg)" />
+  <rect width="1000" height="300" rx="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2" />
+
+  <!-- Ambient Orbs -->
+  <g filter="url(#blur)">
+    <circle cx="200" cy="50" r="180" fill="url(#glow1)" />
+    <circle cx="800" cy="250" r="200" fill="url(#glow2)" />
+  </g>
+
+  <!-- Dot Grid Overlay -->
+  <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+    <circle fill="rgba(255,255,255,0.03)" cx="2" cy="2" r="1"></circle>
+  </pattern>
+  <rect x="0" y="0" width="1000" height="300" rx="24" fill="url(#dots)" />
+
+  <!-- Content -->
+  <g font-family="system-ui, -apple-system, sans-serif">
+    <!-- Tag -->
+    <rect x="60" y="55" width="160" height="32" rx="16" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="140" y="76" font-size="12" font-weight="600" fill="#a78bfa" letter-spacing="1.5" text-anchor="middle">AVAILABLE FOR WORK</text>
+
+    <!-- Main Header -->
+    <text x="60" y="145" font-size="56" font-weight="800" fill="#ffffff" letter-spacing="-1">Dhanush Santosh</text>
+    
+    <!-- Subtitle -->
+    <text x="60" y="195" font-size="20" font-weight="400" fill="#a3a3a3">Full-Stack AI Developer &amp; Cinematic UI Engineer</text>
+    
+    <!-- Bio snippet -->
+    <text x="60" y="240" font-size="15" font-weight="400" fill="#737373">Crafting AI-native products where resilient infra, delightful UX, </text>
+    <text x="60" y="265" font-size="15" font-weight="400" fill="#737373">and reliable models operate as a single surface.</text>
+  </g>
+</svg>
