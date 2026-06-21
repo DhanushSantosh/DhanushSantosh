@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 import { brandConfig } from "@/config/brand";
 import { hero, techStack } from "@/data/content";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 type PreviewVariant = "og" | "wide";
 
