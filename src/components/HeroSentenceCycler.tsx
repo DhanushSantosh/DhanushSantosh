@@ -63,7 +63,7 @@ type HeroSentenceCyclerProps = {
   intervalMs?: number;
 };
 
-export function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps) {
+function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps) {
   const [index, setIndex] = useState(0);
   const [sequence, setSequence] = useState<number[]>(() => [...DEFAULT_SEQUENCE]);
   const [isCompact, setIsCompact] = useState(

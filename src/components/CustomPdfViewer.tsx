@@ -3,11 +3,11 @@
 import { useEffect, useState, useRef } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { FiZoomIn, FiZoomOut, FiMaximize } from "react-icons/fi";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import "react-pdf/dist/esm/Page/TextLayer.css";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
 
 // Bundle the worker locally so the CV viewer doesn't depend on a third-party CDN at runtime.
-pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.js", import.meta.url).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
 export default function CustomPdfViewer({ fileUrl }: { fileUrl: string }) {
   const [numPages, setNumPages] = useState<number>();

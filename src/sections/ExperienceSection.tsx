@@ -1,7 +1,7 @@
 import { experience } from "@/data/content";
 import { Reveal } from "@/components/Reveal";
 
-export function ExperienceSection() {
+function ExperienceSection() {
   return (
     <section id="experience" className="space-y-10 cv-auto">
       <Reveal as="section">

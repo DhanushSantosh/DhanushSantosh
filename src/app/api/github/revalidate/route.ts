@@ -1,32 +1,17 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
-import { GITHUB_TAGS, isFeaturedRepository } from "@/lib/github";
+import { GITHUB_TAGS } from "@/lib/github";
+import { verifyGitHubWebhookSignature } from "@/lib/request-auth";
 
 export const runtime = "nodejs";
 
-const SUPPORTED_EVENTS = new Set(["create", "delete", "public", "push", "release", "repository"]);
+const SUPPORTED_EVENTS = new Set(["create", "delete", "public", "pull_request", "push", "release", "repository"]);
 
-function verifyGitHubWebhookSignature(payload: string, signature: string | null, secret: string) {
-  if (!signature) return false;
-
-  const expected = `sha256=${createHmac("sha256", secret).update(payload).digest("hex")}`;
-  const expectedBuffer = Buffer.from(expected);
-  const signatureBuffer = Buffer.from(signature);
-
-  if (expectedBuffer.length !== signatureBuffer.length) return false;
-  return timingSafeEqual(expectedBuffer, signatureBuffer);
-}
-
-function revalidateGitHubTags(includeFeatured: boolean) {
+function revalidateGitHubTags() {
   revalidateTag(GITHUB_TAGS.profile, "max");
   revalidateTag(GITHUB_TAGS.activity, "max");
   revalidateTag(GITHUB_TAGS.projects, "max");
-  if (includeFeatured) {
-    revalidateTag(GITHUB_TAGS.featured, "max");
-  }
 }
 
 export async function POST(request: Request) {
@@ -47,20 +32,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, ignored: true, reason: "Unsupported event" });
   }
 
-  const body = JSON.parse(payload) as {
-    repository?: { full_name?: string };
-  };
+  let body: { repository?: { full_name?: string } };
+  try {
+    body = JSON.parse(payload) as typeof body;
+  } catch {
+    return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
+  }
 
   const repoFullName = body.repository?.full_name ?? null;
-  const includeFeatured = isFeaturedRepository(repoFullName);
-  revalidateGitHubTags(includeFeatured || event === "repository");
+  revalidateGitHubTags();
 
   return NextResponse.json({
     ok: true,
     event,
     repo: repoFullName,
-    refreshed: includeFeatured
-      ? ["github-profile", "github-activity", "github-projects", "github-featured"]
-      : ["github-profile", "github-activity", "github-projects"],
+    refreshed: ["github-profile", "github-activity", "github-projects"],
   });
 }

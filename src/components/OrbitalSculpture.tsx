@@ -376,7 +376,7 @@ function MarkerNetwork() {
   );
 
   useFrame(({ clock }, delta) => {
-    const time = clock.getElapsedTime();
+    const time = clock.elapsedTime;
 
     markers.forEach((_, index) => {
       const ring = ringRefs.current[index];
@@ -661,7 +661,7 @@ function PerformanceTuner({ minDpr, maxDpr }: PerformanceTunerProps) {
   return null;
 }
 
-export function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
+function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
   const preset = qualityPresets[quality] ?? qualityPresets.full;
   const [isMobile, setIsMobile] = useState(false);
   const [enhancedDetails, setEnhancedDetails] = useState(false);

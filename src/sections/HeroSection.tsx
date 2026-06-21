@@ -6,7 +6,7 @@ import HeroSentenceCycler from "@/components/HeroSentenceCycler";
 import { ClientSculpture } from "@/components/DynamicSculpture";
 import SculptureViewportGate from "@/components/SculptureViewportGate";
 
-export function HeroSection() {
+function HeroSection() {
   return (
     <section id="hero" className="flex h-full w-full flex-col justify-center gap-5 sm:gap-7">
       <div className="flex flex-col gap-8 sm:gap-12 lg:flex-row lg:items-start lg:gap-12">

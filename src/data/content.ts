@@ -9,27 +9,6 @@ export const hero = {
   email: "contact@xerocore.in",
 };
 
-export const expertise = [
-  {
-    title: "AI Product Engineering",
-    description:
-      "Ship LLM copilots, chat workflows, and multi-modal UX across Next.js, server actions, and typed design systems.",
-    items: ["Next.js 14+", "LangChain / custom routers", "Design systems"],
-  },
-  {
-    title: "Intelligent Automation",
-    description:
-      "Thread automations through CRMs, ops tooling, and data streams with workflow engines, queuing, and guardrails.",
-    items: ["Temporal / queues", "Edge APIs", "LLM eval harnesses"],
-  },
-  {
-    title: "Data & MLOps",
-    description:
-      "Shape data contracts, retrieval pipelines, and evaluation dashboards so the models stay observable in prod.",
-    items: ["Postgres + pgvector", "Vector search", "Observability"],
-  },
-];
-
 export const experience = [
   {
     role: "Intern",

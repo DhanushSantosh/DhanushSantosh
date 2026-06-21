@@ -63,7 +63,7 @@ const hoverColorMap: Record<string, string> = {
 
 const SECONDARY_REVEAL_DELAY_S = 0.1;
 
-export async function ExpertiseSection() {
+async function ExpertiseSection() {
   return (
     <section id="expertise" className="cv-auto relative overflow-hidden bg-transparent">
       <div className="relative z-10 mx-auto w-full max-w-6xl space-y-16 px-4 sm:px-8 lg:px-12 py-12 md:py-16">

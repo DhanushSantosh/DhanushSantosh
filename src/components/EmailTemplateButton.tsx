@@ -19,7 +19,7 @@ type EmailTemplateButtonProps = {
   label?: string;
 };
 
-export function EmailTemplateButton({
+function EmailTemplateButton({
   email,
   cc,
   bcc,

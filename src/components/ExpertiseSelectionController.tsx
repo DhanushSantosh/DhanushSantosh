@@ -56,5 +56,3 @@ export function ExpertiseSelectionController() {
 
   return null;
 }
-
-export default ExpertiseSelectionController;

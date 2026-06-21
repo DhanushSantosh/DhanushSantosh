@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { brandConfig } from "@/config/brand";
 import { hero, techStack } from "@/data/content";
 
 export const runtime = "edge";
@@ -109,7 +110,6 @@ function buildPreviewImage(variant: PreviewVariant) {
         <div
           style={{
             position: "relative",
-            zIndex: 1,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -329,7 +329,7 @@ function buildPreviewImage(variant: PreviewVariant) {
                 letterSpacing: "0.06em",
               }}
             >
-              xerocore.dev
+              {brandConfig.displayDomain}
             </div>
           </div>
         </div>

@@ -78,7 +78,7 @@ export function ClientSculpture() {
     import("@/components/OrbitalSculpture")
       .then((module) => {
         if (!cancelled) {
-          setSculpture(() => module.OrbitalSculpture);
+          setSculpture(() => module.default);
         }
       })
       .catch(() => {
@@ -114,5 +114,3 @@ export function ClientSculpture() {
   const quality = mode === "lite" ? "lite" : "full";
   return <Sculpture quality={quality} />;
 }
-
-export default ClientSculpture;

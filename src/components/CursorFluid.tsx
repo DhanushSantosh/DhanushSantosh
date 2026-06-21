@@ -197,5 +197,3 @@ export function CursorFluid() {
 
   return null;
 }
-
-export default CursorFluid;

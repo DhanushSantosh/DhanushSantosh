@@ -6,7 +6,7 @@ import useRafScroll from "@/hooks/useRafScroll";
 
 const VISIBILITY_SCROLL_Y_THRESHOLD = 360;
 
-export function BackToTopButton() {
+function BackToTopButton() {
   const [visible, setVisible] = useState(false);
 
   const handleScroll = useCallback((scrollY: number) => {

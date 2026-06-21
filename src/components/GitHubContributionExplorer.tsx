@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-import type { GitHubContributionDay, GitHubContributionWeek, GitHubContributionYear, GitHubPortfolioData } from "@/lib/github";
+import type { GitHubContributionDay, GitHubContributionYear, GitHubPortfolioData } from "@/lib/github";
+import {
+  buildTimelineWeeks,
+  flattenContributionDays,
+  MAX_TIMELINE_WEEKS,
+} from "@/lib/github-contribution-timeline";
 
 function getSourceLabel(source: GitHubPortfolioData["source"]) {
   if (source === "graphql") return "Full Live Sync";
@@ -33,15 +38,12 @@ function getContributionColor(day: GitHubContributionDay) {
 function ContributionCell({ day }: { day: GitHubContributionDay }) {
   return (
     <div
+      aria-hidden="true"
       className="h-2 w-2 rounded-[1.5px] transition-all duration-200 hover:z-10 hover:scale-150 sm:h-2.5 sm:w-2.5"
       style={{ backgroundColor: getContributionColor(day) }}
       title={`${day.contributionCount} contribution${day.contributionCount === 1 ? "" : "s"} on ${day.date}`}
     />
   );
-}
-
-function flattenContributionDays(weeks: GitHubContributionWeek[]) {
-  return weeks.flatMap((week) => week.contributionDays).sort((left, right) => left.date.localeCompare(right.date));
 }
 
 function getActiveDays(days: GitHubContributionDay[]) {
@@ -65,42 +67,6 @@ function formatPeakDate(date: string | null) {
   }).format(new Date(`${date}T00:00:00Z`));
 }
 
-type TimelineWeek = GitHubContributionWeek & {
-  monthLabel: string;
-  showMonthLabel: boolean;
-  showYearDivider: boolean;
-  year: number;
-  yearLabel: string;
-};
-
-function buildTimelineWeeks(contributionYears: GitHubContributionYear[]): TimelineWeek[] {
-  const chronologicalYears = [...contributionYears]
-    .filter((entry) => entry.weeks.length > 0)
-    .sort((left, right) => left.year - right.year);
-
-  const timelineWeeks: TimelineWeek[] = [];
-
-  chronologicalYears.forEach((entry) => {
-    entry.weeks.forEach((week, index) => {
-      const date = new Date(`${week.firstDay}T00:00:00Z`);
-      const monthLabel = new Intl.DateTimeFormat("en", { month: "short" }).format(date);
-      const previousWeek = timelineWeeks[timelineWeeks.length - 1];
-      const previousMonthLabel = previousWeek?.monthLabel ?? null;
-
-      timelineWeeks.push({
-        ...week,
-        monthLabel,
-        showMonthLabel: !previousWeek || previousMonthLabel !== monthLabel,
-        showYearDivider: index === 0,
-        year: entry.year,
-        yearLabel: String(entry.year),
-      });
-    });
-  });
-
-  return timelineWeeks;
-}
-
 type GitHubContributionExplorerProps = {
   contributionYears: GitHubContributionYear[];
   source: GitHubPortfolioData["source"];
@@ -111,8 +77,15 @@ export default function GitHubContributionExplorer({
   source,
 }: GitHubContributionExplorerProps) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const timelineWeeks = useMemo(() => buildTimelineWeeks(contributionYears), [contributionYears]);
-  const contributionDays = useMemo(() => flattenContributionDays(timelineWeeks), [timelineWeeks]);
+  const throughDate = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const timelineWeeks = useMemo(
+    () => buildTimelineWeeks(contributionYears, throughDate),
+    [contributionYears, throughDate],
+  );
+  const contributionDays = useMemo(
+    () => flattenContributionDays(contributionYears.flatMap((year) => year.weeks), throughDate),
+    [contributionYears, throughDate],
+  );
   const totalContributions = useMemo(
     () => contributionYears.reduce((sum, year) => sum + (year.totalContributions ?? 0), 0),
     [contributionYears],
@@ -197,7 +170,11 @@ export default function GitHubContributionExplorer({
                   ))}
                 </div>
 
-                <div className="flex gap-[2px] sm:gap-[3px]">
+                <div
+                  aria-label={`GitHub contribution calendar showing the most recent ${MAX_TIMELINE_WEEKS} weeks`}
+                  className="flex gap-[2px] sm:gap-[3px]"
+                  role="img"
+                >
                   {timelineWeeks.map((week) => (
                     <div
                       key={week.firstDay}

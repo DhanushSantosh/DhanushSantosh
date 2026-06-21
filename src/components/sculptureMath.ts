@@ -12,7 +12,7 @@ function seededUnit(seed: number) {
   return value - Math.floor(value);
 }
 
-export function seededRange(seed: number, min: number, max: number) {
+function seededRange(seed: number, min: number, max: number) {
   return min + seededUnit(seed) * (max - min);
 }
 

@@ -61,7 +61,7 @@ function NeuralDataWave({ activeTech, hoveredTech, quality }: { activeTech: stri
 
   useFrame((state) => {
     if (!meshRef.current) return;
-    const time = state.clock.getElapsedTime();
+    const time = state.clock.elapsedTime;
     const positions = meshRef.current.geometry.attributes.position.array as Float32Array;
     
     let i = 0;
@@ -93,7 +93,7 @@ function NeuralDataWave({ activeTech, hoveredTech, quality }: { activeTech: stri
   );
 }
 
-export function ExpertiseSculpture({ quality = "full" }: { quality?: "full" | "lite" }) {
+function ExpertiseSculpture({ quality = "full" }: { quality?: "full" | "lite" }) {
   const [hoveredTech, setHoveredTech] = useState<string | null>(null);
   const [activeTech, setActiveTech] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);

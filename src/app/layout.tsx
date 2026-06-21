@@ -4,6 +4,7 @@ import "./globals.css";
 import { CursorFluid } from "@/components/CursorFluid";
 import MotionProvider from "@/components/MotionProvider";
 import ScrollReset from "@/components/ScrollReset";
+import { brandConfig } from "@/config/brand";
 import { hero } from "@/data/content";
 
 const geistSans = localFont({
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
     title: profileTitle,
     description:
       "Digital craftsmanship for immersive web experiences, powered by code, motion, and 3D storytelling.",
-    url: "https://xerocore.dev",
+    url: brandConfig.canonicalUrl,
     siteName: hero.name,
     images: [
       {
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: profileTitle,
   },
-  metadataBase: new URL("https://xerocore.dev"),
+  metadataBase: new URL(brandConfig.canonicalUrl),
 };
 
 export default function RootLayout({

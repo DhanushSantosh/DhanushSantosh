@@ -3,9 +3,9 @@ import { useEffect, useRef } from "react";
 const SCROLL_EVENT = "scroll";
 const PASSIVE_EVENT_OPTIONS: AddEventListenerOptions = { passive: true };
 
-export type RafScrollHandler = (scrollY: number) => void;
+type RafScrollHandler = (scrollY: number) => void;
 
-export function useRafScroll(handler: RafScrollHandler) {
+function useRafScroll(handler: RafScrollHandler) {
   const rafIdRef = useRef<number | null>(null);
   const latestScrollRef = useRef(0);
 

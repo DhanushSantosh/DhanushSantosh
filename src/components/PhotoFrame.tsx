@@ -7,7 +7,7 @@ type PhotoFrameProps = {
   alt?: string;
 };
 
-export function PhotoFrame({ imageUrl, alt = "Profile photo" }: PhotoFrameProps) {
+function PhotoFrame({ imageUrl, alt = "Profile photo" }: PhotoFrameProps) {
   return (
     <div className="relative aspect-square w-full max-w-sm select-none lg:max-w-md">
       {/* Animated arc segment 1 - travels around border */}

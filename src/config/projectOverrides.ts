@@ -7,14 +7,10 @@ export type ProjectOverrideConfig = {
   hidden?: boolean;
 };
 
-export const projectOverrides: ProjectOverrideConfig[] = [
+const projectOverrides: ProjectOverrideConfig[] = [
   {
     repo: "DhanushSantosh/DhanushSantosh",
     hidden: true,
-  },
-  {
-    repo: "DhanushSantosh/DeskCrafter",
-    accent: "Open Source",
   },
 ];
 

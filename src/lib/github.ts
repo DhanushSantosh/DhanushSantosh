@@ -2,8 +2,9 @@ import "server-only";
 
 import { cache } from "react";
 
-import { featuredRepos, featuredRepoLookup, type FeaturedRepoConfig } from "@/config/featuredRepos";
 import { projectOverrideLookup, type ProjectOverrideConfig } from "@/config/projectOverrides";
+import { parseContributionHeadlineCount, parseContributionWeeks } from "@/lib/github-contributions";
+import { getRestPortfolioSource } from "@/lib/github-source";
 
 const DEFAULT_REVALIDATE_SECONDS = 3600;
 const DEFAULT_GITHUB_USERNAME = "DhanushSantosh";
@@ -14,7 +15,6 @@ const GITHUB_WEB_ENDPOINT = "https://github.com";
 export const GITHUB_TAGS = {
   profile: "github-profile",
   activity: "github-activity",
-  featured: "github-featured",
   projects: "github-projects",
 } as const;
 
@@ -39,7 +39,7 @@ export type GitHubContributionYear = {
   year: number;
 };
 
-export type GitHubProfileSummary = {
+type GitHubProfileSummary = {
   avatarUrl: string | null;
   bio: string | null;
   followers: number;
@@ -62,32 +62,9 @@ export type GitHubRecentEvent = {
   url: string;
 };
 
-export type GitHubFeaturedRepo = {
-  accent: string;
-  defaultBranch: string | null;
-  demoUrl: string | null;
-  description: string;
-  forkCount: number | null;
-  homepageUrl: string | null;
-  isArchived: boolean;
-  languageColor: string | null;
-  languageName: string | null;
-  liveUrl: string | null;
-  name: string;
-  nameWithOwner: string | null;
-  openIssues: number | null;
-  pushedAt: string | null;
-  repoUrl: string | null;
-  stack: string[];
-  stars: number | null;
-  summary: string;
-  topics: string[];
-};
-
 export type GitHubPortfolioData = {
   available: boolean;
   contributionYears: GitHubContributionYear[];
-  featuredRepos: GitHubFeaturedRepo[];
   lastSyncedAt: string;
   profile: GitHubProfileSummary | null;
   projects: GitHubProject[];
@@ -98,7 +75,7 @@ export type GitHubPortfolioData = {
   weeks: GitHubContributionWeek[];
 };
 
-export type GitHubProject = {
+type GitHubProject = {
   accent: string;
   defaultBranch: string | null;
   demoUrl: string | null;
@@ -124,29 +101,6 @@ export type GitHubStarredRepo = {
   languageName: string | null;
   name: string;
   nameWithOwner: string;
-  url: string;
-};
-
-type GraphQLLanguage = {
-  color: string | null;
-  name: string;
-};
-
-type GraphQLRepositoryNode = {
-  defaultBranchRef: { name: string } | null;
-  description: string | null;
-  forkCount: number;
-  homepageUrl: string | null;
-  isArchived: boolean;
-  issues: { totalCount: number };
-  name: string;
-  nameWithOwner: string;
-  primaryLanguage: GraphQLLanguage | null;
-  pushedAt: string | null;
-  repositoryTopics: {
-    nodes: Array<{ topic: { name: string } }>;
-  };
-  stargazerCount: number;
   url: string;
 };
 
@@ -189,7 +143,7 @@ type GitHubGraphQLPayload = {
     starredRepositories: { totalCount: number };
     url: string;
   } | null;
-} & Record<string, GraphQLRepositoryNode | undefined | null>;
+};
 
 type GitHubContributionSummary = {
   lastYear: number | null;
@@ -452,24 +406,7 @@ async function fetchGitHubRestPaginated<T>(
   };
 }
 
-function buildFeaturedRepositorySelection() {
-  return featuredRepos
-    .filter((project) => !project.hidden)
-    .map((project, index) => ({ alias: `repo${index}`, config: project }));
-}
-
 function buildGitHubGraphQLQuery() {
-  const aliases = buildFeaturedRepositorySelection()
-    .filter(({ config }) => config.repo)
-    .map(({ alias, config }) => {
-      const [owner, name] = (config.repo as string).split("/");
-      return `
-      ${alias}: repository(owner: "${owner}", name: "${name}") {
-        ...RepoFields
-      }`;
-    })
-    .join("\n");
-
   return `
     query PortfolioGitHubData($login: String!, $from: DateTime!, $to: DateTime!) {
       user(login: $login) {
@@ -507,123 +444,8 @@ function buildGitHubGraphQLQuery() {
           }
         }
       }
-      ${aliases}
-    }
-
-    fragment RepoFields on Repository {
-      name
-      nameWithOwner
-      description
-      homepageUrl
-      url
-      stargazerCount
-      forkCount
-      pushedAt
-      isArchived
-      primaryLanguage {
-        name
-        color
-      }
-      repositoryTopics(first: 6) {
-        nodes {
-          topic {
-            name
-          }
-        }
-      }
-      defaultBranchRef {
-        name
-      }
-      issues(states: OPEN) {
-        totalCount
-      }
     }
   `;
-}
-
-function parseContributionHeadlineCount(html: string) {
-  const match = html.match(/<h2[^>]*>\s*([\d,]+)\s*contributions?/i);
-  if (!match) return null;
-
-  const count = Number.parseInt(match[1]?.replace(/,/g, "") ?? "", 10);
-  return Number.isFinite(count) ? count : null;
-}
-
-function parseContributionTooltipCount(label: string) {
-  if (/No contributions/i.test(label)) return 0;
-
-  const match = label.match(/([\d,]+)\s+contributions?/i);
-  if (!match) return 0;
-
-  const count = Number.parseInt(match[1]?.replace(/,/g, "") ?? "", 10);
-  return Number.isFinite(count) ? count : 0;
-}
-
-function mapContributionLevel(level: number) {
-  switch (level) {
-    case 1:
-      return "FIRST_QUARTILE";
-    case 2:
-      return "SECOND_QUARTILE";
-    case 3:
-      return "THIRD_QUARTILE";
-    case 4:
-      return "FOURTH_QUARTILE";
-    default:
-      return "NONE";
-  }
-}
-
-function parseContributionWeeks(html: string) {
-  const tooltipById = new Map<string, string>();
-  const tooltipRegex = /<tool-tip([^>]*)>([^<]+)<\/tool-tip>/g;
-
-  for (const match of html.matchAll(tooltipRegex)) {
-    const attributes = match[1] ?? "";
-    const targetId = attributes.match(/\sfor="([^"]+)"/)?.[1];
-    const label = match[2]?.trim();
-
-    if (targetId && label) {
-      tooltipById.set(targetId, label);
-    }
-  }
-
-  const weeksByIndex = new Map<number, GitHubContributionDay[]>();
-  const dayRegex = /<td([^>]*class="ContributionCalendar-day"[^>]*)><\/td>/g;
-
-  for (const match of html.matchAll(dayRegex)) {
-    const attributes = match[1] ?? "";
-    const weekIndex = Number.parseInt(attributes.match(/\sdata-ix="(\d+)"/)?.[1] ?? "", 10);
-    const date = attributes.match(/\sdata-date="([^"]+)"/)?.[1];
-    const level = Number.parseInt(attributes.match(/\sdata-level="(\d+)"/)?.[1] ?? "0", 10);
-    const elementId = attributes.match(/\sid="([^"]+)"/)?.[1];
-
-    if (!Number.isFinite(weekIndex) || !date || !elementId) continue;
-
-    const count = parseContributionTooltipCount(tooltipById.get(elementId) ?? "");
-    const day: GitHubContributionDay = {
-      color: "",
-      contributionCount: count,
-      contributionLevel: mapContributionLevel(level),
-      date,
-      weekday: new Date(`${date}T00:00:00Z`).getUTCDay(),
-    };
-
-    const week = weeksByIndex.get(weekIndex) ?? [];
-    week.push(day);
-    weeksByIndex.set(weekIndex, week);
-  }
-
-  return Array.from(weeksByIndex.entries())
-    .sort((left, right) => left[0] - right[0])
-    .map(([, days]) => {
-      const contributionDays = days.sort((left, right) => left.date.localeCompare(right.date));
-      return {
-        contributionDays,
-        firstDay: contributionDays[0]?.date ?? "",
-      };
-    })
-    .filter((week) => week.firstDay);
 }
 
 async function getGitHubContributionSummary(username: string, years: number[]): Promise<GitHubContributionSummary> {
@@ -671,13 +493,6 @@ async function getGitHubContributionSummary(username: string, years: number[]): 
   };
 }
 
-function normalizeStack(repoTopics: string[], config: FeaturedRepoConfig, languageName: string | null) {
-  if (config.stackOverride?.length) return config.stackOverride;
-
-  const items = [...(languageName ? [languageName] : []), ...repoTopics];
-  return items.slice(0, 6);
-}
-
 function normalizeProjectStack(repoTopics: string[]) {
   return Array.from(new Set(repoTopics)).slice(0, 6);
 }
@@ -689,63 +504,6 @@ function normalizeRestStarredRepo(repo: GitHubRestRepo): GitHubStarredRepo {
     name: repo.name,
     nameWithOwner: repo.full_name,
     url: repo.html_url,
-  };
-}
-
-function normalizeGraphQLRepo(
-  repoNode: GraphQLRepositoryNode | null | undefined,
-  config: FeaturedRepoConfig,
-): GitHubFeaturedRepo {
-  const fallbackTitle = config.titleOverride ?? config.repo?.split("/")[1] ?? "Project";
-  const topics = repoNode?.repositoryTopics.nodes.map((item) => item.topic.name) ?? [];
-  const languageName = repoNode?.primaryLanguage?.name ?? null;
-
-  return {
-    accent: config.accent ?? "Open Source",
-    defaultBranch: repoNode?.defaultBranchRef?.name ?? null,
-    demoUrl: config.demoUrl ?? null,
-    description: repoNode?.description ?? config.summaryOverride ?? "Repository details will appear here once GitHub data is connected.",
-    forkCount: repoNode?.forkCount ?? null,
-    homepageUrl: normalizeOptionalText(repoNode?.homepageUrl),
-    isArchived: repoNode?.isArchived ?? false,
-    languageColor: repoNode?.primaryLanguage?.color ?? null,
-    languageName,
-    liveUrl: normalizeOptionalText(config.liveUrl) ?? normalizeOptionalText(repoNode?.homepageUrl),
-    name: config.titleOverride ?? repoNode?.name ?? fallbackTitle,
-    nameWithOwner: repoNode?.nameWithOwner ?? config.repo ?? null,
-    openIssues: repoNode?.issues.totalCount ?? null,
-    pushedAt: repoNode?.pushedAt ?? null,
-    repoUrl: repoNode?.url ?? (config.repo ? `https://github.com/${config.repo}` : null),
-    stack: normalizeStack(topics, config, languageName),
-    stars: repoNode?.stargazerCount ?? null,
-    summary: config.summaryOverride ?? repoNode?.description ?? "A curated featured project.",
-    topics,
-  };
-}
-
-function normalizeRestRepo(repo: GitHubRestRepo | null, config: FeaturedRepoConfig): GitHubFeaturedRepo {
-  const topics = repo?.topics ?? [];
-
-  return {
-    accent: config.accent ?? "Open Source",
-    defaultBranch: repo?.default_branch ?? null,
-    demoUrl: config.demoUrl ?? null,
-    description: repo?.description ?? config.summaryOverride ?? "Repository details will appear here once GitHub data is connected.",
-    forkCount: repo?.forks_count ?? null,
-    homepageUrl: normalizeOptionalText(repo?.homepage),
-    isArchived: repo?.archived ?? false,
-    languageColor: null,
-    languageName: repo?.language ?? null,
-    liveUrl: normalizeOptionalText(config.liveUrl) ?? normalizeOptionalText(repo?.homepage),
-    name: config.titleOverride ?? repo?.name ?? config.repo?.split("/")[1] ?? "Project",
-    nameWithOwner: repo?.full_name ?? config.repo ?? null,
-    openIssues: repo?.open_issues_count ?? null,
-    pushedAt: repo?.pushed_at ?? null,
-    repoUrl: repo?.html_url ?? (config.repo ? `https://github.com/${config.repo}` : null),
-    stack: normalizeStack(topics, config, repo?.language ?? null),
-    stars: repo?.stargazers_count ?? null,
-    summary: config.summaryOverride ?? repo?.description ?? "A curated featured project.",
-    topics,
   };
 }
 
@@ -912,7 +670,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
       login: username,
       to: today.toISOString(),
     },
-    [GITHUB_TAGS.profile, GITHUB_TAGS.activity, GITHUB_TAGS.featured],
+    [GITHUB_TAGS.profile, GITHUB_TAGS.activity],
   );
 
   const payload = payloadResult.data;
@@ -924,10 +682,6 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
     fetchGitHubRest<GitHubRestEvent[]>(`/users/${username}/events/public?per_page=12`, [GITHUB_TAGS.activity]),
     getGitHubContributionSummary(username, payload.user.contributionsCollection.contributionYears),
   ]);
-
-  const featured = buildFeaturedRepositorySelection().map(({ alias, config }) =>
-    normalizeGraphQLRepo(payload[alias], config),
-  );
 
   const recentEvents = (recentEventsResult.data ?? [])
     .map(normalizeActivityEvent)
@@ -946,11 +700,6 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
   return {
     available: true,
     contributionYears: contributionSummaryResult.years,
-    featuredRepos: featured.sort((a, b) => {
-      const aOrder = featuredRepos.find((item) => (item.repo ?? item.titleOverride) === (a.nameWithOwner ?? a.name))?.order ?? 0;
-      const bOrder = featuredRepos.find((item) => (item.repo ?? item.titleOverride) === (b.nameWithOwner ?? b.name))?.order ?? 0;
-      return aOrder - bOrder;
-    }),
     lastSyncedAt: new Date().toISOString(),
     profile: {
       avatarUrl: payload.user.avatarUrl,
@@ -983,44 +732,23 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
     getGitHubStarredRepos(username),
   ]);
 
-  const featuredResults = await Promise.all(
-    featuredRepos
-      .filter((project) => !project.hidden)
-      .map(async (config) => {
-        if (!config.repo) {
-          return {
-            repo: normalizeRestRepo(null, config),
-            ok: true,
-          };
-        }
-
-        const repoResult = await fetchGitHubRest<GitHubRestRepo>(`/repos/${config.repo}`, [GITHUB_TAGS.featured]);
-        return {
-          repo: normalizeRestRepo(repoResult.data, config),
-          ok: repoResult.ok,
-        };
-      }),
-  );
-
-  const featured = featuredResults.map((result) => result.repo);
   const isRestFallbackComplete =
     userResult.ok &&
     eventsResult.ok &&
     projectsResult.ok &&
-    starredReposResult.ok &&
-    featuredResults.every((result) => result.ok);
+    starredReposResult.ok;
 
-  const hasAnyLiveData = Boolean(userResult.data || featured.length || projectsResult.items.length);
-  const source = !hasAnyLiveData ? "unavailable" : isRestFallbackComplete ? "rest-fallback" : "live-partial";
+  const source = getRestPortfolioSource({
+    complete: isRestFallbackComplete,
+    eventCount: eventsResult.data?.length ?? 0,
+    hasUser: Boolean(userResult.data),
+    projectCount: projectsResult.items.length,
+    starredRepoCount: starredReposResult.items.length,
+  });
 
   return {
-    available: hasAnyLiveData,
+    available: source !== "unavailable",
     contributionYears: [],
-    featuredRepos: featured.sort((a, b) => {
-      const aOrder = featuredRepos.find((item) => item.titleOverride === a.name || item.repo === a.nameWithOwner)?.order ?? 0;
-      const bOrder = featuredRepos.find((item) => item.titleOverride === b.name || item.repo === b.nameWithOwner)?.order ?? 0;
-      return aOrder - bOrder;
-    }),
     lastSyncedAt: new Date().toISOString(),
     profile: userResult.data
       ? {
@@ -1055,12 +783,3 @@ export const getGitHubPortfolioData = cache(async (): Promise<GitHubPortfolioDat
   if (graphQL) return graphQL;
   return getRestFallbackPortfolioData(username);
 });
-
-export function isFeaturedRepository(repoFullName: string | null | undefined) {
-  if (!repoFullName) return false;
-  return featuredRepoLookup.has(repoFullName.toLowerCase());
-}
-
-export function getGitHubPublicUsername() {
-  return getGitHubUsername();
-}

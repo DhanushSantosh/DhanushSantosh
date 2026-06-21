@@ -43,5 +43,3 @@ export function ProjectsDemoController() {
     />
   );
 }
-
-export default ProjectsDemoController;

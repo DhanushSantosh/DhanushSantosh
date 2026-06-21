@@ -66,5 +66,3 @@ export function SiteHeader({ name, role, cvPageUrl, githubUrl }: SiteHeaderProps
     </header>
   );
 }
-
-export default SiteHeader;

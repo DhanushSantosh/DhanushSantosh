@@ -22,7 +22,7 @@ const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const SLOW_CONNECTION_TYPES = new Set(["slow-2g", "2g"]);
 let sculpturePrefetched = false;
 
-export function SculptureViewportGate({
+function SculptureViewportGate({
   children,
   className,
   rootMargin = "200px",

@@ -137,7 +137,7 @@ function NeuralConstellation({ quality }: { quality: "full" | "lite" }) {
   );
 }
 
-export function ContactSculpture({ quality = "full" }: { quality?: "full" | "lite" }) {
+function ContactSculpture({ quality = "full" }: { quality?: "full" | "lite" }) {
   const dprMax = quality === "lite" ? 2 : 3;
   const maxDeviceDpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, dprMax) : dprMax;
 

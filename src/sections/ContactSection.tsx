@@ -2,7 +2,7 @@ import { siteConfig } from "@/config/site";
 import { Reveal } from "@/components/Reveal";
 import EmailTemplateButton from "@/components/EmailTemplateButton";
 
-export function ContactSection() {
+function ContactSection() {
   const { contact, socialLinks } = siteConfig;
 
   return (

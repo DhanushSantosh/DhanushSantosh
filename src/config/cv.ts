@@ -7,5 +7,3 @@ export const cvConfig = {
   downloadName: "dhanush-santosh-cv.pdf",
   lastUpdatedLabel: "Updated June 2026",
 } as const;
-
-export type CvConfig = typeof cvConfig;
