@@ -674,8 +674,9 @@ async function enrichPushEvents(
       `/repos/${event.repoName}/commits/${sha}`,
       [GITHUB_TAGS.activity],
     );
-    const message = normalizeOptionalText(result.data?.commit?.message);
-    if (!message) return event;
+    const rawMessage = normalizeOptionalText(result.data?.commit?.message);
+    if (!rawMessage) return event;
+    const message = rawMessage.split("\n")[0].trim();
 
     const branch = raw?.payload?.ref?.replace("refs/heads/", "");
     return {
