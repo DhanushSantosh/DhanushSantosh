@@ -676,7 +676,8 @@ async function enrichPushEvents(
     );
     const rawMessage = normalizeOptionalText(result.data?.commit?.message);
     if (!rawMessage) return event;
-    const message = rawMessage.split("\n")[0].trim();
+    const firstLine = rawMessage.split("\n")[0].trim();
+    const message = firstLine.length > 60 ? `${firstLine.slice(0, 57)}...` : firstLine;
 
     const branch = raw?.payload?.ref?.replace("refs/heads/", "");
     return {

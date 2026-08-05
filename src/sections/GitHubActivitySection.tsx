@@ -103,7 +103,7 @@ export default async function GitHubActivitySection() {
                               </span>
                             )}
                           </div>
-                          <h4 className="text-[12px] font-medium text-white/90 group-hover:text-cyan-400 transition-colors duration-200 leading-snug">
+                          <h4 className="text-[12px] font-medium text-white/90 group-hover:text-cyan-400 transition-colors duration-200 leading-snug line-clamp-2">
                             {event.summary}
                           </h4>
                           <p className="font-mono text-[9px] text-white/30 truncate max-w-full">
