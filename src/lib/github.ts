@@ -209,6 +209,13 @@ type GitHubRestEvent = {
   type: string;
 };
 
+type GitHubCommit = {
+  sha: string;
+  commit: {
+    message: string;
+  };
+};
+
 function getGitHubUsername() {
   return process.env.GITHUB_USERNAME?.trim() || DEFAULT_GITHUB_USERNAME;
 }
@@ -659,6 +666,40 @@ function normalizeActivityEvent(event: GitHubRestEvent): GitHubRecentEvent | nul
   }
 }
 
+async function enrichPushEvents(
+  events: GitHubRecentEvent[],
+  rawEvents: GitHubRestEvent[],
+): Promise<GitHubRecentEvent[]> {
+  const pushEvents = events.filter((e) => e.kind === "push");
+  if (pushEvents.length === 0) return events;
+
+  const fetches = pushEvents.map(async (event) => {
+    const raw = rawEvents.find((r) => r.id === event.id);
+    const sha = raw?.payload?.commits?.[0]?.sha;
+    if (!sha) return event;
+
+    const result = await fetchGitHubRest<GitHubCommit>(
+      `/repos/${event.repoName}/commits/${sha}`,
+      [GITHUB_TAGS.activity],
+    );
+    const message = normalizeOptionalText(result.data?.commit?.message);
+    if (!message) return event;
+
+    const branch = raw?.payload?.ref?.replace("refs/heads/", "");
+    const commitCount = raw?.payload?.distinct_size ?? raw?.payload?.commits?.length ?? 0;
+    return {
+      ...event,
+      summary:
+        commitCount > 0
+          ? `${commitCount} commit${commitCount === 1 ? "" : "s"}${branch ? ` to ${branch}` : ""} — ${message}`
+          : `Pushed — ${message}`,
+    };
+  });
+
+  const enriched = await Promise.all(fetches);
+  return events.map((e) => enriched.find((en) => en.id === e.id) ?? e);
+}
+
 async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfolioData | null> {
   const today = new Date();
   const from = new Date(today);
@@ -685,10 +726,14 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
     getGitHubContributionSummary(username, payload.user.contributionsCollection.contributionYears),
   ]);
 
-  const recentEvents = (recentEventsResult.data ?? [])
-    .map(normalizeActivityEvent)
-    .filter((event): event is GitHubRecentEvent => Boolean(event))
-    .slice(0, 6);
+  const rawRecentEvents = recentEventsResult.data ?? [];
+  const recentEvents = await enrichPushEvents(
+    rawRecentEvents
+      .map(normalizeActivityEvent)
+      .filter((event): event is GitHubRecentEvent => Boolean(event))
+      .slice(0, 6),
+    rawRecentEvents,
+  );
 
   const source =
     payloadResult.ok &&
@@ -768,10 +813,13 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
         }
       : null,
     projects: projectsResult.items,
-    recentEvents: (eventsResult.data ?? [])
-      .map(normalizeActivityEvent)
-      .filter((event): event is GitHubRecentEvent => Boolean(event))
-      .slice(0, 6),
+    recentEvents: await enrichPushEvents(
+      (eventsResult.data ?? [])
+        .map(normalizeActivityEvent)
+        .filter((event): event is GitHubRecentEvent => Boolean(event))
+        .slice(0, 6),
+      eventsResult.data ?? [],
+    ),
     source,
     starredRepos: starredReposResult.items,
     totalProjectStars: countProjectStars(projectsResult.items),
