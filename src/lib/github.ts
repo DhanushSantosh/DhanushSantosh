@@ -587,16 +587,8 @@ function normalizeActivityEvent(event: GitHubRestEvent): GitHubRecentEvent | nul
 
   switch (event.type) {
     case "PushEvent": {
-      const commits = event.payload?.commits ?? [];
-      const commitCount = event.payload?.distinct_size ?? commits.length;
       const branch = event.payload?.ref?.replace("refs/heads/", "");
-      const firstMessage = normalizeOptionalText(commits[0]?.message);
-      const summary =
-        commitCount > 0
-          ? `${commitCount} commit${commitCount === 1 ? "" : "s"}${branch ? ` to ${branch}` : ""}${firstMessage ? ` — ${firstMessage}` : ""}`
-          : firstMessage
-            ? `Pushed — ${firstMessage}`
-            : "Pushed new changes";
+      const summary = branch ? `Pushed to ${branch}` : "Pushed new changes";
 
       return {
         id: event.id,
@@ -675,7 +667,7 @@ async function enrichPushEvents(
 
   const fetches = pushEvents.map(async (event) => {
     const raw = rawEvents.find((r) => r.id === event.id);
-    const sha = raw?.payload?.commits?.[0]?.sha;
+    const sha = raw?.payload?.head;
     if (!sha) return event;
 
     const result = await fetchGitHubRest<GitHubCommit>(
@@ -686,13 +678,9 @@ async function enrichPushEvents(
     if (!message) return event;
 
     const branch = raw?.payload?.ref?.replace("refs/heads/", "");
-    const commitCount = raw?.payload?.distinct_size ?? raw?.payload?.commits?.length ?? 0;
     return {
       ...event,
-      summary:
-        commitCount > 0
-          ? `${commitCount} commit${commitCount === 1 ? "" : "s"}${branch ? ` to ${branch}` : ""} — ${message}`
-          : `Pushed — ${message}`,
+      summary: `Pushed to ${branch ? `${branch} — ` : ""}${message}`,
     };
   });
 
