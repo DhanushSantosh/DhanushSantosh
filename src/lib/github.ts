@@ -185,7 +185,7 @@ type GitHubRestEvent = {
   id: string;
   payload?: {
     action?: string;
-    commits?: Array<{ sha: string }>;
+    commits?: Array<{ sha: string; message?: string }>;
     distinct_size?: number;
     head?: string;
     number?: number;
@@ -580,13 +580,15 @@ function normalizeActivityEvent(event: GitHubRestEvent): GitHubRecentEvent | nul
 
   switch (event.type) {
     case "PushEvent": {
-      const commitCount = event.payload?.distinct_size ?? event.payload?.commits?.length ?? 0;
+      const commits = event.payload?.commits ?? [];
+      const commitCount = event.payload?.distinct_size ?? commits.length;
       const branch = event.payload?.ref?.replace("refs/heads/", "");
+      const firstMessage = normalizeOptionalText(commits[0]?.message);
       const summary =
         commitCount > 0
-          ? `Pushed ${commitCount} commit${commitCount === 1 ? "" : "s"}${branch ? ` to ${branch}` : ""}`
-          : branch
-            ? `Updated ${branch}`
+          ? `${commitCount} commit${commitCount === 1 ? "" : "s"}${branch ? ` to ${branch}` : ""}${firstMessage ? ` — ${firstMessage}` : ""}`
+          : firstMessage
+            ? `Pushed — ${firstMessage}`
             : "Pushed new changes";
 
       return {

@@ -145,7 +145,7 @@ function buildPreviewImage(variant: PreviewVariant) {
                   boxShadow: "0 0 18px rgba(95,225,255,0.65)",
                 }}
               />
-              Xerocore Portfolio
+              Dhanush Portfolio
             </div>
             <div
               style={{

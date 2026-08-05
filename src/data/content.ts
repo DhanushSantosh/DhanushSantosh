@@ -6,7 +6,7 @@ export const hero = {
     "I architect AI-native product systems where resilient infra, delightful UX, and reliable models operate as a single surface.",
   summary:
     "Across fintech, creative tooling, and B2B SaaS I focus on shipping AI copilots, realtime dashboards, and automation experiences with strong frontend craft and production-minded thinking.",
-  email: "contact@xerocore.in",
+  email: "contact@dhanushsantosh.in",
 };
 
 export const experience = [

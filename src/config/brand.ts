@@ -1,4 +1,4 @@
 export const brandConfig = {
-  canonicalUrl: "https://www.xerocore.in",
-  displayDomain: "xerocore.in",
+  canonicalUrl: "https://www.dhanushsantosh.in",
+  displayDomain: "dhanushsantosh.in",
 } as const;

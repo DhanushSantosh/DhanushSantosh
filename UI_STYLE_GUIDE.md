@@ -25,7 +25,7 @@ These are exposed to Tailwind as:
   - `--font-geist-sans` and `--font-geist-mono`
 - `--font-sans` and `--font-mono` are composed in `:root` and used by Tailwind.
 - Poetic display font:
-  - Custom font-face `XerocoreRoyal` in `src/app/globals.css`
+  - Custom font-face `DhanushRoyal` in `src/app/globals.css`
   - Utility class `.font-poetic` applies the script stack, ligatures, and smoothing
 
 ### Global resets & utilities

@@ -49,7 +49,7 @@ Currently building and scaling LLM copilots, realtime dashboards, and intelligen
 <div align="center">
   <p><b>"Let's ship something intelligent together."</b></p>
   <p>
-    <a href="mailto:contact@xerocore.in">contact@xerocore.in</a> • 
-    <a href="https://xerocore.in">xerocore.in</a>
+    <a href="mailto:contact@dhanushsantosh.in">contact@dhanushsantosh.in</a> • 
+    <a href="https://dhanushsantosh.in">dhanushsantosh.in</a>
   </p>
 </div>

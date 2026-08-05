@@ -51,3 +51,5 @@ performance/
 
 .codex
 .codex-runtime/
+/.agents
+/.agent-comms/
