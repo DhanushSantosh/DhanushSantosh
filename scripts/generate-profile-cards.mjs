@@ -28,10 +28,21 @@ if (!TOKEN) {
 }
 
 // ---- design tokens (see file header) ----------------------------------
-const COLOR_BG = "#000000";
-const COLOR_BORDER = "rgba(255, 255, 255, 0.12)";
-const COLOR_TRACK = "rgba(255, 255, 255, 0.08)";
+// v1 used a flat #000000 fill with a barely-visible border — on GitHub's own
+// dark theme (also near-black) that read as no card at all, just floating
+// text (confirmed from a live screenshot, not assumed). The real site never
+// ships a black surface alone: UI_STYLE_GUIDE.md pairs it with a lifted
+// bg-white/5-style fill, a visible border, and an inset top highlight for
+// "glass" depth (see ContactSection's shadow-[inset_0_1px_0_0_...]). Same
+// treatment here.
+const COLOR_BG = "#0c0c0f";
+const COLOR_BORDER = "rgba(255, 255, 255, 0.16)";
+const COLOR_INNER_HIGHLIGHT = "rgba(255, 255, 255, 0.09)";
+const COLOR_DIVIDER = "rgba(255, 255, 255, 0.09)";
+const COLOR_TRACK = "rgba(255, 255, 255, 0.09)";
+const COLOR_BAR_STROKE = "rgba(255, 255, 255, 0.18)";
 const COLOR_TITLE = "#5fe1ff";
+const COLOR_ICON = "rgba(95, 225, 255, 0.85)";
 const COLOR_VALUE = "#f5f5f5";
 const COLOR_LABEL = "#8e92a9";
 const COLOR_LANG_FALLBACK = "#8e92a9";
@@ -176,35 +187,64 @@ async function fetchProfileData(username) {
   };
 }
 
+// ---- icons ----------------------------------------------------------------
+// Feather Icons (MIT) — the exact set the site's own UI already draws on via
+// react-icons/fi (FiGithub, FiStar, FiGitBranch, FiPlay, ... in
+// ProjectsSection/SiteHeader/ContactSection). Native 24x24 stroke grid;
+// positioned via a wrapping <g transform>, so callers pick size/placement
+// without touching the path data.
+const ICONS = {
+  star: `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="${COLOR_ICON}" stroke="${COLOR_ICON}" stroke-width="1.4" stroke-linejoin="round"/>`,
+  commit: `<circle cx="12" cy="12" r="4" fill="none" stroke="${COLOR_ICON}" stroke-width="2"/><line x1="1.05" y1="12" x2="7" y2="12" stroke="${COLOR_ICON}" stroke-width="2" stroke-linecap="round"/><line x1="17.01" y1="12" x2="22.96" y2="12" stroke="${COLOR_ICON}" stroke-width="2" stroke-linecap="round"/>`,
+  pullRequest: `<circle cx="18" cy="18" r="3" fill="none" stroke="${COLOR_ICON}" stroke-width="2"/><circle cx="6" cy="6" r="3" fill="none" stroke="${COLOR_ICON}" stroke-width="2"/><path d="M13 6h3a2 2 0 0 1 2 2v7" fill="none" stroke="${COLOR_ICON}" stroke-width="2" stroke-linecap="round"/><line x1="6" y1="9" x2="6" y2="21" stroke="${COLOR_ICON}" stroke-width="2" stroke-linecap="round"/>`,
+  alertCircle: `<circle cx="12" cy="12" r="10" fill="none" stroke="${COLOR_ICON}" stroke-width="2"/><line x1="12" y1="7.5" x2="12" y2="13" stroke="${COLOR_ICON}" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1.1" fill="${COLOR_ICON}"/>`,
+  gitBranch: `<line x1="6" y1="3" x2="6" y2="15" stroke="${COLOR_ICON}" stroke-width="2" stroke-linecap="round"/><circle cx="18" cy="6" r="3" fill="none" stroke="${COLOR_ICON}" stroke-width="2"/><circle cx="6" cy="18" r="3" fill="none" stroke="${COLOR_ICON}" stroke-width="2"/><path d="M18 9a9 9 0 0 1-9 9" fill="none" stroke="${COLOR_ICON}" stroke-width="2" stroke-linecap="round"/>`,
+};
+
+function icon(name, cx, cy, size) {
+  const scale = size / 24;
+  return `<g transform="translate(${cx - size / 2}, ${cy - size / 2}) scale(${scale})">${ICONS[name]}</g>`;
+}
+
 // ---- SVG rendering --------------------------------------------------------
 function cardShell(width, height, title, body) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img">
   <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="20" fill="${COLOR_BG}" stroke="${COLOR_BORDER}" stroke-width="1"/>
-  <text x="24" y="34" font-family="${FONT_STACK}" font-size="15" font-weight="600" fill="${COLOR_TITLE}">${escapeXml(title)}</text>
+  <path d="M 20.5 1 H ${width - 20.5}" stroke="${COLOR_INNER_HIGHLIGHT}" stroke-width="1" stroke-linecap="round"/>
+  <text x="24" y="33" font-family="${FONT_STACK}" font-size="15" font-weight="600" fill="${COLOR_TITLE}">${escapeXml(title)}</text>
   ${body}
 </svg>`;
 }
 
 function renderStatsCard(data) {
-  const width = 480;
-  const height = 170;
+  const width = 500;
+  const height = 172;
   const tiles = [
-    { label: "Stars", value: data.stars },
-    { label: "Commits", value: data.commits },
-    { label: "Pull Requests", value: data.prs },
-    { label: "Issues", value: data.issues },
-    { label: "Repos Contributed", value: data.contributedTo },
+    { label: "Stars", value: data.stars, icon: "star" },
+    { label: "Commits", value: data.commits, icon: "commit" },
+    { label: "Pull Requests", value: data.prs, icon: "pullRequest" },
+    { label: "Issues", value: data.issues, icon: "alertCircle" },
+    { label: "Repos Contributed", value: data.contributedTo, icon: "gitBranch" },
   ];
-  const padding = 24;
+  const padding = 26;
   const usable = width - padding * 2;
   const tileWidth = usable / tiles.length;
+  const iconY = 74;
+  const valueY = 112;
+  const labelY = 136;
 
   const body = tiles
     .map((tile, i) => {
       const cx = padding + tileWidth * i + tileWidth / 2;
+      const divider =
+        i > 0
+          ? `<line x1="${padding + tileWidth * i}" y1="56" x2="${padding + tileWidth * i}" y2="150" stroke="${COLOR_DIVIDER}" stroke-width="1"/>`
+          : "";
       return `
-  <text x="${cx}" y="98" font-family="${FONT_STACK}" font-size="27" font-weight="700" fill="${COLOR_VALUE}" text-anchor="middle">${formatCompact(tile.value)}</text>
-  <text x="${cx}" y="122" font-family="${FONT_STACK}" font-size="10" font-weight="600" letter-spacing="0.6" fill="${COLOR_LABEL}" text-anchor="middle">${escapeXml(tile.label.toUpperCase())}</text>`;
+  ${divider}
+  ${icon(tile.icon, cx, iconY, 22)}
+  <text x="${cx}" y="${valueY}" font-family="${FONT_STACK}" font-size="26" font-weight="700" fill="${COLOR_VALUE}" text-anchor="middle">${formatCompact(tile.value)}</text>
+  <text x="${cx}" y="${labelY}" font-family="${FONT_STACK}" font-size="9.5" font-weight="600" letter-spacing="0.5" fill="${COLOR_LABEL}" text-anchor="middle">${escapeXml(tile.label.toUpperCase())}</text>`;
     })
     .join("");
 
@@ -212,25 +252,28 @@ function renderStatsCard(data) {
 }
 
 function renderLanguagesCard(data) {
-  const width = 480;
-  const rowHeight = 28;
-  const rowsTop = 56;
-  const height = rowsTop + data.topLanguages.length * rowHeight + 14;
-  const padding = 24;
-  const barTop = 14; // offset within each row, below the label baseline
-  const barHeight = 6;
-  const trackWidth = width - padding * 2;
+  const width = 500;
+  const rowHeight = 32;
+  const rowsTop = 58;
+  const height = rowsTop + data.topLanguages.length * rowHeight + 16;
+  const padding = 26;
+  const dotRadius = 4;
+  const barTop = 16; // offset within each row, below the label baseline
+  const barHeight = 8;
+  const trackWidth = width - padding * 2 - dotRadius * 2 - 8; // leave room for the leading dot
 
   const body = data.topLanguages
     .map((lang, i) => {
       const rowY = rowsTop + i * rowHeight;
       const barY = rowY + barTop;
+      const barX = padding + dotRadius * 2 + 8;
       const barWidth = Math.max((lang.pct / 100) * trackWidth, barHeight); // never below a pill's own diameter
       return `
-  <text x="${padding}" y="${rowY}" font-family="${FONT_STACK}" font-size="12.5" font-weight="600" fill="${COLOR_VALUE}">${escapeXml(lang.name)}</text>
+  <circle cx="${padding + dotRadius}" cy="${rowY - 4}" r="${dotRadius}" fill="${lang.color}" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
+  <text x="${barX}" y="${rowY}" font-family="${FONT_STACK}" font-size="13" font-weight="600" fill="${COLOR_VALUE}">${escapeXml(lang.name)}</text>
   <text x="${width - padding}" y="${rowY}" font-family="${FONT_STACK}" font-size="12" fill="${COLOR_LABEL}" text-anchor="end">${lang.pct.toFixed(1)}%</text>
-  <rect x="${padding}" y="${barY}" width="${trackWidth}" height="${barHeight}" rx="${barHeight / 2}" fill="${COLOR_TRACK}"/>
-  <rect x="${padding}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="${barHeight / 2}" fill="${lang.color}"/>`;
+  <rect x="${barX}" y="${barY}" width="${trackWidth}" height="${barHeight}" rx="${barHeight / 2}" fill="${COLOR_TRACK}"/>
+  <rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="${barHeight / 2}" fill="${lang.color}" stroke="${COLOR_BAR_STROKE}" stroke-width="1"/>`;
     })
     .join("");
 
