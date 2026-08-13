@@ -38,8 +38,8 @@ Currently building and scaling LLM copilots, realtime dashboards, and intelligen
 ### ✦ Activity & Metrics
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/DhanushSantosh/DhanushSantosh/generated/profile-summary-card-output/transparent/3-stats.svg" alt="GitHub Stats" height="165">
-  <img src="https://raw.githubusercontent.com/DhanushSantosh/DhanushSantosh/generated/profile-summary-card-output/transparent/2-most-commit-language.svg" alt="Most Commit Language" height="165">
+  <img src="https://raw.githubusercontent.com/DhanushSantosh/DhanushSantosh/generated/profile-summary-card-output/stats.svg" alt="GitHub Stats" width="480">
+  <img src="https://raw.githubusercontent.com/DhanushSantosh/DhanushSantosh/generated/profile-summary-card-output/languages.svg" alt="Top Languages" width="480">
 </div>
 
 <br>
