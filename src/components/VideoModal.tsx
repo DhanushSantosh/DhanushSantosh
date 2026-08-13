@@ -6,9 +6,12 @@ interface VideoModalProps {
     isOpen: boolean;
     onClose: () => void;
     videoUrl: string;
+    title?: string;
 }
 
-export function VideoModal({ isOpen, onClose, videoUrl }: VideoModalProps) {
+export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps) {
+    const iframeTitle = title ? `${title} demo video` : "Project demo video";
+
     // Lock body scroll when modal is open, compensate for scrollbar disappearing
     useEffect(() => {
         if (isOpen) {
@@ -49,6 +52,7 @@ export function VideoModal({ isOpen, onClose, videoUrl }: VideoModalProps) {
                             <div className="absolute top-0 right-0 z-10 p-4">
                                 <button
                                     onClick={onClose}
+                                    aria-label="Close video"
                                     className="rounded-full bg-black/50 p-2 text-white/70 backdrop-blur-md transition hover:bg-white/10 hover:text-white"
                                 >
                                     <FiX size={24} />
@@ -59,6 +63,7 @@ export function VideoModal({ isOpen, onClose, videoUrl }: VideoModalProps) {
                             <div className="aspect-video w-full bg-black">
                                 <iframe
                                     src={videoUrl}
+                                    title={iframeTitle}
                                     className="h-full w-full"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen
