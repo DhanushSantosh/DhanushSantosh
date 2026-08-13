@@ -1,0 +1,46 @@
+version: 2
+
+updates:
+  # --- npm dependencies ---
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    assignees:
+      - "DhanushSantosh"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      # Patch/minor bumps across the board are low-risk — batch them into one
+      # PR so ci.yml's checks gate a single merge instead of a dozen.
+      patch-and-minor:
+        update-types:
+          - "patch"
+          - "minor"
+    # Majors are intentionally left ungrouped: Dependabot opens one PR per
+    # major bump, dependabot-auto-merge.yml skips them (never auto-merged),
+    # and they carry real regression risk against this project's hand-rolled
+    # integrations — pdfjs-dist (CustomPdfViewer is written directly against
+    # its API), framer-motion (MotionProvider/LazyMotion wiring), eslint
+    # (flat-config + eslint-config-next compatibility), typescript (compiler
+    # behavior across the whole codebase) — so they wait for real review.
+
+  # --- GitHub Actions workflow dependencies ---
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    assignees:
+      - "DhanushSantosh"
+    commit-message:
+      prefix: "chore(ci)"
