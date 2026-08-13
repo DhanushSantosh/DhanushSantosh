@@ -5,11 +5,17 @@ import { VideoModal } from "@/components/VideoModal";
 
 const PROJECTS_SECTION_ID = "projects";
 const DEMO_DATA_ATTR = "data-project-demo";
+const DEMO_NAME_ATTR = "data-project-name";
 const DEMO_SELECTOR = `[${DEMO_DATA_ATTR}]`;
 const EMPTY_VIDEO_URL = "";
 
+type SelectedDemo = {
+  videoUrl: string;
+  projectName: string | null;
+};
+
 export function ProjectsDemoController() {
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [selectedDemo, setSelectedDemo] = useState<SelectedDemo | null>(null);
 
   const handleClick = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement | null;
@@ -22,7 +28,7 @@ export function ProjectsDemoController() {
     if (!videoUrl) return;
 
     event.preventDefault();
-    setSelectedVideo(videoUrl);
+    setSelectedDemo({ videoUrl, projectName: trigger.getAttribute(DEMO_NAME_ATTR) });
   }, []);
 
   useEffect(() => {
@@ -33,13 +39,14 @@ export function ProjectsDemoController() {
     return () => section.removeEventListener("click", handleClick);
   }, [handleClick]);
 
-  const handleClose = useCallback(() => setSelectedVideo(null), []);
+  const handleClose = useCallback(() => setSelectedDemo(null), []);
 
   return (
     <VideoModal
-      isOpen={Boolean(selectedVideo)}
+      isOpen={Boolean(selectedDemo)}
       onClose={handleClose}
-      videoUrl={selectedVideo ?? EMPTY_VIDEO_URL}
+      videoUrl={selectedDemo?.videoUrl ?? EMPTY_VIDEO_URL}
+      title={selectedDemo?.projectName ?? undefined}
     />
   );
 }
