@@ -2,19 +2,14 @@ name: Generate GitHub profile cards
 
 # Replaces the github-readme-stats.vercel.app badges in README.md — that's a
 # shared, public, rate-limited third-party instance prone to going down.
-# This action runs entirely in our own Actions minutes and commits static
-# SVGs to the `generated` branch, so the README references a static file,
-# not a live third-party render. Deliberately NOT the `output` branch:
-# snake.yml's crazy-max/ghaction-github-pages force-replaces that branch's
-# entire history with just dist/ on every run, which would silently wipe
-# this action's own commits out from under it.
-#
-# The action's BRANCH_NAME input is cosmetic only (confirmed by reading its
-# source: it just labels URLs in the generated preview markdown) — the tool
-# always `git add`/`commit`/`push`s to whatever branch is already checked
-# out, with no upstream/remote args. So the actual target branch is set by
-# checking it out ourselves, below, before the action runs. This also keeps
-# it off protected `main`: a bare push with no CI run against it would be
+# scripts/generate-profile-cards.mjs runs entirely in our own Actions
+# minutes and renders cards matching this project's own dark-glass design
+# system (see that file's header), committed as static SVGs to the
+# `generated` branch. Deliberately NOT the `output` branch: snake.yml's
+# crazy-max/ghaction-github-pages force-replaces that branch's entire
+# history with just dist/ on every run, which would silently wipe this
+# workflow's own commits out from under it. Also deliberately not committed
+# to protected `main`: a bare push with no CI run against it would be
 # rejected by the required "checks" status check.
 
 on:
@@ -35,6 +30,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
       - name: Check out (or create) the generated branch
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -49,11 +48,21 @@ jobs:
             git push --set-upstream origin generated
           fi
 
-      - uses: vn7n24fzkq/github-profile-summary-cards@release
+      - name: Restore the generator script
+        # The generated branch has no source of its own (it's an orphan
+        # history of output only) — bring the script over from main's
+        # checkout rather than switching branches back and forth.
+        run: git show origin/main:scripts/generate-profile-cards.mjs > generate-profile-cards.mjs
+
+      - name: Generate cards
+        run: node generate-profile-cards.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
-        with:
           USERNAME: ${{ github.repository_owner }}
-          BRANCH_NAME: "generated"
-          THEME: "transparent"
-          AUTO_PUSH: true
+
+      - name: Commit and push
+        run: |
+          rm generate-profile-cards.mjs
+          git add profile-summary-card-output
+          git commit -m "Update generated profile cards" || true
+          git push
