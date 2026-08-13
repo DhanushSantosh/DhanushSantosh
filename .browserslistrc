@@ -1,0 +1,8 @@
+# Modern evergreen browsers only — this site already requires WebGL2,
+# IntersectionObserver, and other baseline-modern APIs (adaptive 3D
+# sculpture, custom cursor), so there's nothing gained by shipping legacy
+# polyfills/transpilation for browsers that couldn't run the site anyway.
+defaults
+not IE 11
+not op_mini all
+not dead

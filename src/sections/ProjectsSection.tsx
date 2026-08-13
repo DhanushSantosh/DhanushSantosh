@@ -116,6 +116,7 @@ export default async function ProjectsSection() {
                         <button
                           type="button"
                           data-project-demo={project.demoUrl}
+                          data-project-name={project.name}
                           data-cursor-block
                           className="inline-flex items-center justify-center rounded-full border border-white/10 px-5 py-2 text-[11px] uppercase tracking-widest font-semibold text-white transition hover:border-white/40 hover:shadow-[0_0_28px_rgba(95,225,255,0.45)]"
                         >
