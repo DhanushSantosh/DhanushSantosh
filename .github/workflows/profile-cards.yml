@@ -3,8 +3,11 @@ name: Generate GitHub profile cards
 # Replaces the github-readme-stats.vercel.app badges in README.md — that's a
 # shared, public, rate-limited third-party instance prone to going down.
 # This action runs entirely in our own Actions minutes and commits static
-# SVGs to the `output` branch (same pattern snake.yml already uses), so the
-# README references a static file, not a live third-party render.
+# SVGs to the `generated` branch, so the README references a static file,
+# not a live third-party render. Deliberately NOT the `output` branch:
+# snake.yml's crazy-max/ghaction-github-pages force-replaces that branch's
+# entire history with just dist/ on every run, which would silently wipe
+# this action's own commits out from under it.
 
 on:
   schedule:
@@ -29,6 +32,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.SUMMARY_GITHUB_TOKEN }}
         with:
           USERNAME: ${{ github.repository_owner }}
-          BRANCH_NAME: "output"
+          BRANCH_NAME: "generated"
           THEME: "transparent"
           AUTO_PUSH: true
