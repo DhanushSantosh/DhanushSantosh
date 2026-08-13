@@ -60,7 +60,7 @@ body.has-custom-cursor * {
 
 @font-face {
   font-family: "DhanushRoyal";
-  src: url("/fonts/alex-brush.ttf") format("truetype");
+  src: url("/fonts/alex-brush.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
