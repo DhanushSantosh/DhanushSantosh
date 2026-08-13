@@ -53,6 +53,3 @@ performance/
 .codex-runtime/
 /.agents
 /.agent-comms/
-
-# Only ever committed on the `generated` branch by profile-cards.yml
-/profile-summary-card-output/
