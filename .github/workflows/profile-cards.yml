@@ -54,6 +54,12 @@ jobs:
         # checkout rather than switching branches back and forth.
         run: git show origin/main:scripts/generate-profile-cards.mjs > generate-profile-cards.mjs
 
+      - name: Clean previous output
+        # Full removal before regenerating, not just an overwrite, so a
+        # discontinued generator's stale files (e.g. the previous
+        # third-party action's transparent/ folder) can never linger.
+        run: git rm -rq --ignore-unmatch -- profile-summary-card-output
+
       - name: Generate cards
         run: node generate-profile-cards.mjs
         env:
