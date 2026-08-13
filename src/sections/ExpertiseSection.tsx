@@ -7,7 +7,6 @@ import {
   SiMeta,
   SiNextdotjs,
   SiNodedotjs,
-  SiOpenai,
   SiPython,
   SiReact,
   SiTailwindcss,
@@ -20,6 +19,22 @@ import { ExpertiseSelectionController } from "@/components/ExpertiseSelectionCon
 import { Reveal } from "@/components/Reveal";
 import { hero, techStack } from "@/data/content";
 
+const OpenAiIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    stroke="currentColor"
+    fill="currentColor"
+    strokeWidth="0"
+    role="img"
+    viewBox="0 0 24 24"
+    height="1em"
+    width="1em"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9013 6.0651 6.0651 0 0 0-4.9692-2.3168 6.0072 6.0072 0 0 0-5.717 4.1485 6.0197 6.0197 0 0 0-4.0044 2.9065 6.0483 6.0483 0 0 0 .8082 7.1006 5.98 5.98 0 0 0 .5156 4.9108 6.0483 6.0483 0 0 0 6.514 2.9014 6.066 6.066 0 0 0 4.9649 2.3167 6.0072 6.0072 0 0 0 5.717-4.1485 6.0232 6.0232 0 0 0 4.0044-2.9065 6.0442 6.0442 0 0 0-.8081-7.1006zm-8.8143 11.8906a4.5187 4.5187 0 0 1-2.9566-1.1042l.1423-.082 4.913-2.8365a.747.747 0 0 0 .3735-.6471V10.155l1.9806 1.1437a.7329.7329 0 0 1 .3735.6174V17.29a4.53 4.53 0 0 1-4.8263 4.4217zM4.697 18.3377a4.5187 4.5187 0 0 1-.5199-3.1171l.1424.0857 4.913 2.8365a.747.747 0 0 0 .747 0l5.9622-3.4429V17.001a.747.747 0 0 1-.3735.6471L9.67 21.05a4.5262 4.5262 0 0 1-4.973-2.7123zM3.4447 9.872a4.5187 4.5187 0 0 1 2.4367-2.0129v5.845a.747.747 0 0 0 .3735.6471l5.9622 3.4429-1.9806 1.1437a.7388.7388 0 0 1-.747 0L3.6 15.4057A4.5323 4.5323 0 0 1 3.4447 9.872zm15.8247 2.1245l-5.9622-3.4429 1.9806-1.1437a.7388.7388 0 0 1 .747 0l5.889 3.3976a4.5344 4.5344 0 0 1-.1613 8.1793v-5.845a.747.747 0 0 0-.3735-.6471zm1.2835-3.6587l-.1424-.0857-4.913-2.8365a.747.747 0 0 0-.747 0L8.7879 8.8585V6.999a.747.747 0 0 1 .3735-.6471l5.889-3.4019a4.5283 4.5283 0 0 1 5.4925 5.8298zm-12.8715-3.324a4.5187 4.5187 0 0 1 2.9566 1.1042l-.1423.082-4.913 2.8365a.747.747 0 0 0-.3735.6471V13.845L3.228 12.7013a.7329.7329 0 0 1-.3735-.6174V6.71a4.53 4.53 0 0 1 4.8263-4.4217zM9.54 13.563l2.46-1.42 2.46 1.42v2.84l-2.46 1.42-2.46-1.42z" />
+  </svg>
+);
+
 const iconMap: Record<string, React.ElementType | string> = {
   "Next.js": SiNextdotjs,
   React: SiReact,
@@ -29,7 +44,7 @@ const iconMap: Record<string, React.ElementType | string> = {
   "Three.js": SiThreedotjs,
   "Node.js": SiNodedotjs,
   Vercel: SiVercel,
-  OpenAI: SiOpenai,
+  OpenAI: OpenAiIcon,
   Claude: SiAnthropic,
   Llama: SiMeta,
   Gemini: "/icons/gemini.png",
