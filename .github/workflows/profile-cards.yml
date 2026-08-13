@@ -8,6 +8,14 @@ name: Generate GitHub profile cards
 # snake.yml's crazy-max/ghaction-github-pages force-replaces that branch's
 # entire history with just dist/ on every run, which would silently wipe
 # this action's own commits out from under it.
+#
+# The action's BRANCH_NAME input is cosmetic only (confirmed by reading its
+# source: it just labels URLs in the generated preview markdown) — the tool
+# always `git add`/`commit`/`push`s to whatever branch is already checked
+# out, with no upstream/remote args. So the actual target branch is set by
+# checking it out ourselves, below, before the action runs. This also keeps
+# it off protected `main`: a bare push with no CI run against it would be
+# rejected by the required "checks" status check.
 
 on:
   schedule:
@@ -26,6 +34,20 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check out (or create) the generated branch
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git fetch origin generated 2>/dev/null || true
+          if git ls-remote --exit-code --heads origin generated > /dev/null; then
+            git checkout generated
+          else
+            git checkout --orphan generated
+            git rm -rf . > /dev/null
+            git commit --allow-empty -m "Initialize generated branch"
+            git push --set-upstream origin generated
+          fi
 
       - uses: vn7n24fzkq/github-profile-summary-cards@release
         env:
