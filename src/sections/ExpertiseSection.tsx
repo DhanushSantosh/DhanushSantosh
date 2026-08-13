@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
+import { RiOpenaiFill } from "react-icons/ri";
 import {
   SiAnthropic,
   SiFramer,
@@ -7,7 +8,6 @@ import {
   SiMeta,
   SiNextdotjs,
   SiNodedotjs,
-  SiOpenai,
   SiPython,
   SiReact,
   SiTailwindcss,
@@ -29,7 +29,7 @@ const iconMap: Record<string, React.ElementType | string> = {
   "Three.js": SiThreedotjs,
   "Node.js": SiNodedotjs,
   Vercel: SiVercel,
-  OpenAI: SiOpenai,
+  OpenAI: RiOpenaiFill,
   Claude: SiAnthropic,
   Llama: SiMeta,
   Gemini: "/icons/gemini.png",
