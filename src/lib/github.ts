@@ -262,6 +262,10 @@ async function fetchGitHubGraphQL<T>(
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        githubTokenRejected = true;
+      }
+      console.error(`[github] GraphQL request failed: ${response.status}`);
       return {
         data: null,
         ok: false,
@@ -273,12 +277,17 @@ async function fetchGitHubGraphQL<T>(
     const data = payload.data ?? null;
     const hasErrors = Boolean(payload.errors?.length);
 
+    if (hasErrors) {
+      console.error("[github] GraphQL response included errors:", payload.errors);
+    }
+
     return {
       data,
       ok: Boolean(data) && !hasErrors,
       partial: Boolean(data) && hasErrors,
     };
-  } catch {
+  } catch (error) {
+    console.error("[github] GraphQL request threw:", error);
     return {
       data: null,
       ok: false,
@@ -287,21 +296,54 @@ async function fetchGitHubGraphQL<T>(
   }
 }
 
-async function fetchGitHubRest<T>(path: string, tags: GitHubTag[]): Promise<GitHubFetchResult<T>> {
-  const token = getGitHubToken();
-  try {
-    const response = await fetch(`${GITHUB_REST_ENDPOINT}${path}`, {
-      headers: {
-        Accept: "application/vnd.github+json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+// Once a request proves the configured token is rejected, skip attaching it for
+// the rest of this invocation instead of paying a 401 round-trip per call.
+let githubTokenRejected = false;
+
+function restHeaders(token: string | null) {
+  return {
+    Accept: "application/vnd.github+json",
+    ...(token && !githubTokenRejected ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+// GitHub's REST endpoints used here (user profile, repos, starred, events) are all
+// public data that works fine unauthenticated. An expired/revoked token shouldn't
+// take the whole GitHub section offline, so on 401 we drop the token and retry once
+// against the public, unauthenticated API instead of failing outright.
+async function fetchGitHubRestWithFallback(url: string, token: string | null, tags: GitHubTag[]) {
+  const response = await fetch(url, {
+    headers: restHeaders(token),
+    next: {
+      revalidate: DEFAULT_REVALIDATE_SECONDS,
+      tags: uniqueTags(tags),
+    },
+  });
+
+  if (response.status === 401 && token && !githubTokenRejected) {
+    githubTokenRejected = true;
+    console.error(
+      "[github] REST request was rejected with 401 using GITHUB_TOKEN; retrying unauthenticated for the rest of this request.",
+    );
+    return fetch(url, {
+      headers: restHeaders(token),
       next: {
         revalidate: DEFAULT_REVALIDATE_SECONDS,
         tags: uniqueTags(tags),
       },
     });
+  }
+
+  return response;
+}
+
+async function fetchGitHubRest<T>(path: string, tags: GitHubTag[]): Promise<GitHubFetchResult<T>> {
+  const token = getGitHubToken();
+  try {
+    const response = await fetchGitHubRestWithFallback(`${GITHUB_REST_ENDPOINT}${path}`, token, tags);
 
     if (!response.ok) {
+      console.error(`[github] REST request failed: ${response.status} ${path}`);
       return {
         data: null,
         ok: false,
@@ -314,7 +356,8 @@ async function fetchGitHubRest<T>(path: string, tags: GitHubTag[]): Promise<GitH
       ok: true,
       partial: false,
     };
-  } catch {
+  } catch (error) {
+    console.error(`[github] REST request threw: ${path}`, error);
     return {
       data: null,
       ok: false,
@@ -368,18 +411,14 @@ async function fetchGitHubRestPaginated<T>(
   for (let page = 1; page <= maxPages; page += 1) {
     const separator = path.includes("?") ? "&" : "?";
     try {
-      const response = await fetch(`${GITHUB_REST_ENDPOINT}${path}${separator}page=${page}`, {
-        headers: {
-          Accept: "application/vnd.github+json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        next: {
-          revalidate: DEFAULT_REVALIDATE_SECONDS,
-          tags: uniqueTags(tags),
-        },
-      });
+      const response = await fetchGitHubRestWithFallback(
+        `${GITHUB_REST_ENDPOINT}${path}${separator}page=${page}`,
+        token,
+        tags,
+      );
 
       if (!response.ok) {
+        console.error(`[github] paginated REST request failed: ${response.status} ${path} (page ${page})`);
         return {
           items,
           ok: false,
@@ -397,7 +436,8 @@ async function fetchGitHubRestPaginated<T>(
           partial: false,
         };
       }
-    } catch {
+    } catch (error) {
+      console.error(`[github] paginated REST request threw: ${path} (page ${page})`, error);
       return {
         items,
         ok: false,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import usePerformanceAudit from "@/hooks/usePerformanceAudit";
 
@@ -30,6 +30,29 @@ const shuffleSequence = () =>
   [...DEFAULT_SEQUENCE].sort(() => Math.random() - 0.5);
 
 const MOBILE_QUERY = "(max-width: 768px)";
+
+// Subscribes to the mobile breakpoint via the external `matchMedia` API. Reading
+// window state directly during render would diverge between server and client
+// and break hydration; useSyncExternalStore is React's designated tool for this
+// exact case, with getServerSnapshot providing the SSR-safe default (false).
+function subscribeToMobileQuery(onChange: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const mql = window.matchMedia(MOBILE_QUERY);
+  if (typeof mql.addEventListener === "function") {
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }
+  mql.addListener(onChange);
+  return () => mql.removeListener(onChange);
+}
+
+function getMobileQuerySnapshot() {
+  return window.matchMedia(MOBILE_QUERY).matches;
+}
+
+function getMobileQueryServerSnapshot() {
+  return false;
+}
 const ANIMATE_PRESENCE_MODE = "wait";
 const CHARACTER_OPACITY_HIDDEN = 0;
 const CHARACTER_OPACITY_VISIBLE = 1;
@@ -66,8 +89,10 @@ type HeroSentenceCyclerProps = {
 function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps) {
   const [index, setIndex] = useState(0);
   const [sequence, setSequence] = useState<number[]>(() => [...DEFAULT_SEQUENCE]);
-  const [isCompact, setIsCompact] = useState(
-    () => typeof window !== "undefined" && window.matchMedia(MOBILE_QUERY).matches,
+  const isCompact = useSyncExternalStore(
+    subscribeToMobileQuery,
+    getMobileQuerySnapshot,
+    getMobileQueryServerSnapshot,
   );
   const prefersReducedMotion = useReducedMotion();
   const isAudit = usePerformanceAudit();
@@ -77,20 +102,6 @@ function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps
     return SENTENCES[sequence[index]];
   }, [index, sequence]);
   const words = useMemo(() => currentSentence.split(" "), [currentSentence]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-    const mql = window.matchMedia(MOBILE_QUERY);
-    if (typeof mql.addEventListener === "function") {
-      const listener = (event: MediaQueryListEvent) => setIsCompact(event.matches);
-      mql.addEventListener("change", listener);
-      return () => mql.removeEventListener("change", listener);
-    }
-
-    const legacyListener = (event: MediaQueryListEvent) => setIsCompact(event.matches);
-    mql.addListener(legacyListener);
-    return () => mql.removeListener(legacyListener);
-  }, []);
 
   useEffect(() => {
     if (!sequence.length || isAudit) return;
