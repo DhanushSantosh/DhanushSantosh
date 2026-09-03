@@ -43,5 +43,8 @@
     "typescript": "^6.0.3",
     "vitest": "^4.1.11",
     "world-atlas": "^2.0.2"
+  },
+  "overrides": {
+    "browserslist": "4.28.8"
   }
 }
