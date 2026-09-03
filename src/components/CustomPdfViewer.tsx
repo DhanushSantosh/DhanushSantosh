@@ -7,6 +7,12 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
 // Bundle the worker locally so the CV viewer doesn't depend on a third-party CDN at runtime.
+// pdf.js hard-fails ("API version does not match Worker version") unless this resolves to the
+// *exact* pdfjs-dist build that react-pdf's `pdfjs` API is bundled with. The root package.json's
+// "pdfjs-dist" dependency exists solely to give this worker file a place to resolve from, and its
+// version MUST stay pinned to whatever react-pdf's own pdfjs-dist dependency currently is (check
+// node_modules/react-pdf/package.json) — letting it drift independently (e.g. an automated bump
+// of only the top-level pin) breaks every PDF render.
 pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
 export default function CustomPdfViewer({ fileUrl }: { fileUrl: string }) {
