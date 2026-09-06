@@ -5,8 +5,13 @@ import path from "path";
 
 const require = createRequire(import.meta.url);
 
+// Next.js expects bare hostnames here (no protocol, no port) — passing a full
+// URL string silently fails to match, and every dev-resource request (JS
+// chunks, RSC payloads) gets blocked with no client-visible error beyond a
+// generic 500, leaving only the plain server-rendered HTML (e.g. the navbar)
+// visible with nothing hydrating below it.
 const allowedDevOriginsEnvVar = "NEXT_ALLOWED_DEV_ORIGINS";
-const defaultAllowedDevOrigin = "http://100.117.16.122:3000";
+const defaultAllowedDevOrigin = "100.121.17.93";
 const allowedDevOrigins =
   process.env[allowedDevOriginsEnvVar]
     ?.split(",")
