@@ -60,23 +60,35 @@ export default function Home() {
           <div className="relative z-10 flex flex-col space-y-4 rounded-3xl border border-white/[0.12] bg-black/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),inset_0_-1px_0_0_rgba(255,255,255,0.05),0_0_30px_rgba(0,0,0,0.4)] backdrop-blur-[3px] sm:space-y-6 lg:space-y-8">
             <ContactSection />
             <Reveal>
-              <footer className="mx-auto w-full max-w-6xl px-4 sm:px-8 lg:px-12 py-6 pb-16 text-center text-sm text-white/80 sm:pb-20">
-                <p className="font-semibold tracking-[0.3em] text-white/60">Closure</p>
+              <footer className="mx-auto w-full max-w-5xl px-4 py-10 pb-16 text-center sm:px-8 sm:py-14 sm:pb-24 lg:px-12">
                 <p
-                  className="mx-auto mt-2 font-poetic text-2xl leading-snug text-white sm:mt-3 sm:text-[29px]"
+                  className="mx-auto font-poetic text-3xl leading-snug text-white sm:text-4xl md:text-5xl lg:text-[54px] max-w-4xl"
                   style={{
                     textShadow:
-                      "0 0 10px rgba(95,225,255,0.55), 0 0 18px rgba(95,225,255,0.3), 0 0 32px rgba(95,225,255,0.12)",
+                      "0 0 14px rgba(95,225,255,0.55), 0 0 28px rgba(95,225,255,0.3), 0 0 45px rgba(95,225,255,0.12)",
                   }}
                 >
                   Coding is like writing poetry for computers - carefully crafting lines to bring functionality to life.
                 </p>
-                <p
-                  className="mt-3 text-xs text-white/60"
-                  style={{
-                    textShadow: "0 0 6px rgba(95,225,255,0.45), 0 0 14px rgba(95,225,255,0.15)",
-                  }}
+
+                {/* Compact Navigation Row */}
+                <nav
+                  aria-label="Footer navigation"
+                  className="mt-8 flex flex-wrap items-center justify-center gap-6 sm:mt-10 sm:gap-8"
                 >
+                  {siteConfig.navLinks.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      data-cursor-block
+                      className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/50 transition-colors hover:text-cyan-400"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </nav>
+
+                <p className="mt-6 text-xs tracking-wider text-white/40">
                   &copy; {currentYear} {hero.name}
                 </p>
               </footer>

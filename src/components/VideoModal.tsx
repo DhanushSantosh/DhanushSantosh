@@ -1,78 +1,287 @@
+"use client";
+
 import { m, AnimatePresence } from "framer-motion";
-import { FiX } from "react-icons/fi";
-import { useEffect } from "react";
+import { FiArrowUpRight, FiExternalLink, FiGithub, FiX } from "react-icons/fi";
+import { useEffect, useState } from "react";
 
-interface VideoModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    videoUrl: string;
-    title?: string;
+export interface VideoModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  videoUrl?: string;
+  previewUrl?: string;
+  url?: string;
+  title?: string;
+  repoUrl?: string;
+  liveUrl?: string;
+  previewKind?: "video" | "site";
 }
 
-export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps) {
-    const iframeTitle = title ? `${title} demo video` : "Project demo video";
+interface PreviewContentProps {
+  isVideo: boolean;
+  activeUrl: string;
+  iframeTitle: string;
+  effectiveLiveUrl?: string;
+  repoUrl?: string;
+}
 
-    // Lock body scroll when modal is open, compensate for scrollbar disappearing
-    useEffect(() => {
-        if (isOpen) {
-            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-            document.body.style.overflow = "hidden";
-            document.body.style.paddingRight = `${scrollbarWidth}px`;
-        } else {
-            document.body.style.overflow = "";
-            document.body.style.paddingRight = "";
-        }
-        return () => {
-            document.body.style.overflow = "";
-            document.body.style.paddingRight = "";
-        };
-    }, [isOpen]);
+function PreviewContent({
+  isVideo,
+  activeUrl,
+  iframeTitle,
+  effectiveLiveUrl,
+  repoUrl,
+}: PreviewContentProps) {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  if (isVideo) {
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <m.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onClose}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-                    >
-                        {/* Modal Container */}
-                        <m.div
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="relative w-full max-w-5xl overflow-hidden rounded-2xl bg-black border border-white/10 shadow-2xl"
-                        >
-                            {/* Header / Close Button */}
-                            <div className="absolute top-0 right-0 z-10 p-4">
-                                <button
-                                    onClick={onClose}
-                                    aria-label="Close video"
-                                    className="rounded-full bg-black/50 p-2 text-white/70 backdrop-blur-md transition hover:bg-white/10 hover:text-white"
-                                >
-                                    <FiX size={24} />
-                                </button>
-                            </div>
-
-                            {/* Video Player */}
-                            <div className="aspect-video w-full bg-black">
-                                <iframe
-                                    src={videoUrl}
-                                    title={iframeTitle}
-                                    className="h-full w-full"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
-                            </div>
-                        </m.div>
-                    </m.div>
-                </>
-            )}
-        </AnimatePresence>
+      <div className="aspect-video h-full w-full bg-black">
+        <iframe
+          src={activeUrl}
+          title={iframeTitle}
+          className="h-full w-full border-0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
     );
+  }
+
+  return (
+    <div className="relative flex h-full w-full flex-1 flex-col">
+      {/* Loading Spinner */}
+      {isLoading && !hasError && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-neutral-950">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-cyan-400/20 border-t-cyan-400" />
+          <p className="font-mono text-xs uppercase tracking-widest text-white/40">
+            Connecting live preview...
+          </p>
+        </div>
+      )}
+
+      {/* Fallback View when iframe embedding fails */}
+      {hasError ? (
+        <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
+          <div className="mb-4 rounded-full border border-white/10 bg-white/5 p-4 text-white/60">
+            <FiExternalLink size={28} />
+          </div>
+          <h4 className="text-lg font-semibold text-white sm:text-xl">
+            Preview unavailable in frame
+          </h4>
+          <p className="mt-2 max-w-md text-xs sm:text-sm leading-relaxed text-white/60">
+            This deployment prevents embedded framing (X-Frame-Options or frame-ancestors security policy). You can still explore the live site directly.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            {effectiveLiveUrl && (
+              <a
+                href={effectiveLiveUrl}
+                target="_blank"
+                rel="noreferrer"
+                data-cursor-block
+                className="inline-flex items-center justify-center rounded-full border border-white bg-white px-5 py-2 text-xs font-semibold text-black transition hover:shadow-[0_0_25px_rgba(255,255,255,0.55)]"
+              >
+                Visit live site
+                <FiArrowUpRight className="ml-1.5" />
+              </a>
+            )}
+            {repoUrl && (
+              <a
+                href={repoUrl}
+                target="_blank"
+                rel="noreferrer"
+                data-cursor-block
+                className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-2 text-xs font-medium text-white transition hover:bg-white/15"
+              >
+                <FiGithub className="mr-1.5" />
+                View repository
+              </a>
+            )}
+          </div>
+        </div>
+      ) : (
+        <iframe
+          src={activeUrl}
+          title={iframeTitle}
+          className="h-full w-full flex-1 border-0 bg-white"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false);
+            setHasError(true);
+          }}
+        />
+      )}
+
+      {/* Persistent Info / Fallback Footer for Live Sites */}
+      {!hasError && (
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-white/5 bg-black/90 px-4 py-2 text-[11px] text-white/50">
+          <span className="font-mono">
+            Embedded site preview
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setHasError(true)}
+              className="text-white/40 transition hover:text-white hover:underline"
+            >
+              Frame blocked?
+            </button>
+            {effectiveLiveUrl && (
+              <a
+                href={effectiveLiveUrl}
+                target="_blank"
+                rel="noreferrer"
+                data-cursor-block
+                className="inline-flex items-center gap-1 font-medium text-cyan-300 transition hover:underline"
+              >
+                <span>Open in new tab</span>
+                <FiArrowUpRight size={11} />
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
+
+export function VideoModal({
+  isOpen,
+  onClose,
+  videoUrl,
+  previewUrl,
+  url,
+  title,
+  repoUrl,
+  liveUrl,
+  previewKind,
+}: VideoModalProps) {
+  const activeUrl = previewUrl ?? videoUrl ?? url ?? "";
+  const isVideo = previewKind === "video" || (Boolean(videoUrl) && !previewUrl);
+  const iframeTitle = title ? `${title} preview` : "Project preview";
+
+  // Handle Escape key to dismiss modal
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, [isOpen]);
+
+  const effectiveLiveUrl = liveUrl ?? (!isVideo ? activeUrl : undefined);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <m.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          role="dialog"
+          aria-modal="true"
+          aria-label={iframeTitle}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 backdrop-blur-md sm:p-6"
+        >
+          {/* Modal Container */}
+          <m.div
+            initial={{ scale: 0.96, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.96, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative flex h-[88vh] max-h-[850px] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-neutral-950 shadow-[0_0_80px_rgba(0,0,0,0.9)] sm:rounded-3xl"
+          >
+            {/* Header Toolbar */}
+            <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-black/70 px-4 py-3 sm:px-6">
+              <div className="flex items-center gap-3 min-w-0 pr-4">
+                <h3 className="truncate text-sm font-semibold text-white sm:text-base">
+                  {title ?? "Project Preview"}
+                </h3>
+                <span className="shrink-0 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-cyan-300">
+                  {isVideo ? "Video Demo" : "Live Preview"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {effectiveLiveUrl ? (
+                  <a
+                    href={effectiveLiveUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-cursor-block
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:border-white/30 hover:bg-white hover:text-black"
+                  >
+                    <span>Visit site</span>
+                    <FiArrowUpRight size={13} />
+                  </a>
+                ) : null}
+
+                {repoUrl ? (
+                  <a
+                    href={repoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-cursor-block
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:border-white/30 hover:bg-white/15"
+                  >
+                    <FiGithub size={13} />
+                    <span className="hidden sm:inline">Repo</span>
+                  </a>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Close preview modal"
+                  data-cursor-block
+                  className="rounded-full bg-white/5 p-2 text-white/70 transition hover:bg-white/15 hover:text-white"
+                >
+                  <FiX size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Viewer Body */}
+            <div className="relative flex flex-1 flex-col overflow-hidden bg-black">
+              <PreviewContent
+                key={activeUrl}
+                isVideo={isVideo}
+                activeUrl={activeUrl}
+                iframeTitle={iframeTitle}
+                effectiveLiveUrl={effectiveLiveUrl}
+                repoUrl={repoUrl}
+              />
+            </div>
+          </m.div>
+        </m.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+export default VideoModal;
