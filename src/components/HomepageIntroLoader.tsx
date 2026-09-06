@@ -25,7 +25,7 @@ export function HomepageIntroLoader() {
   const prefersReducedMotion = useReducedMotion();
 
   const [visible, setVisible] = useState(true);
-  const [flicker, setFlicker] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const [scrambleText, setScrambleText] = useState("");
   const [visibleRows, setVisibleRows] = useState(0);
   const [barProgress, setBarProgress] = useState(0);
@@ -39,6 +39,27 @@ export function HomepageIntroLoader() {
     if (!isMounted || prefersReducedMotion) {
       return;
     }
+
+    // Every setTimeout scheduled below must be tracked here and cleared on
+    // cleanup. reactStrictMode double-invokes this effect once in dev
+    // (mount -> cleanup -> mount); any timeout left untracked from the first,
+    // throwaway invocation fires later against stale closures and collides
+    // with the real run — that's what caused the subject line to re-scramble
+    // and the progress bar to stick at 0% instead of ever completing.
+    const pendingTimeouts = new Set<ReturnType<typeof setTimeout>>();
+    let cancelled = false;
+
+    const track = (id: ReturnType<typeof setTimeout>) => {
+      pendingTimeouts.add(id);
+      return id;
+    };
+    const runAfter = (fn: () => void, delayMs: number) => {
+      const id = setTimeout(() => {
+        pendingTimeouts.delete(id);
+        fn();
+      }, delayMs);
+      return track(id);
+    };
 
     // Lock body scroll
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -56,17 +77,18 @@ export function HomepageIntroLoader() {
       if (dismissedRef.current) return;
       dismissedRef.current = true;
 
-      // Brief static/glitch flicker then hard cut
-      setFlicker(true);
+      // Soft, cinematic fade out matching the dark cyan UI
+      setIsExiting(true);
+      unlockScroll();
       setTimeout(() => {
-        unlockScroll();
         startTransition(() => {
           setVisible(false);
         });
-      }, 140);
+      }, 550);
     };
 
     const checkComplete = () => {
+      if (cancelled) return;
       if (isReadyRef.current && isAnimationDoneRef.current) {
         triggerDismiss();
       }
@@ -76,10 +98,12 @@ export function HomepageIntroLoader() {
     if (typeof document !== "undefined" && "fonts" in document) {
       document.fonts.ready
         .then(() => {
+          if (cancelled) return;
           isReadyRef.current = true;
           checkComplete();
         })
         .catch(() => {
+          if (cancelled) return;
           isReadyRef.current = true;
           checkComplete();
         });
@@ -89,9 +113,11 @@ export function HomepageIntroLoader() {
     }
 
     // Safety ceiling: reveal after 5s regardless
-    const safetyTimer = setTimeout(() => {
-      triggerDismiss();
-    }, SAFETY_TIMEOUT_MS);
+    const safetyTimer = track(
+      setTimeout(() => {
+        triggerDismiss();
+      }, SAFETY_TIMEOUT_MS),
+    );
 
     // Scramble text animation sequence
     let currentFrame = 0;
@@ -118,18 +144,18 @@ export function HomepageIntroLoader() {
         setScrambleText(TARGET_NAME);
 
         // Populate data rows in stepped sequence
-        setTimeout(() => setVisibleRows(1), 0);
-        setTimeout(() => setVisibleRows(2), ROW_STAGGER_MS);
-        setTimeout(() => setVisibleRows(3), ROW_STAGGER_MS * 2);
+        runAfter(() => setVisibleRows(1), 0);
+        runAfter(() => setVisibleRows(2), ROW_STAGGER_MS);
+        runAfter(() => setVisibleRows(3), ROW_STAGGER_MS * 2);
 
         // Progress bar fills in stepped fashion
         const totalRowsTime = ROW_STAGGER_MS * 2 + BAR_DELAY_MS;
-        setTimeout(() => {
+        runAfter(() => {
           setBarProgress(100);
         }, totalRowsTime);
 
         // Animation completes its natural sequence
-        setTimeout(() => {
+        runAfter(() => {
           isAnimationDoneRef.current = true;
           checkComplete();
         }, totalRowsTime + BAR_DURATION_MS);
@@ -137,8 +163,11 @@ export function HomepageIntroLoader() {
     }, FRAME_DURATION_MS);
 
     return () => {
+      cancelled = true;
       clearInterval(scrambleInterval);
       clearTimeout(safetyTimer);
+      pendingTimeouts.forEach((id) => clearTimeout(id));
+      pendingTimeouts.clear();
       unlockScroll();
     };
   }, [isMounted, prefersReducedMotion]);
@@ -151,9 +180,9 @@ export function HomepageIntroLoader() {
   return (
     <div
       aria-hidden="true"
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black select-none font-mono ${
-        flicker ? "opacity-30 invert" : "opacity-100"
-      } transition-opacity duration-75`}
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black select-none font-mono transition-opacity duration-500 ease-out ${
+        isExiting ? "opacity-0 pointer-events-none" : "opacity-100"
+      }`}
       style={{ fontFamily: '"Courier New", Courier, monospace' }}
     >
       {/* Subtle Scanline Overlay */}
@@ -166,7 +195,11 @@ export function HomepageIntroLoader() {
       />
 
       {/* Reticle Card */}
-      <div className="relative w-[280px] sm:w-[320px] border border-[rgba(95,225,255,0.4)] bg-black px-4 py-4 sm:px-5 sm:py-5 shadow-[0_0_50px_rgba(0,0,0,0.9)]">
+      <div
+        className={`relative w-[280px] sm:w-[320px] border border-[rgba(95,225,255,0.4)] bg-black px-4 py-4 sm:px-5 sm:py-5 shadow-[0_0_50px_rgba(0,0,0,0.9),0_0_30px_rgba(95,225,255,0.06)] transition-all duration-400 ease-out ${
+          isExiting ? "opacity-0 scale-[0.97] blur-[2px]" : "opacity-100 scale-100 blur-0"
+        }`}
+      >
         {/* Four Bracket Reticle Corners */}
         <div className="absolute -top-[1px] -left-[1px] h-2.5 w-2.5 border-t-2 border-l-2 border-[rgba(95,225,255,0.9)]" />
         <div className="absolute -top-[1px] -right-[1px] h-2.5 w-2.5 border-t-2 border-r-2 border-[rgba(95,225,255,0.9)]" />
