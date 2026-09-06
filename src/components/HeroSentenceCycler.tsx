@@ -53,6 +53,20 @@ function getMobileQuerySnapshot() {
 function getMobileQueryServerSnapshot() {
   return false;
 }
+
+// useSyncExternalStore renders the server snapshot first, then re-renders with
+// the real client value once mounted — by design, so hydration never mismatches.
+// But that means on a real phone, isCompact briefly reads `false` before
+// flipping to `true`, so the complex/blur-animated branch below can mount and
+// start its blur-in transition before immediately being torn down and replaced
+// by the simple branch. iOS Safari has been observed to leave a residual blur
+// behind when a filter animation is interrupted mid-flight like that. Gating
+// all animation behind "have we settled post-mount yet" avoids ever starting
+// an animation that might need to be torn down before it resolves.
+const emptySubscribe = () => () => {};
+function useHasMounted() {
+  return useSyncExternalStore(emptySubscribe, () => true, () => false);
+}
 const ANIMATE_PRESENCE_MODE = "wait";
 const CHARACTER_OPACITY_HIDDEN = 0;
 const CHARACTER_OPACITY_VISIBLE = 1;
@@ -94,6 +108,7 @@ function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps
     getMobileQuerySnapshot,
     getMobileQueryServerSnapshot,
   );
+  const hasMounted = useHasMounted();
   const prefersReducedMotion = useReducedMotion();
   const isAudit = usePerformanceAudit();
 
@@ -120,6 +135,18 @@ function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps
       window.clearInterval(interval);
     };
   }, [intervalMs, isAudit, sequence]);
+
+  // Render plain, unanimated text until we've settled on the correct branch
+  // post-mount (see useHasMounted above) — this exactly matches the server's
+  // markup, so there's nothing to hydrate-mismatch on, and no animation ever
+  // starts that might need to be torn down mid-flight.
+  if (!hasMounted) {
+    return (
+      <span className="inline-block">
+        {name} {currentSentence}
+      </span>
+    );
+  }
 
   const shouldSimplify = Boolean(isAudit || prefersReducedMotion || isCompact);
 
