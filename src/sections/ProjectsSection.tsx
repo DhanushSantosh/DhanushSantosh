@@ -35,22 +35,27 @@ export default async function ProjectsSection() {
         </Reveal>
 
         {data.projects.length > 0 ? (
-          <div className="border-t border-white/[0.08] grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
+          <div className="border-t border-white/[0.08] grid grid-cols-1 lg:grid-cols-2">
             {data.projects.map((project, index) => {
               const indexLabel = String(index + 1).padStart(2, "0");
               const hasPreview = Boolean(project.liveUrl || project.demoUrl);
               const previewUrl = project.liveUrl ?? project.demoUrl ?? "";
               const previewKind = project.demoUrl ? "video" : "site";
               const isLive = isRecentlyPushed(project.pushedAt, project.isArchived);
+              const isLeftColumn = index % 2 === 0;
 
               return (
-                <Reveal key={project.nameWithOwner ?? project.name}>
+                <Reveal key={project.nameWithOwner ?? project.name} className="h-full">
                   <article
                     data-project-item={project.name}
-                    className="group relative flex flex-col justify-between gap-3 border-b border-white/[0.08] py-5 sm:py-6 transition-colors hover:bg-white/[0.02] px-2 -mx-2 rounded-lg"
+                    className={`group relative flex h-full flex-col justify-between gap-3.5 border-b border-white/[0.08] py-6 px-3 sm:px-4 transition-colors hover:bg-white/[0.02] ${
+                      isLeftColumn
+                        ? "lg:border-r lg:border-white/[0.08] lg:pr-8 xl:pr-10"
+                        : "lg:pl-8 xl:pl-10"
+                    }`}
                   >
                     {/* Top: Index + Status Dot + Name + Preview tag + Direct Links */}
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start justify-between gap-3 min-h-[2rem]">
                       <div className="flex items-start gap-3 min-w-0">
                         {/* Monospace index & Live/Idle Pulse dot */}
                         <div className="flex items-center gap-2 pt-1 shrink-0 select-none">
@@ -136,15 +141,21 @@ export default async function ProjectsSection() {
                       </div>
                     </div>
 
-                    {/* Summary */}
-                    {project.summary ? (
-                      <p className="text-xs sm:text-sm leading-relaxed text-white/65 line-clamp-2 pl-7 sm:pl-8 font-sans">
-                        {project.summary}
-                      </p>
-                    ) : null}
+                    {/* Middle: Unified Fixed-Height Summary Slot */}
+                    <div className="h-10 sm:h-11 flex items-center pl-7 sm:pl-8">
+                      {project.summary ? (
+                        <p className="text-xs sm:text-sm leading-relaxed text-white/65 line-clamp-2 font-sans">
+                          {project.summary}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-white/30 italic font-sans">
+                          Repository maintained on GitHub.
+                        </p>
+                      )}
+                    </div>
 
-                    {/* Bottom: Metadata + Stack Tags */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pl-7 sm:pl-8 pt-0.5 font-mono text-[11px] uppercase tracking-wider text-white/45">
+                    {/* Bottom: Unified Fixed-Height Metadata + Stack Tags */}
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pl-7 sm:pl-8 pt-1 font-mono text-[11px] uppercase tracking-wider text-white/45 min-h-[28px]">
                       <div className="flex flex-wrap items-center gap-2">
                         {project.languageName ? (
                           <span className="text-white/70">{project.languageName}</span>
@@ -197,6 +208,9 @@ export default async function ProjectsSection() {
                 </Reveal>
               );
             })}
+            {data.projects.length % 2 !== 0 ? (
+              <div className="hidden lg:block border-b border-white/[0.08]" aria-hidden="true" />
+            ) : null}
           </div>
         ) : (
           <Reveal>
