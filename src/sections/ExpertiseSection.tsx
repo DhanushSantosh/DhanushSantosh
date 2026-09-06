@@ -18,10 +18,12 @@ import { ExpertiseSelectionController } from "@/components/ExpertiseSelectionCon
 import { Reveal } from "@/components/Reveal";
 import { hero, techStack } from "@/data/content";
 
-// Hand-rolled because SiOpenai is no longer exported by react-icons/si. Path data is copied
-// verbatim from Simple Icons' current official asset (cdn.jsdelivr.net/npm/simple-icons/icons/openai.svg)
-// — do not hand-edit; the previous version of this path was a stale/approximate rendition that
-// rendered visibly distorted (an uneven, broken-looking interlock) compared to the real logo.
+// The OpenAI mark, used for the "Codex" tile since Codex has no distinct Simple Icons brand of
+// its own. Hand-rolled because SiOpenai is no longer exported by react-icons/si. Path data is
+// copied verbatim from Simple Icons' current official asset
+// (cdn.jsdelivr.net/npm/simple-icons/icons/openai.svg) — do not hand-edit; the previous version
+// of this path was a stale/approximate rendition that rendered visibly distorted (an uneven,
+// broken-looking interlock) compared to the real logo.
 const OpenAiIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     stroke="currentColor"
@@ -47,7 +49,7 @@ const iconMap: Record<string, React.ElementType | string> = {
   "Three.js": SiThreedotjs,
   "Node.js": SiNodedotjs,
   Vercel: SiVercel,
-  OpenAI: OpenAiIcon,
+  Codex: OpenAiIcon,
   Claude: SiAnthropic,
   Llama: SiMeta,
   Gemini: "/icons/gemini.png",
@@ -64,7 +66,7 @@ const colorMap: Record<string, string> = {
   "Three.js": "#ffffff",
   "Node.js": "#339933",
   Vercel: "#ffffff",
-  OpenAI: "#ffffff",
+  Codex: "#ffffff",
   Claude: "#D97757",
   Llama: "#0490EA",
   Gemini: "#8E75B2",

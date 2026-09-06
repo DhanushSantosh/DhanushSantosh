@@ -36,7 +36,7 @@ export const techStack = {
     "Vercel",
   ],
   ai: [
-    "OpenAI",
+    "Codex",
     "Claude",
     "Gemini",
     "Llama",
