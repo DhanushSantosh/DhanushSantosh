@@ -20,7 +20,7 @@ const currentYear = new Date().getFullYear();
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-8 lg:px-12">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
         <div className="flex min-h-[100dvh] flex-col gap-1 pt-8 sm:gap-2 sm:pt-10 lg:gap-3 lg:pt-12">
           <SiteHeader
             name={hero.name}

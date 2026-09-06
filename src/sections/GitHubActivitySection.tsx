@@ -28,7 +28,7 @@ export default async function GitHubActivitySection() {
 
   return (
     <section id="github-activity" className="cv-auto relative overflow-hidden pb-12 bg-transparent">
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-8 lg:px-12">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-8 lg:px-12">
         <Reveal className="space-y-8">
           <div className="space-y-4">
             <p className="text-sm uppercase tracking-[0.4em] text-white/50">GitHub Activity</p>

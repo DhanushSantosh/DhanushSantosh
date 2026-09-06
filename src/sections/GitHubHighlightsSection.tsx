@@ -43,7 +43,7 @@ export default async function GitHubHighlightsSection() {
 
   return (
     <section id="github-highlights" className="cv-auto relative overflow-hidden pb-12 bg-transparent">
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-8 lg:px-12">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-8 lg:px-12">
         <Reveal
           as="section"
           className="rounded-[32px] border border-white/10 bg-black/60 p-6 shadow-[0_0_40px_rgba(0,0,0,0.55)] backdrop-blur-sm sm:p-8"

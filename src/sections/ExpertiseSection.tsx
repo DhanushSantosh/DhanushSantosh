@@ -81,7 +81,7 @@ const SECONDARY_REVEAL_DELAY_S = 0.1;
 async function ExpertiseSection() {
   return (
     <section id="expertise" className="cv-auto relative overflow-hidden bg-transparent">
-      <div className="relative z-10 mx-auto w-full max-w-6xl space-y-16 px-4 sm:px-8 lg:px-12 py-12 md:py-16">
+      <div className="relative z-10 mx-auto w-full max-w-7xl space-y-16 px-4 sm:px-8 lg:px-12 py-12 md:py-16">
         <Reveal as="section" className="space-y-6">
           <p className="text-sm uppercase tracking-[0.4em] text-white/50">Expertise</p>
           <h2 className="text-balance text-3xl font-semibold text-white md:text-4xl lg:text-5xl">

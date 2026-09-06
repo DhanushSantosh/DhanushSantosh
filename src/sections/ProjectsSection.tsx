@@ -23,7 +23,7 @@ export default async function ProjectsSection() {
 
   return (
     <section id="projects" className="cv-auto relative overflow-hidden py-16">
-      <div className="relative z-10 mx-auto w-full max-w-6xl space-y-10 px-4 sm:px-8 lg:px-12">
+      <div className="relative z-10 mx-auto w-full max-w-7xl space-y-10 px-4 sm:px-8 lg:px-12">
         <Reveal as="section" className="space-y-4">
           <p className="text-sm uppercase tracking-[0.4em] text-white/50">Projects</p>
           <h2 className="text-balance text-3xl font-semibold text-white md:text-4xl">
@@ -35,7 +35,7 @@ export default async function ProjectsSection() {
         </Reveal>
 
         {data.projects.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 lg:gap-6">
+          <div className="border-t border-white/[0.08] grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
             {data.projects.map((project, index) => {
               const indexLabel = String(index + 1).padStart(2, "0");
               const hasPreview = Boolean(project.liveUrl || project.demoUrl);
@@ -44,17 +44,17 @@ export default async function ProjectsSection() {
               const isLive = isRecentlyPushed(project.pushedAt, project.isArchived);
 
               return (
-                <Reveal key={project.nameWithOwner ?? project.name} className="h-full">
+                <Reveal key={project.nameWithOwner ?? project.name}>
                   <article
                     data-project-item={project.name}
-                    className="group relative flex h-full flex-col justify-between rounded-2xl border border-white/[0.08] bg-white/[0.015] p-5 sm:p-6 transition-all duration-300 hover:border-cyan-400/30 hover:bg-white/[0.035]"
+                    className="group relative flex flex-col justify-between gap-3 border-b border-white/[0.08] py-5 sm:py-6 transition-colors hover:bg-white/[0.02] px-2 -mx-2 rounded-lg"
                   >
-                    {/* Top: Index + Status Dot + Name + Preview tag + Summary + Badges */}
-                    <div className="space-y-3">
+                    {/* Top: Index + Status Dot + Name + Preview tag + Direct Links */}
+                    <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 min-w-0">
                         {/* Monospace index & Live/Idle Pulse dot */}
                         <div className="flex items-center gap-2 pt-1 shrink-0 select-none">
-                          <span className="font-mono text-xs text-white/40 transition-colors group-hover:text-cyan-400/80">
+                          <span className="font-mono text-xs text-white/35 transition-colors group-hover:text-cyan-400">
                             {indexLabel}
                           </span>
                           {isLive ? (
@@ -76,7 +76,7 @@ export default async function ProjectsSection() {
                         </div>
 
                         {/* Name and preview button */}
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0">
                           {hasPreview ? (
                             <button
                               type="button"
@@ -107,39 +107,45 @@ export default async function ProjectsSection() {
                         </div>
                       </div>
 
-                      {/* Summary */}
-                      {project.summary ? (
-                        <p className="text-xs sm:text-sm leading-relaxed text-white/65 line-clamp-3 font-sans">
-                          {project.summary}
-                        </p>
-                      ) : null}
-
-                      {/* Badges / Topics */}
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        {project.isFork ? (
-                          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white/40">
-                            Fork
-                          </span>
-                        ) : null}
-                        {project.isArchived ? (
-                          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-amber-300">
-                            Archived
-                          </span>
-                        ) : null}
-                        {project.stack.slice(0, 4).map((tech) => (
-                          <span
-                            key={tech}
-                            className="rounded-full border border-white/5 bg-white/[0.03] px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white/45"
+                      {/* Direct External Action Buttons */}
+                      <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
+                        {project.liveUrl ? (
+                          <a
+                            href={project.liveUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            data-cursor-block
+                            title="Visit live site"
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/40 hover:bg-white hover:text-black"
+                            aria-label={`Visit live site for ${project.name}`}
                           >
-                            {tech}
-                          </span>
-                        ))}
+                            <FiArrowUpRight size={13} />
+                          </a>
+                        ) : null}
+                        <a
+                          href={project.repoUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          data-cursor-block
+                          title="View repository"
+                          className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/40 hover:bg-white hover:text-black"
+                          aria-label={`View repository for ${project.name}`}
+                        >
+                          <FiGithub size={12} />
+                        </a>
                       </div>
                     </div>
 
-                    {/* Bottom: Metadata + Direct Links */}
-                    <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3.5 font-mono text-[11px] uppercase tracking-wider text-white/45">
-                      <div className="flex flex-wrap items-center gap-2.5">
+                    {/* Summary */}
+                    {project.summary ? (
+                      <p className="text-xs sm:text-sm leading-relaxed text-white/65 line-clamp-2 pl-7 sm:pl-8 font-sans">
+                        {project.summary}
+                      </p>
+                    ) : null}
+
+                    {/* Bottom: Metadata + Stack Tags */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pl-7 sm:pl-8 pt-0.5 font-mono text-[11px] uppercase tracking-wider text-white/45">
+                      <div className="flex flex-wrap items-center gap-2">
                         {project.languageName ? (
                           <span className="text-white/70">{project.languageName}</span>
                         ) : null}
@@ -165,32 +171,26 @@ export default async function ProjectsSection() {
                         ) : null}
                       </div>
 
-                      {/* Direct External Action Buttons */}
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {project.liveUrl ? (
-                          <a
-                            href={project.liveUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            data-cursor-block
-                            title="Visit live site"
-                            className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/40 hover:bg-white hover:text-black"
-                            aria-label={`Visit live site for ${project.name}`}
-                          >
-                            <FiArrowUpRight size={13} />
-                          </a>
+                      {/* Badges / Topics */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {project.isFork ? (
+                          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] uppercase tracking-wider text-white/40">
+                            Fork
+                          </span>
                         ) : null}
-                        <a
-                          href={project.repoUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          data-cursor-block
-                          title="View repository"
-                          className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/40 hover:bg-white hover:text-black"
-                          aria-label={`View repository for ${project.name}`}
-                        >
-                          <FiGithub size={12} />
-                        </a>
+                        {project.isArchived ? (
+                          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] uppercase tracking-wider text-amber-300">
+                            Archived
+                          </span>
+                        ) : null}
+                        {project.stack.slice(0, 3).map((tech) => (
+                          <span
+                            key={tech}
+                            className="rounded-full border border-white/5 bg-white/[0.03] px-2 py-0.5 text-[9px] uppercase tracking-wider text-white/45"
+                          >
+                            {tech}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   </article>
