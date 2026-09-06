@@ -7,7 +7,6 @@ import {
   SiMeta,
   SiNextdotjs,
   SiNodedotjs,
-  SiPython,
   SiReact,
   SiTailwindcss,
   SiThreedotjs,
@@ -49,7 +48,6 @@ const iconMap: Record<string, React.ElementType | string> = {
   Llama: SiMeta,
   Gemini: "/icons/gemini.png",
   Cursor: "/icons/cursor.png",
-  Python: SiPython,
   "Hugging Face": SiHuggingface,
 };
 
@@ -67,7 +65,6 @@ const colorMap: Record<string, string> = {
   Llama: "#0490EA",
   Gemini: "#8E75B2",
   Cursor: "#ffffff",
-  Python: "#3776AB",
   "Hugging Face": "#FFD21E",
 };
 

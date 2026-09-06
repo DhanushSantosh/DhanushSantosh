@@ -41,7 +41,6 @@ export const techStack = {
     "Gemini",
     "Llama",
     "Cursor",
-    "Python",
     "Hugging Face",
   ],
 };
