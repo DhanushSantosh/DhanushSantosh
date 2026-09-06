@@ -62,7 +62,7 @@ export default function Home() {
             <Reveal>
               <footer className="mx-auto w-full max-w-5xl px-4 py-10 pb-16 text-center sm:px-8 sm:py-14 sm:pb-24 lg:px-12">
                 <p
-                  className="mx-auto font-poetic text-3xl leading-snug text-white sm:text-4xl md:text-5xl lg:text-[54px] max-w-4xl"
+                  className="mx-auto w-full max-w-none font-poetic text-2xl leading-snug text-white sm:text-3xl md:text-4xl lg:text-[40px]"
                   style={{
                     textShadow:
                       "0 0 14px rgba(95,225,255,0.55), 0 0 28px rgba(95,225,255,0.3), 0 0 45px rgba(95,225,255,0.12)",

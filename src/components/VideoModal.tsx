@@ -2,7 +2,16 @@
 
 import { m, AnimatePresence } from "framer-motion";
 import { FiArrowUpRight, FiExternalLink, FiGithub, FiX } from "react-icons/fi";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+
+const emptySubscribe = () => () => {};
+const getClientMounted = () => true;
+const getServerMounted = () => false;
+
+function useMounted() {
+  return useSyncExternalStore(emptySubscribe, getClientMounted, getServerMounted);
+}
 
 export interface VideoModalProps {
   isOpen: boolean;
@@ -193,9 +202,12 @@ export function VideoModal({
     };
   }, [isOpen]);
 
+  const isMounted = useMounted();
   const effectiveLiveUrl = liveUrl ?? (!isVideo ? activeUrl : undefined);
 
-  return (
+  if (!isMounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <m.div
@@ -280,7 +292,8 @@ export function VideoModal({
           </m.div>
         </m.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

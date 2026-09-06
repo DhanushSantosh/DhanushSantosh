@@ -35,7 +35,7 @@ export default async function ProjectsSection() {
         </Reveal>
 
         {data.projects.length > 0 ? (
-          <div className="flex flex-col divide-y divide-white/[0.08] border-y border-white/[0.08]">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 lg:gap-6">
             {data.projects.map((project, index) => {
               const indexLabel = String(index + 1).padStart(2, "0");
               const hasPreview = Boolean(project.liveUrl || project.demoUrl);
@@ -44,39 +44,39 @@ export default async function ProjectsSection() {
               const isLive = isRecentlyPushed(project.pushedAt, project.isArchived);
 
               return (
-                <Reveal key={project.nameWithOwner ?? project.name}>
+                <Reveal key={project.nameWithOwner ?? project.name} className="h-full">
                   <article
                     data-project-item={project.name}
-                    className="group relative flex flex-col justify-between gap-5 py-6 transition-colors hover:bg-white/[0.02] px-3 sm:px-5 -mx-3 sm:-mx-5 rounded-2xl lg:flex-row lg:items-center lg:gap-8 sm:py-8"
+                    className="group relative flex h-full flex-col justify-between rounded-2xl border border-white/[0.08] bg-white/[0.015] p-5 sm:p-6 transition-all duration-300 hover:border-cyan-400/30 hover:bg-white/[0.035]"
                   >
-                    {/* Left: Index + Status Dot + Name + Preview tag + Summary + Badges */}
-                    <div className="flex flex-1 items-start gap-3.5 sm:gap-5 min-w-0">
-                      {/* Monospace index & Live/Idle Pulse dot */}
-                      <div className="flex items-center gap-2.5 sm:gap-3 pt-1 sm:pt-1.5 shrink-0 select-none">
-                        <span className="font-mono text-xs sm:text-sm text-white/35 transition-colors group-hover:text-white/70">
-                          {indexLabel}
-                        </span>
-                        {isLive ? (
-                          <span
-                            className="relative flex h-2 w-2"
-                            title="Active within last 30 days"
-                          >
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
-                            <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.85)]" />
+                    {/* Top: Index + Status Dot + Name + Preview tag + Summary + Badges */}
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3 min-w-0">
+                        {/* Monospace index & Live/Idle Pulse dot */}
+                        <div className="flex items-center gap-2 pt-1 shrink-0 select-none">
+                          <span className="font-mono text-xs text-white/40 transition-colors group-hover:text-cyan-400/80">
+                            {indexLabel}
                           </span>
-                        ) : (
-                          <span
-                            className="flex h-2 w-2 items-center justify-center"
-                            title={project.isArchived ? "Archived repository" : "Idle repository"}
-                          >
-                            <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-                          </span>
-                        )}
-                      </div>
+                          {isLive ? (
+                            <span
+                              className="relative flex h-2 w-2"
+                              title="Active within last 30 days"
+                            >
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.85)]" />
+                            </span>
+                          ) : (
+                            <span
+                              className="flex h-2 w-2 items-center justify-center"
+                              title={project.isArchived ? "Archived repository" : "Idle repository"}
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
+                            </span>
+                          )}
+                        </div>
 
-                      {/* Name, summary, tags */}
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <div className="flex flex-wrap items-center gap-2.5">
+                        {/* Name and preview button */}
+                        <div className="flex-1 min-w-0">
                           {hasPreview ? (
                             <button
                               type="button"
@@ -86,10 +86,10 @@ export default async function ProjectsSection() {
                               data-project-live={project.liveUrl ?? ""}
                               data-preview-kind={previewKind}
                               data-cursor-block
-                              className="text-left font-semibold text-xl sm:text-2xl lg:text-3xl text-white transition-colors hover:text-cyan-400 group-hover:text-cyan-400 inline-flex items-center gap-2.5"
+                              className="text-left font-semibold text-lg sm:text-xl text-white transition-colors hover:text-cyan-400 group-hover:text-cyan-400 inline-flex flex-wrap items-center gap-2"
                             >
-                              <span className="truncate">{project.name}</span>
-                              <span className="inline-flex items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 font-mono text-[9px] sm:text-[10px] uppercase tracking-widest text-cyan-300 shrink-0 font-normal">
+                              <span className="break-words">{project.name}</span>
+                              <span className="inline-flex items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-cyan-300 shrink-0 font-normal">
                                 ▸ preview
                               </span>
                             </button>
@@ -99,46 +99,47 @@ export default async function ProjectsSection() {
                               target="_blank"
                               rel="noreferrer"
                               data-cursor-block
-                              className="text-left font-semibold text-xl sm:text-2xl lg:text-3xl text-white transition-colors hover:text-cyan-400 group-hover:text-cyan-400"
+                              className="text-left font-semibold text-lg sm:text-xl text-white transition-colors hover:text-cyan-400 group-hover:text-cyan-400 block break-words"
                             >
-                              <span className="truncate">{project.name}</span>
+                              <span>{project.name}</span>
                             </a>
                           )}
                         </div>
+                      </div>
 
-                        {project.summary ? (
-                          <p className="text-xs sm:text-sm leading-relaxed text-white/65 line-clamp-2 max-w-2xl font-sans">
-                            {project.summary}
-                          </p>
+                      {/* Summary */}
+                      {project.summary ? (
+                        <p className="text-xs sm:text-sm leading-relaxed text-white/65 line-clamp-3 font-sans">
+                          {project.summary}
+                        </p>
+                      ) : null}
+
+                      {/* Badges / Topics */}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        {project.isFork ? (
+                          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white/40">
+                            Fork
+                          </span>
                         ) : null}
-
-                        {/* Badges / Topics */}
-                        <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                          {project.isFork ? (
-                            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white/40">
-                              Fork
-                            </span>
-                          ) : null}
-                          {project.isArchived ? (
-                            <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-amber-300">
-                              Archived
-                            </span>
-                          ) : null}
-                          {project.stack.slice(0, 4).map((tech) => (
-                            <span
-                              key={tech}
-                              className="rounded-full border border-white/5 bg-white/[0.03] px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white/45"
-                            >
-                              {tech}
-                            </span>
-                          ))}
-                        </div>
+                        {project.isArchived ? (
+                          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-amber-300">
+                            Archived
+                          </span>
+                        ) : null}
+                        {project.stack.slice(0, 4).map((tech) => (
+                          <span
+                            key={tech}
+                            className="rounded-full border border-white/5 bg-white/[0.03] px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white/45"
+                          >
+                            {tech}
+                          </span>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Right: Metadata + Direct Links */}
-                    <div className="flex shrink-0 items-center justify-between gap-4 border-t border-white/[0.05] pt-3.5 lg:border-t-0 lg:pt-0 lg:justify-end pl-8 sm:pl-11 lg:pl-0 font-mono text-[11px] uppercase tracking-wider text-white/45">
-                      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                    {/* Bottom: Metadata + Direct Links */}
+                    <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3.5 font-mono text-[11px] uppercase tracking-wider text-white/45">
+                      <div className="flex flex-wrap items-center gap-2.5">
                         {project.languageName ? (
                           <span className="text-white/70">{project.languageName}</span>
                         ) : null}
@@ -165,7 +166,7 @@ export default async function ProjectsSection() {
                       </div>
 
                       {/* Direct External Action Buttons */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {project.liveUrl ? (
                           <a
                             href={project.liveUrl}
@@ -173,10 +174,10 @@ export default async function ProjectsSection() {
                             rel="noreferrer"
                             data-cursor-block
                             title="Visit live site"
-                            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/40 hover:bg-white hover:text-black"
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/40 hover:bg-white hover:text-black"
                             aria-label={`Visit live site for ${project.name}`}
                           >
-                            <FiArrowUpRight size={14} />
+                            <FiArrowUpRight size={13} />
                           </a>
                         ) : null}
                         <a
@@ -185,10 +186,10 @@ export default async function ProjectsSection() {
                           rel="noreferrer"
                           data-cursor-block
                           title="View repository"
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/40 hover:bg-white hover:text-black"
+                          className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/40 hover:bg-white hover:text-black"
                           aria-label={`View repository for ${project.name}`}
                         >
-                          <FiGithub size={13} />
+                          <FiGithub size={12} />
                         </a>
                       </div>
                     </div>
