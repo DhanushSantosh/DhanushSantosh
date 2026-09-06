@@ -12,6 +12,7 @@ import GitHubActivitySection from "@/sections/GitHubActivitySection";
 import GitHubHighlightsSection from "@/sections/GitHubHighlightsSection";
 import HeroSection from "@/sections/HeroSection";
 import ProjectsSection from "@/sections/ProjectsSection";
+import { HomepageIntroLoader } from "@/components/HomepageIntroLoader";
 
 export const revalidate = 3600;
 
@@ -20,6 +21,7 @@ const currentYear = new Date().getFullYear();
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
+      <HomepageIntroLoader />
       <div className="relative mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
         <div className="flex min-h-[100dvh] flex-col gap-1 pt-8 sm:gap-2 sm:pt-10 lg:gap-3 lg:pt-12">
           <SiteHeader
