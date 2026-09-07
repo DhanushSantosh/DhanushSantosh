@@ -2,6 +2,7 @@ import "server-only";
 
 import { AsyncLocalStorage } from "node:async_hooks";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 
 import { projectOverrideLookup, type ProjectOverrideConfig } from "@/config/projectOverrides";
 import { parseContributionHeadlineCount, parseContributionWeeks } from "@/lib/github-contributions";
@@ -18,23 +19,6 @@ const GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql";
 const GITHUB_REST_ENDPOINT = "https://api.github.com";
 const GITHUB_WEB_ENDPOINT = "https://github.com";
 
-// The underlying fetch() calls below are cached by Next.js for up to
-// DEFAULT_REVALIDATE_SECONDS via `next: { revalidate }` — but the surrounding
-// function still runs on every request regardless of whether a given fetch
-// was actually a network hit or a cache hit, and Next's fetch cache doesn't
-// expose which one happened. `new Date().toISOString()` here would therefore
-// claim "synced right now" on every single page view even when the
-// underlying data could be up to an hour stale — a real, visible dishonesty
-// bug. Flooring to the revalidation window's start instead means the
-// reported time only advances once per window, matching what's actually
-// knowable about freshness without adding external state to track real
-// fetch timestamps precisely.
-function getApproximateLastSyncedAt(): string {
-  const windowMs = DEFAULT_REVALIDATE_SECONDS * 1000;
-  const windowStartMs = Math.floor(Date.now() / windowMs) * windowMs;
-  return new Date(windowStartMs).toISOString();
-}
-
 export const GITHUB_TAGS = {
   profile: "github-profile",
   activity: "github-activity",
@@ -42,6 +26,26 @@ export const GITHUB_TAGS = {
 } as const;
 
 type GitHubTag = (typeof GITHUB_TAGS)[keyof typeof GITHUB_TAGS];
+
+// A genuinely real "last synced" timestamp, not an approximation. The trick:
+// unstable_cache's wrapped function body only actually executes on a real
+// cache miss — first call, or after the tags below get revalidated, whether
+// by the DEFAULT_REVALIDATE_SECONDS window expiring or by an explicit
+// revalidateTag() from /api/github/refresh or /api/github/revalidate. So
+// Date.now() captured inside it is, by construction, the moment this cache
+// entry actually last (re)populated — the same tags as the real GitHub data
+// fetches below, so this timestamp and that data go stale together. This
+// replaces an earlier, weaker fix that only floored wall-clock "now" to the
+// revalidation window without ever confirming a fetch had actually
+// succeeded (still claimed a fresh-looking date through a standing outage).
+const getRealSyncedAtMs = unstable_cache(async () => Date.now(), ["github-last-synced-at"], {
+  revalidate: DEFAULT_REVALIDATE_SECONDS,
+  tags: [GITHUB_TAGS.profile, GITHUB_TAGS.activity, GITHUB_TAGS.projects],
+});
+
+async function getLastSyncedAt(): Promise<string> {
+  return new Date(await getRealSyncedAtMs()).toISOString();
+}
 
 export type GitHubContributionDay = {
   color: string;
@@ -827,7 +831,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
   return {
     available: true,
     contributionYears: contributionSummaryResult.years,
-    lastSyncedAt: getApproximateLastSyncedAt(),
+    lastSyncedAt: await getLastSyncedAt(),
     profile: {
       avatarUrl: payload.user.avatarUrl,
       bio: payload.user.bio,
@@ -876,7 +880,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
   return {
     available: source !== "unavailable",
     contributionYears: [],
-    lastSyncedAt: getApproximateLastSyncedAt(),
+    lastSyncedAt: await getLastSyncedAt(),
     profile: userResult.data
       ? {
           avatarUrl: userResult.data.avatar_url,
