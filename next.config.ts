@@ -44,6 +44,20 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   allowedDevOrigins,
+  // www and apex currently serve identical content with no redirect between
+  // them, which splits search-engine authority across two hostnames with no
+  // canonical signal. Apex is the canonical domain (see brandConfig), so www
+  // permanently redirects to it.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.dhanushsantosh.in" }],
+        destination: "https://dhanushsantosh.in/:path*",
+        permanent: true,
+      },
+    ];
+  },
   compiler: {
     // Keep console errors in production, strip noisy logs for smaller bundles.
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false,

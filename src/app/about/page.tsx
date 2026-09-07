@@ -6,6 +6,7 @@ import BackToTopButton from "@/components/BackToTopButton";
 import PhotoFrame from "@/components/PhotoFrame";
 import { Reveal } from "@/components/Reveal";
 import { SiteHeader } from "@/components/SiteHeader";
+import { brandConfig } from "@/config/brand";
 import { cvConfig } from "@/config/cv";
 import { siteConfig } from "@/config/site";
 import { hero } from "@/data/content";
@@ -14,6 +15,9 @@ import ExperienceSection from "@/sections/ExperienceSection";
 export const metadata: Metadata = {
   title: "About Me",
   description: "Learn more about my background, skills, and journey as a creative developer.",
+  alternates: {
+    canonical: `${brandConfig.canonicalUrl}/about`,
+  },
 };
 
 export default function AboutPage() {

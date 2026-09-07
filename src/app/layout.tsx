@@ -5,6 +5,7 @@ import { CursorFluid } from "@/components/CursorFluid";
 import MotionProvider from "@/components/MotionProvider";
 import ScrollReset from "@/components/ScrollReset";
 import { brandConfig } from "@/config/brand";
+import { siteConfig } from "@/config/site";
 import { hero } from "@/data/content";
 
 const geistSans = localFont({
@@ -32,13 +33,22 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: profileTitle,
+  title: {
+    default: profileTitle,
+    // Subpages (About, CV) set a short title like "About Me"; this keeps
+    // the brand name in the tab title and search snippet instead of losing
+    // it entirely on every page but the homepage.
+    template: `%s | ${hero.name}`,
+  },
   description: profileDescription,
   applicationName: hero.name,
   manifest: "/manifest.webmanifest",
   category: "portfolio",
   formatDetection: {
     telephone: false,
+  },
+  alternates: {
+    canonical: brandConfig.canonicalUrl,
   },
   openGraph: {
     title: profileTitle,
@@ -77,6 +87,19 @@ export const metadata: Metadata = {
   metadataBase: new URL(brandConfig.canonicalUrl),
 };
 
+// Person schema so search engines can resolve "Dhanush Santosh" as an
+// entity (name, role, homepage, social profiles) rather than just indexing
+// unstructured page text — improves eligibility for knowledge-panel-style
+// rich results and disambiguates against unrelated same-name results.
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: hero.name,
+  jobTitle: hero.role,
+  url: brandConfig.canonicalUrl,
+  sameAs: siteConfig.socialLinks.map((link) => link.href),
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -87,6 +110,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={bodyClassName}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
         <div id="site-cursor" aria-hidden="true" data-visible="false" data-state="default">
           <div className="site-cursor-orbit" />
           <div className="site-cursor-core" />

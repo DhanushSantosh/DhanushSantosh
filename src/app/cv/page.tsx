@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FiArrowDown, FiArrowLeft, FiFileText } from "react-icons/fi";
 
+import { brandConfig } from "@/config/brand";
 import { cvConfig } from "@/config/cv";
 import PdfViewerWrapper from "@/components/PdfViewerWrapper";
 
 export const metadata: Metadata = {
   title: "CV",
   description: "View and download the latest CV for Dhanush Santosh.",
+  alternates: {
+    canonical: `${brandConfig.canonicalUrl}/cv`,
+  },
 };
 
 export default function CvPage() {
