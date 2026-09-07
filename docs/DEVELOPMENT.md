@@ -12,8 +12,9 @@ cp .env.example .env.local   # fill in GITHUB_TOKEN at minimum
 npm run dev
 ```
 
-Requires Node 26.x (see `engines` in `package.json`; CI is pinned to the same
-major).
+Requires Node 24.x (see `engines` in `package.json`; CI is pinned to the same
+major — chosen to match what Vercel actually deploys with, not just this
+project's own dev machines).
 
 ## Environment variables
 
