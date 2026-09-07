@@ -21,9 +21,14 @@ jobs:
         with:
           # "lts/*" floats to whatever the current LTS major is — a new Node
           # major can land in CI on its own schedule, not this repo's,
-          # without anyone deciding to take it. Pinned to the major this
-          # project actually develops and tests against locally.
-          node-version: "26"
+          # without anyone deciding to take it. Pinned to match
+          # package.json's engines field and, more importantly, the actual
+          # Vercel deployment runtime — a prior pin to 26 here matched this
+          # project's local dev machine but not Vercel, which doesn't
+          # support Node 26 yet and rejected every build on this branch
+          # ("Found invalid or discontinued Node.js Version: 26.x") until
+          # this was caught during pre-merge verification.
+          node-version: "24"
           cache: "npm"
 
       - run: npm ci
