@@ -9,17 +9,18 @@ const SAFETY_TIMEOUT_MS = 6500;
 // deliberate transition rather than a quick cut.
 const OVERLAY_EXIT_DURATION_S = 0.7;
 
-// Same blur+character-stagger transition shape as HeroSentenceCycler, just
-// slowed down — the loader gets more screen time than a mid-sentence cycle,
-// so its reveal can afford to breathe more than the hero's does.
-const CHARACTER_STAGGER_DELAY = 0.06;
-const CHARACTER_EXIT_STAGGER_DELAY = 0.02;
+// Mirrors HeroSentenceCycler's motion values exactly — both the reveal AND
+// the dismiss use the identical blur+character-stagger transition the hero
+// text cycles through, so the name here reads as the very same animation,
+// not a lookalike.
+const CHARACTER_STAGGER_DELAY = 0.03;
+const CHARACTER_EXIT_STAGGER_DELAY = 0.01;
 const CHARACTER_EXIT_STAGGER_DIRECTION = 1;
-const CHARACTER_ANIMATION_DURATION_S = 0.8;
+const CHARACTER_ANIMATION_DURATION_S = 0.5;
 const CHARACTER_OFFSET_PX = 8;
 const CHARACTER_EASING = "easeOut";
 const SENTENCE_BLUR_PX = 6;
-const SENTENCE_BLUR_DURATION_S = 0.7;
+const SENTENCE_BLUR_DURATION_S = 0.45;
 const SENTENCE_BLUR_EASING = "easeOut";
 
 // Brief pause between the text finishing its blur-out and the overlay
