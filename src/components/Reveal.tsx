@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
   useRef,
+  useState,
   type ForwardRefExoticComponent,
   type HTMLAttributes,
   type PropsWithChildren,
@@ -52,8 +54,40 @@ export function Reveal(props: RevealProps) {
     once: true,
   });
   const shouldReduceMotion = Boolean(isAudit || prefersReducedMotion);
-  const animateState = shouldReduceMotion ? "visible" : isInView ? "visible" : "hidden";
-  const initialState = shouldReduceMotion ? false : "hidden";
+
+  // Whether this element is worth animating at all — decided once, shortly
+  // after mount, by checking if it's already sitting in the viewport. An
+  // element already visible has nothing to "reveal" and just stays at the
+  // resting "visible" variant permanently (see animateState below); only
+  // elements genuinely off-screen at mount get the scroll-triggered
+  // treatment, and since the visitor can't see an off-screen element's
+  // starting state, there's no flash even for those. An earlier version of
+  // this check used a plain useEffect with no retry, which could run before
+  // layout had actually settled and misjudge above-the-fold content as
+  // off-screen — the rAF retry loop guards against that.
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  useEffect(() => {
+    if (shouldReduceMotion) return;
+
+    let frame: number;
+    const check = () => {
+      const node = ref.current;
+      if (!node) return;
+      const viewportHeight = window.innerHeight;
+      if (!viewportHeight) {
+        frame = requestAnimationFrame(check);
+        return;
+      }
+      const alreadyVisible = node.getBoundingClientRect().top < viewportHeight;
+      if (!alreadyVisible) setShouldAnimate(true);
+    };
+
+    frame = requestAnimationFrame(check);
+    return () => cancelAnimationFrame(frame);
+  }, [shouldReduceMotion]);
+
+  const animateState =
+    shouldReduceMotion || !shouldAnimate ? "visible" : isInView ? "visible" : "hidden";
 
   const transition = useMemo(() => {
     if (shouldReduceMotion) return undefined;
@@ -67,7 +101,21 @@ export function Reveal(props: RevealProps) {
   return (
     <MotionTag
       ref={ref}
-      initial={initialState}
+      // `initial={false}` is framer-motion's documented pattern for exactly
+      // this: skip the separate "animate from initial" phase on mount and
+      // just render directly at whatever `animate` currently resolves to —
+      // computed synchronously, so it applies in the server-rendered HTML
+      // too, with no dependency on JS ever executing. animateState starts
+      // at "visible" until shouldAnimate says otherwise, so content is
+      // visible-by-default: real resilience against a blocked or failed JS
+      // bundle (not just a scripting-disabled visitor, which <noscript>
+      // elsewhere already covers), not only for visitors with JS disabled.
+      // Keeping this as the same MotionTag throughout the component's
+      // lifecycle (rather than swapping to a plain element and back) also
+      // matters mechanically: useInView's observer is wired to `ref` once
+      // and doesn't reattach if the underlying DOM node gets replaced by a
+      // remount, which swapping element types would cause.
+      initial={false}
       animate={animateState}
       variants={REVEAL_VARIANTS}
       transition={transition}
