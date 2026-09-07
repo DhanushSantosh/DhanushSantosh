@@ -2,8 +2,11 @@
 
 import { m, AnimatePresence } from "framer-motion";
 import { FiArrowUpRight, FiExternalLink, FiGithub, FiX } from "react-icons/fi";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])';
 
 const emptySubscribe = () => () => {};
 const getClientMounted = () => true;
@@ -169,20 +172,88 @@ export function VideoModal({
   const activeUrl = previewUrl ?? videoUrl ?? url ?? "";
   const isVideo = previewKind === "video" || (Boolean(videoUrl) && !previewUrl);
   const iframeTitle = title ? `${title} preview` : "Project preview";
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
-  // Handle Escape key to dismiss modal
+  // Escape to dismiss, Tab/Shift+Tab trapped within the dialog (per the WAI-ARIA
+  // dialog pattern — role="dialog"/aria-modal alone don't provide any of this
+  // behavior, they're just the accessibility-tree annotation for it).
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter((el) => el.offsetParent !== null);
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      } else if (!dialogRef.current.contains(active)) {
+        // Focus escaped the dialog entirely (e.g. iframe content stealing it) —
+        // pull it back in rather than letting Tab continue into the background.
+        event.preventDefault();
+        first.focus();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
+
+  // Initial focus on open, and restore focus to whatever triggered the modal
+  // (the project's "preview" button) once it closes — without this, focus is
+  // simply abandoned and the next Tab press falls through to the background.
+  useEffect(() => {
+    if (!isOpen) {
+      const previouslyFocused = previouslyFocusedRef.current;
+      if (previouslyFocused && document.contains(previouslyFocused)) {
+        previouslyFocused.focus();
+      }
+      return;
+    }
+
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    const id = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+    return () => window.cancelAnimationFrame(id);
+  }, [isOpen]);
+
+  // Background inertness: everything else under document.body (this modal is
+  // portaled there) stops being reachable by keyboard/AT while the dialog is
+  // open, matching the dialog pattern's "rest of the page is inert" rule.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const siblings = Array.from(document.body.children).filter(
+      (el) => el !== dialogRef.current?.closest("[data-video-modal-root]"),
+    );
+    const restoreFns = siblings.map((el) => {
+      const alreadyInert = el.hasAttribute("inert");
+      if (!alreadyInert) el.setAttribute("inert", "");
+      return () => {
+        if (!alreadyInert) el.removeAttribute("inert");
+      };
+    });
+
+    return () => {
+      restoreFns.forEach((restore) => restore());
+    };
+  }, [isOpen]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -211,6 +282,7 @@ export function VideoModal({
     <AnimatePresence>
       {isOpen && (
         <m.div
+          data-video-modal-root
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -222,6 +294,7 @@ export function VideoModal({
         >
           {/* Modal Container */}
           <m.div
+            ref={dialogRef}
             initial={{ scale: 0.96, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.96, opacity: 0 }}
@@ -267,6 +340,7 @@ export function VideoModal({
                 ) : null}
 
                 <button
+                  ref={closeButtonRef}
                   type="button"
                   onClick={onClose}
                   aria-label="Close preview modal"
@@ -296,5 +370,3 @@ export function VideoModal({
     document.body
   );
 }
-
-export default VideoModal;

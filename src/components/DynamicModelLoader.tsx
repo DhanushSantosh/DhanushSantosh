@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import usePerformanceAudit from "@/hooks/usePerformanceAudit";
 import { scheduleIdleTask } from "@/hooks/scheduleIdleTask";
+import { WebGLErrorBoundary } from "@/components/WebGLErrorBoundary";
 
 export type RenderMode = "idle" | "static" | "lite" | "full";
 
@@ -93,6 +94,10 @@ export function withDynamicModel<TProps extends QualityProps>({ loader, fallback
     }
 
     const quality = mode === "lite" ? "lite" : "full";
-    return <Model {...(props as TProps)} quality={quality} />;
+    return (
+      <WebGLErrorBoundary fallback={fallback}>
+        <Model {...(props as TProps)} quality={quality} />
+      </WebGLErrorBoundary>
+    );
   };
 }

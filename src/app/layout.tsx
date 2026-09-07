@@ -110,10 +110,29 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={bodyClassName}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10000] focus:rounded-full focus:border focus:border-white/20 focus:bg-black focus:px-5 focus:py-3 focus:text-sm focus:font-semibold focus:text-white focus:shadow-[0_0_30px_rgba(0,0,0,0.8)] focus:outline focus:outline-2 focus:outline-white"
+        >
+          Skip to main content
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
         />
+        {/* Reveal (src/components/Reveal.tsx) renders its scroll-triggered
+            content at opacity:0 in the initial server-rendered HTML — that's
+            the intended behavior when JS is about to run and animate it in,
+            but it means a genuinely no-JS visitor gets huge swaths of the
+            page (every Reveal-wrapped section, which is most of the page)
+            permanently invisible, since nothing ever transitions the inline
+            style framer-motion would otherwise set. Every Reveal instance
+            already carries this stable base class; overriding it here with
+            !important (which does beat a plain, non-!important inline style)
+            only fires when <noscript> applies, i.e. only for that no-JS case. */}
+        <noscript>
+          <style>{`.will-change-transform.will-change-opacity { opacity: 1 !important; transform: none !important; filter: none !important; }`}</style>
+        </noscript>
         <div id="site-cursor" aria-hidden="true" data-visible="false" data-state="default">
           <div className="site-cursor-orbit" />
           <div className="site-cursor-core" />

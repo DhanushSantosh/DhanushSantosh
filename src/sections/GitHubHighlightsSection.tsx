@@ -69,12 +69,22 @@ export default async function GitHubHighlightsSection() {
               <GitHubProofCard
                 icon={<FiActivity />}
                 label="Contributions"
+                // totalContributions is null both when GraphQL is unavailable
+                // (no contribution-year data at all) and, since github.ts's
+                // getGitHubContributionSummary, when at least one year's
+                // fetch failed — an honest "unknown," not silently summed as
+                // if that year had zero. Either way this shows what actually
+                // happened rather than a blanket "REST mode" that used to
+                // cover both a genuine REST fallback and a partial GraphQL
+                // fetch alike.
                 value={
                   profile?.totalContributions != null
                     ? String(profile.totalContributions)
                     : data.source === "unavailable"
                       ? "Offline"
-                      : "REST mode"
+                      : data.source === "live-partial"
+                        ? "Partial data"
+                        : "REST mode"
                 }
                 hint="all GitHub contributions across every contribution year when GraphQL is available"
               />

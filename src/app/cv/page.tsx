@@ -54,7 +54,7 @@ export default function CvPage() {
       </header>
 
       {/* Viewer Canvas */}
-      <main className="flex-1 bg-neutral-950 p-3 sm:p-6 lg:p-8 flex flex-col">
+      <main id="main-content" className="flex-1 bg-neutral-950 p-3 sm:p-6 lg:p-8 flex flex-col">
         <div className="mx-auto flex-1 w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-black shadow-[0_0_50px_rgba(0,0,0,0.72)] sm:rounded-[32px]">
           <PdfViewerWrapper fileUrl={cvConfig.fileUrl} />
         </div>

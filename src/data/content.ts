@@ -1,25 +1,25 @@
 export const hero = {
   name: "Dhanush Santosh",
-  role: "Full-Stack AI Developer",
+  role: "Full-Stack Developer",
   location: "Remote - Worldwide",
   tagline:
-    "I architect AI-native product systems where resilient infra, delightful UX, and reliable models operate as a single surface.",
+    "I build reliable full-stack systems — Next.js and TypeScript on the frontend, Python and Django REST Framework on the backend — and I'm sharpening that through real internship work and my own tools built to solve problems I've actually run into.",
   summary:
-    "Across fintech, creative tooling, and B2B SaaS I focus on shipping AI copilots, realtime dashboards, and automation experiences with strong frontend craft and production-minded thinking.",
+    "Full-stack developer finishing a Master's in Computer Science, with backend/API experience from a software internship at Payoda Technologies and AgentComms — my own coordination layer for multi-agent AI workflows.",
   email: "contact@dhanushsantosh.in",
 };
 
 export const experience = [
   {
-    role: "Intern",
+    role: "Developer Intern",
     company: "Payoda Technologies",
-    period: "June 8, 2026 - July 20, 2026",
+    period: "June 8, 2026 - July 17, 2026",
     summary:
-      "Started a six-week internship focused on learning inside a professional engineering environment with real teams, real work, and real responsibilities.",
+      "Completed a six-week software development internship on a six-member Agile team, working on backend APIs and third-party integration for an AI-assisted requirements-engineering platform.",
     highlights: [
-      "Beginning the transition from learning concepts to contributing inside a real team with real responsibilities.",
-      "Using the internship to build stronger professional habits, communication, and confidence through day-to-day work.",
-      "Joining Payoda Technologies with a mindset centered on learning, consistency, and long-term growth.",
+      "Built and refined backend APIs for a Jira integration — project linking, work-item synchronization, status updates, and item-level actions — using Python and Django REST Framework.",
+      "Worked with PostgreSQL, database migrations, and project-scoped data so frontend screens were backed by persistent data instead of mock values.",
+      "Investigated and resolved API, synchronization, configuration, and CI failures, and improved environment setup and onboarding documentation for the team.",
     ],
   },
 ];

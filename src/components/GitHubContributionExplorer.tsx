@@ -86,6 +86,16 @@ export default function GitHubContributionExplorer({
     () => flattenContributionDays(contributionYears.flatMap((year) => year.weeks), throughDate),
     [contributionYears, throughDate],
   );
+  // A year's totalContributions is null only when that year's own fetch
+  // failed (see getGitHubContributionSummary in github.ts) — not when it
+  // genuinely had zero contributions, which is reported as 0. Summing nulls
+  // as 0 would silently understate this total while it still renders as one
+  // confident-looking number, so an incomplete year makes the badge below
+  // show a disclosed lower bound ("N+") instead of a false precise count.
+  const hasIncompleteYears = useMemo(
+    () => contributionYears.some((year) => year.totalContributions === null),
+    [contributionYears],
+  );
   const totalContributions = useMemo(
     () => contributionYears.reduce((sum, year) => sum + (year.totalContributions ?? 0), 0),
     [contributionYears],
@@ -125,7 +135,7 @@ export default function GitHubContributionExplorer({
         <div className="overflow-hidden rounded-[24px] border border-white/[0.06] bg-black/25">
           <div ref={scrollContainerRef} className="overflow-x-auto no-scrollbar px-3 pb-3 pt-4 sm:px-4 sm:pb-4">
             <div className="flex min-w-max items-end gap-[3px] sm:gap-1">
-              <div className="flex select-none flex-col gap-[2px] pb-[2px] pr-1 text-[7px] font-mono text-white/30 sm:gap-[3px] sm:pb-[3px] sm:pr-1.5">
+              <div className="flex select-none flex-col gap-[2px] pb-[2px] pr-1 text-[7px] font-mono text-white/60 sm:gap-[3px] sm:pb-[3px] sm:pr-1.5">
                 <span className="flex h-3 items-center justify-end sm:h-3.5"></span>
                 <span className="flex h-2.5 items-center justify-end sm:h-3">Mon</span>
                 <span className="flex h-2 items-center justify-end sm:h-2.5"></span>
@@ -194,18 +204,24 @@ export default function GitHubContributionExplorer({
 
           <div className="grid gap-4 border-t border-white/[0.05] px-4 py-4 sm:grid-cols-3 sm:px-5">
             <div className="flex flex-col">
-              <span className="text-xl font-medium leading-none tracking-tight text-white">{totalContributions}</span>
-              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40">
+              <span
+                className="text-xl font-medium leading-none tracking-tight text-white"
+                title={hasIncompleteYears ? "One or more years failed to load — this is a minimum, not the full total." : undefined}
+              >
+                {totalContributions}
+                {hasIncompleteYears ? "+" : ""}
+              </span>
+              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">
                 Total Contributions
               </span>
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-medium leading-none tracking-tight text-white">{activeDays}</span>
-              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40">Active Days</span>
+              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">Active Days</span>
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-medium leading-none tracking-tight text-white">{peakDay?.contributionCount ?? 0}</span>
-              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40">
+              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">
                 Peak Day · {formatPeakDate(peakDay?.date ?? null)}
               </span>
             </div>
@@ -216,7 +232,7 @@ export default function GitHubContributionExplorer({
           <p className="text-xs font-medium text-white/80">
             {source === "unavailable" ? "GitHub sync is temporarily unavailable." : "Contribution history is syncing."}
           </p>
-          <p className="mx-auto mt-1 max-w-sm text-[10px] leading-relaxed text-white/40">
+          <p className="mx-auto mt-1 max-w-sm text-[10px] leading-relaxed text-white/60">
             {source === "unavailable"
               ? "Recent events and contribution history will reappear automatically once GitHub data is reachable again."
               : "Contribution history will appear here as soon as GitHub activity data is available."}

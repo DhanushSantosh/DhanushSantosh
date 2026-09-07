@@ -5,5 +5,5 @@ export const cvConfig = {
   pageUrl: "/cv",
   downloadUrl: "/cv/download",
   downloadName: "dhanush-santosh-cv.pdf",
-  lastUpdatedLabel: "Updated June 2026",
+  lastUpdatedLabel: "Updated August 2026",
 } as const;

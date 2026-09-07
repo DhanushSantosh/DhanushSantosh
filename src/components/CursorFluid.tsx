@@ -17,6 +17,12 @@ const CURSOR_ENABLED_BODY_CLASS = "has-custom-cursor";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const POINTER_FINE_QUERY = "(pointer: fine)";
 const HOVER_QUERY = "(hover: hover)";
+// Must match globals.css's `@media (max-width: 767px) { #site-cursor { opacity: 0 } }`
+// breakpoint exactly. Without this, a fine-pointer device narrower than 768px
+// (a resized desktop window, a small laptop, a mouse-equipped tablet) gets the
+// native cursor hidden by this component's `has-custom-cursor` class while the
+// custom cursor stays CSS-hidden below that width — no cursor renders at all.
+const CUSTOM_CURSOR_MIN_WIDTH_QUERY = "(min-width: 768px)";
 const CURSOR_INTERACTIVE_SELECTOR =
   "[data-cursor-block], a[href], button, input, textarea, select, summary, [role='button']";
 
@@ -61,6 +67,7 @@ export function CursorFluid() {
     const prefersReducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
     const supportsFinePointer = window.matchMedia(POINTER_FINE_QUERY).matches;
     const supportsHover = window.matchMedia(HOVER_QUERY).matches;
+    const widthQuery = window.matchMedia(CUSTOM_CURSOR_MIN_WIDTH_QUERY);
 
     if (
       isAudit ||
@@ -71,7 +78,18 @@ export function CursorFluid() {
       return undefined;
     }
 
-    document.body.classList.add(CURSOR_ENABLED_BODY_CLASS);
+    // The native-cursor-hiding class only gets applied while the viewport is
+    // wide enough for the custom cursor to actually be visible; below that,
+    // this leaves the browser's own cursor alone.
+    const syncCursorEnabled = () => {
+      document.body.classList.toggle(CURSOR_ENABLED_BODY_CLASS, widthQuery.matches);
+      if (!widthQuery.matches) {
+        cursorElement.setAttribute(CURSOR_VISIBLE_ATTR, "false");
+        cursorElement.style.transform = CURSOR_HIDDEN_TRANSLATE;
+      }
+    };
+    syncCursorEnabled();
+    widthQuery.addEventListener("change", syncCursorEnabled);
 
     const resolveInteractiveState = (target: EventTarget | null) => {
       if (!(target instanceof Element)) {
@@ -174,6 +192,7 @@ export function CursorFluid() {
     window.addEventListener(WINDOW_BLUR_EVENT, handleLeave, PASSIVE_EVENT_OPTIONS);
 
     return () => {
+      widthQuery.removeEventListener("change", syncCursorEnabled);
       document.body.classList.remove(CURSOR_ENABLED_BODY_CLASS);
 
       if (frameRef.current !== null) {

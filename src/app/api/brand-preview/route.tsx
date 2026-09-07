@@ -255,7 +255,7 @@ function buildPreviewImage(variant: PreviewVariant) {
                 }}
               >
                 {[
-                  "AI-native product systems",
+                  "Full-stack product systems",
                   "Motion-forward frontend craft",
                   "Production-minded engineering",
                 ].map((item) => (

@@ -4,20 +4,24 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import usePerformanceAudit from "@/hooks/usePerformanceAudit";
 
+// Kept short and measured against the mobile hero width: each sentence must
+// wrap to at most 2 lines (see the reserved-space sizer this list feeds via
+// LONGEST_SENTENCE below) — several longer, equally-honest phrasings wrapped
+// to 3 lines on a 375px viewport and were shortened for that reason alone.
 const SENTENCES = [
-  "ships AI copilots end-to-end.",
-  "threads LLMs into workflows.",
-  "orchestrates edge inference.",
-  "designs automation that feels human.",
-  "turns data into reliable retrieval.",
-  "pairs design systems with agents.",
-  "teaches models to respect UX.",
-  "deploys evals before launch.",
-  "connects research to production.",
-  "builds interfaces that think.",
-  "scales inference across regions.",
-  "crafts interactions with intent.",
-  "engineers reliable agentic flows.",
+  "builds full-stack apps with Next.js and React.",
+  "ships APIs with Python and Django.",
+  "integrates real platforms like Jira.",
+  "keeps Postgres data consistent and scoped.",
+  "coordinates AI agents well.",
+  "writes CI checks that catch real regressions.",
+  "debugs across the full stack.",
+  "documents systems for others.",
+  "turns rough ideas into working prototypes.",
+  "is finishing a Master's in Computer Science.",
+  "builds tools to fix problems worth fixing.",
+  "cares about clean interfaces.",
+  "is early-career, and still learning fast.",
 ];
 
 const LONGEST_SENTENCE = SENTENCES.reduce(
@@ -176,8 +180,19 @@ function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps
   }
 
   return (
+    // The animated branch below fragments the sentence into one <span> per
+    // character for the stagger effect — read literally, that's nonsense to
+    // a screen reader ("s h i p s space A I..."), and it keeps changing as
+    // the cycle rotates. A real sr-only text node carries the one coherent,
+    // current sentence instead — unlike aria-label (better suited to short
+    // labels than full sentences), this behaves like ordinary text to AT:
+    // it's still findable, translatable, and works with braille displays.
+    // The animated markup underneath is aria-hidden so AT never reaches the
+    // character fragments.
     <span className="inline-block">
-      {name}{" "}
+      <span className="sr-only">{name} {currentSentence}</span>
+      <span aria-hidden="true">
+        {name}{" "}
         <span className="relative inline-block align-baseline">
           <span aria-hidden="true" className="invisible select-none">
             {LONGEST_SENTENCE}
@@ -228,6 +243,7 @@ function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps
           </AnimatePresence>
         </span>
       </span>
+    </span>
   );
 }
 

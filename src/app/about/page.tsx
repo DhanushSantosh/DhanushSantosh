@@ -40,7 +40,7 @@ export default function AboutPage() {
           <FiArrowLeft className="transition group-hover:-translate-x-0.5" />
         </Link>
 
-        <main className="space-y-16 sm:space-y-20 lg:space-y-24">
+        <main id="main-content" className="space-y-16 sm:space-y-20 lg:space-y-24">
           <Reveal>
             <section id="bio" className="cv-auto space-y-6">
               <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">
@@ -52,15 +52,17 @@ export default function AboutPage() {
                   <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">About Me</h1>
                   <div className="prose prose-invert max-w-none text-lg text-white/80">
                     <p>
-                      I&apos;m a developer who enjoys building thoughtful digital experiences where interface design,
-                      engineering, and AI-aware product thinking work together. I care about software that feels clear,
-                      polished, and genuinely useful from the first interaction.
+                      I&apos;m a developer who enjoys building thoughtful digital experiences where interface design
+                      and engineering come together. I care about software that feels clear, polished, and genuinely
+                      useful from the first interaction.
                     </p>
                     <p className="mt-4">
-                      This stage of my journey is about turning curiosity into strong professional practice. Alongside
-                      building projects and sharpening my frontend craft, I started my internship at Payoda
-                      Technologies on June 8, 2026, where I&apos;m learning how real teams collaborate, ship work, and
-                      grow through responsibility.
+                      I&apos;m currently finishing a Master&apos;s in Computer Science while building full-stack
+                      projects with Next.js, React, and TypeScript. This past summer I completed a six-week software
+                      development internship at Payoda Technologies, working on backend APIs and Jira integration for
+                      an AI-assisted requirements platform in a six-person Agile team. Outside of that, I built{" "}
+                      AgentComms — a communication and governance layer for coordinating multiple AI coding agents —
+                      after running into real context-loss and hallucination problems trying to manage them by hand.
                     </p>
                   </div>
                 </div>

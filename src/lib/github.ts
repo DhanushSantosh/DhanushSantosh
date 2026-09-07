@@ -1,12 +1,19 @@
 import "server-only";
 
+import { AsyncLocalStorage } from "node:async_hooks";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 
 import { projectOverrideLookup, type ProjectOverrideConfig } from "@/config/projectOverrides";
 import { parseContributionHeadlineCount, parseContributionWeeks } from "@/lib/github-contributions";
 import { getRestPortfolioSource } from "@/lib/github-source";
 
 const DEFAULT_REVALIDATE_SECONDS = 3600;
+// None of these requests previously had any timeout at all — a hung GitHub
+// API call would hang the whole page render along with it. Bounded well
+// under Vercel's function timeout so a slow upstream degrades to the
+// unavailable/partial-data path instead of stalling the response.
+const GITHUB_FETCH_TIMEOUT_MS = 8000;
 const DEFAULT_GITHUB_USERNAME = "DhanushSantosh";
 const GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql";
 const GITHUB_REST_ENDPOINT = "https://api.github.com";
@@ -19,6 +26,57 @@ export const GITHUB_TAGS = {
 } as const;
 
 type GitHubTag = (typeof GITHUB_TAGS)[keyof typeof GITHUB_TAGS];
+
+// This is a *connectivity* check, deliberately not a claim about the
+// freshness of any specific displayed payload (projects, events,
+// contributions) — and it's named and surfaced accordingly rather than as
+// "last synced." Two earlier versions of this both tried to make it mean
+// "the currently-displayed data is this fresh": first a bare Date.now()
+// (could never fail, so it advanced regardless of GitHub's actual health),
+// then this same dedicated request but still labeled as a sync claim (it
+// genuinely confirms reachability, but reachability succeeding doesn't mean
+// every individual payload's own cache also just refreshed — those are
+// fetched, and cached, independently). Actually tying one timestamp to
+// every displayed payload's real freshness would mean caching the whole
+// rendered snapshot and its timestamp as one atomic unit, which trades away
+// today's degraded-but-still-useful partial-data behavior (showing
+// whatever individually succeeded, even if something else failed) for a
+// guarantee this component doesn't currently make. Until that trade-off is
+// deliberately chosen, this stays an honestly-scoped reachability signal:
+// makes a small, dedicated request and only caches a timestamp on genuine
+// success (throws on failure, so Next's Data Cache — the same mechanism a
+// plain fetch() gets — falls back to the last successfully-confirmed
+// timestamp instead of computing a fresh, unconfirmed one).
+const getConfirmedReachableAtMs = unstable_cache(
+  async () => {
+    const username = getGitHubUsername();
+    const response = await fetch(`${GITHUB_REST_ENDPOINT}/users/${username}`, {
+      headers: restHeaders(getGitHubToken()),
+      signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      throw new Error(`GitHub reachability check failed with status ${response.status}`);
+    }
+    return Date.now();
+  },
+  ["github-last-reachable-at"],
+  {
+    revalidate: DEFAULT_REVALIDATE_SECONDS,
+    tags: [GITHUB_TAGS.profile, GITHUB_TAGS.activity, GITHUB_TAGS.projects],
+  },
+);
+
+async function getLastReachableAt(): Promise<string | null> {
+  try {
+    return new Date(await getConfirmedReachableAtMs()).toISOString();
+  } catch {
+    // No successful reachability check has ever been cached — e.g. this is
+    // the very first request and GitHub is unreachable right now. Nothing
+    // honest to report, so this is null rather than a fabricated date;
+    // callers/UI treat that the same as an unavailable source.
+    return null;
+  }
+}
 
 export type GitHubContributionDay = {
   color: string;
@@ -65,7 +123,7 @@ export type GitHubRecentEvent = {
 export type GitHubPortfolioData = {
   available: boolean;
   contributionYears: GitHubContributionYear[];
-  lastSyncedAt: string;
+  lastReachableAt: string | null;
   profile: GitHubProfileSummary | null;
   projects: GitHubProject[];
   recentEvents: GitHubRecentEvent[];
@@ -77,6 +135,7 @@ export type GitHubPortfolioData = {
 
 type GitHubProject = {
   accent: string;
+  caseStudySlug: string | null;
   defaultBranch: string | null;
   demoUrl: string | null;
   forkCount: number | null;
@@ -259,11 +318,12 @@ async function fetchGitHubGraphQL<T>(
         revalidate: DEFAULT_REVALIDATE_SECONDS,
         tags: uniqueTags(tags),
       },
+      signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
     });
 
     if (!response.ok) {
       if (response.status === 401) {
-        githubTokenRejected = true;
+        markTokenRejected();
       }
       console.error(`[github] GraphQL request failed: ${response.status}`);
       return {
@@ -296,14 +356,31 @@ async function fetchGitHubGraphQL<T>(
   }
 }
 
-// Once a request proves the configured token is rejected, skip attaching it for
-// the rest of this invocation instead of paying a 401 round-trip per call.
-let githubTokenRejected = false;
+// Once a request proves the configured token is rejected, skip attaching it
+// for the rest of *that* request instead of paying a 401 round-trip per call.
+// This used to be a plain module-level `let`, which — despite the comment's
+// stated intent — actually persisted across every request served by the same
+// warm serverless instance: one transient 401 would silently degrade every
+// subsequent visitor to unauthenticated GitHub API calls (a much lower rate
+// limit) for the rest of that instance's lifetime, with no way to recover
+// short of a cold start. AsyncLocalStorage scopes it to the actual call tree
+// of a single getGitHubPortfolioData() invocation instead.
+type TokenRejectionState = { rejected: boolean };
+const tokenRejectionStore = new AsyncLocalStorage<TokenRejectionState>();
+
+function isTokenRejected(): boolean {
+  return tokenRejectionStore.getStore()?.rejected ?? false;
+}
+
+function markTokenRejected(): void {
+  const store = tokenRejectionStore.getStore();
+  if (store) store.rejected = true;
+}
 
 function restHeaders(token: string | null) {
   return {
     Accept: "application/vnd.github+json",
-    ...(token && !githubTokenRejected ? { Authorization: `Bearer ${token}` } : {}),
+    ...(token && !isTokenRejected() ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
@@ -318,10 +395,11 @@ async function fetchGitHubRestWithFallback(url: string, token: string | null, ta
       revalidate: DEFAULT_REVALIDATE_SECONDS,
       tags: uniqueTags(tags),
     },
+    signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
   });
 
-  if (response.status === 401 && token && !githubTokenRejected) {
-    githubTokenRejected = true;
+  if (response.status === 401 && token && !isTokenRejected()) {
+    markTokenRejected();
     console.error(
       "[github] REST request was rejected with 401 using GITHUB_TOKEN; retrying unauthenticated for the rest of this request.",
     );
@@ -331,6 +409,7 @@ async function fetchGitHubRestWithFallback(url: string, token: string | null, ta
         revalidate: DEFAULT_REVALIDATE_SECONDS,
         tags: uniqueTags(tags),
       },
+      signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
     });
   }
 
@@ -376,6 +455,7 @@ async function fetchGitHubHtml(path: string, tags: GitHubTag[]): Promise<GitHubF
         revalidate: DEFAULT_REVALIDATE_SECONDS,
         tags: uniqueTags(tags),
       },
+      signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -526,7 +606,17 @@ async function getGitHubContributionSummary(username: string, years: number[]): 
     }),
   );
 
-  const totalAllTime = yearResults.reduce((sum, result) => sum + (result.count ?? 0), 0);
+  // A per-year count is only null when that year's dedicated fetch failed
+  // (see the `count: result.data ? ... : null` above). Summing those as 0
+  // — like each individual year already reports honestly via that same
+  // null — would silently understate the all-time total while this still
+  // renders as a single precise-looking number, indistinguishable from a
+  // year that genuinely had zero contributions. So a partial fetch makes
+  // the *all-time* total unknown too, not a confident (wrong) number.
+  const allYearsOk = yearResults.every((result) => result.count !== null);
+  const totalAllTime = allYearsOk
+    ? yearResults.reduce((sum, result) => sum + (result.count ?? 0), 0)
+    : null;
 
   return {
     lastYear,
@@ -562,6 +652,7 @@ function normalizeProjectRepo(repo: GitHubRestRepo, override?: ProjectOverrideCo
 
   return {
     accent,
+    caseStudySlug: override?.caseStudySlug ?? null,
     defaultBranch: repo.default_branch ?? null,
     demoUrl: override?.demoUrl ?? null,
     forkCount: repo.forks_count ?? null,
@@ -577,7 +668,11 @@ function normalizeProjectRepo(repo: GitHubRestRepo, override?: ProjectOverrideCo
     repoUrl: repo.html_url,
     stack: normalizeProjectStack(topics),
     stars: repo.stargazers_count ?? null,
-    summary: override?.summaryOverride ?? repo.description ?? "Repository details will appear here once GitHub data is connected.",
+    // Previous copy ("Repository details will appear here once GitHub data
+    // is connected.") read as a loading/error state — misleading, since the
+    // GitHub connection is working fine here; the repo genuinely just has no
+    // description set on GitHub.
+    summary: override?.summaryOverride ?? repo.description ?? "No description provided.",
     topics,
   };
 }
@@ -777,7 +872,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
   return {
     available: true,
     contributionYears: contributionSummaryResult.years,
-    lastSyncedAt: new Date().toISOString(),
+    lastReachableAt: await getLastReachableAt(),
     profile: {
       avatarUrl: payload.user.avatarUrl,
       bio: payload.user.bio,
@@ -826,7 +921,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
   return {
     available: source !== "unavailable",
     contributionYears: [],
-    lastSyncedAt: new Date().toISOString(),
+    lastReachableAt: await getLastReachableAt(),
     profile: userResult.data
       ? {
           avatarUrl: userResult.data.avatar_url,
@@ -858,8 +953,10 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
 }
 
 export const getGitHubPortfolioData = cache(async (): Promise<GitHubPortfolioData> => {
-  const username = getGitHubUsername();
-  const graphQL = await getGraphQLPortfolioData(username);
-  if (graphQL) return graphQL;
-  return getRestFallbackPortfolioData(username);
+  return tokenRejectionStore.run({ rejected: false }, async () => {
+    const username = getGitHubUsername();
+    const graphQL = await getGraphQLPortfolioData(username);
+    if (graphQL) return graphQL;
+    return getRestFallbackPortfolioData(username);
+  });
 });

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from
 import { m, useReducedMotion } from "framer-motion";
 
 const DISPLAY_NAME = "Dhanush Santosh";
+const HOMEPAGE_INTRO_LOADER_ID = "homepage-intro-loader";
 const SAFETY_TIMEOUT_MS = 6500;
 // The crossfade into the main page — slowed down so the handoff reads as a
 // deliberate transition rather than a quick cut.
@@ -202,58 +203,71 @@ export function HomepageIntroLoader() {
   }
 
   return (
-    <m.div
-      aria-hidden="true"
-      initial={{ opacity: 1 }}
-      animate={{ opacity: isExiting ? 0 : 1 }}
-      transition={{
-        duration: isExiting ? OVERLAY_EXIT_DURATION_S : 0,
-        ease: "easeOut",
-      }}
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black select-none"
-      style={{ pointerEvents: isExiting ? "none" : "auto" }}
-    >
-      <span className="text-2xl font-semibold text-white sm:text-3xl">
-        <m.span
-          initial="hidden"
-          animate={isTextExiting ? "hidden" : "visible"}
-          variants={SENTENCE_VARIANTS}
-          transition={{ duration: SENTENCE_BLUR_DURATION_S, ease: SENTENCE_BLUR_EASING }}
-          className="inline-block"
-          style={{ willChange: "filter" }}
-        >
+    <>
+      {/* Rendering solid from frame one (above) means a no-JS visitor gets
+          this overlay in their initial HTML with nothing to ever dismiss it
+          — a permanently opaque, pointer-events:auto screen over the whole
+          page. This is the one case genuinely worth reaching for `<noscript>`
+          for: it only applies when JS is unavailable, and neutralizes the
+          overlay outright so the real page (already server-rendered
+          underneath) is what a no-JS visitor actually sees. */}
+      <noscript>
+        <style>{`#${HOMEPAGE_INTRO_LOADER_ID} { display: none !important; }`}</style>
+      </noscript>
+      <m.div
+        id={HOMEPAGE_INTRO_LOADER_ID}
+        aria-hidden="true"
+        initial={{ opacity: 1 }}
+        animate={{ opacity: isExiting ? 0 : 1 }}
+        transition={{
+          duration: isExiting ? OVERLAY_EXIT_DURATION_S : 0,
+          ease: "easeOut",
+        }}
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black select-none"
+        style={{ pointerEvents: isExiting ? "none" : "auto" }}
+      >
+        <span className="text-2xl font-semibold text-white sm:text-3xl">
           <m.span
             initial="hidden"
             animate={isTextExiting ? "hidden" : "visible"}
-            variants={{
-              visible: { transition: { staggerChildren: CHARACTER_STAGGER_DELAY } },
-              hidden: {
-                transition: {
-                  staggerChildren: CHARACTER_EXIT_STAGGER_DELAY,
-                  staggerDirection: CHARACTER_EXIT_STAGGER_DIRECTION,
-                },
-              },
-            }}
+            variants={SENTENCE_VARIANTS}
+            transition={{ duration: SENTENCE_BLUR_DURATION_S, ease: SENTENCE_BLUR_EASING }}
             className="inline-block"
+            style={{ willChange: "filter" }}
           >
-            {WORDS.map((word, wordIndex) => (
-              <span key={wordIndex} className="inline-block whitespace-nowrap">
-                {word.split("").map((char, charIndex) => (
-                  <m.span
-                    key={charIndex}
-                    variants={CHARACTER_VARIANTS}
-                    transition={{ duration: CHARACTER_ANIMATION_DURATION_S, ease: CHARACTER_EASING }}
-                    className="inline-block"
-                  >
-                    {char}
-                  </m.span>
-                ))}
-                {wordIndex < WORDS.length - 1 ? <span className="inline-block">&nbsp;</span> : null}
-              </span>
-            ))}
+            <m.span
+              initial="hidden"
+              animate={isTextExiting ? "hidden" : "visible"}
+              variants={{
+                visible: { transition: { staggerChildren: CHARACTER_STAGGER_DELAY } },
+                hidden: {
+                  transition: {
+                    staggerChildren: CHARACTER_EXIT_STAGGER_DELAY,
+                    staggerDirection: CHARACTER_EXIT_STAGGER_DIRECTION,
+                  },
+                },
+              }}
+              className="inline-block"
+            >
+              {WORDS.map((word, wordIndex) => (
+                <span key={wordIndex} className="inline-block whitespace-nowrap">
+                  {word.split("").map((char, charIndex) => (
+                    <m.span
+                      key={charIndex}
+                      variants={CHARACTER_VARIANTS}
+                      transition={{ duration: CHARACTER_ANIMATION_DURATION_S, ease: CHARACTER_EASING }}
+                      className="inline-block"
+                    >
+                      {char}
+                    </m.span>
+                  ))}
+                  {wordIndex < WORDS.length - 1 ? <span className="inline-block">&nbsp;</span> : null}
+                </span>
+              ))}
+            </m.span>
           </m.span>
-        </m.span>
-      </span>
-    </m.div>
+        </span>
+      </m.div>
+    </>
   );
 }

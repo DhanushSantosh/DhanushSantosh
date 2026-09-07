@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
 import usePerformanceAudit from "@/hooks/usePerformanceAudit";
 import { scheduleIdleTask } from "@/hooks/scheduleIdleTask";
+import { WebGLErrorBoundary } from "@/components/WebGLErrorBoundary";
 
 type RenderMode = "idle" | "static" | "lite" | "full";
 
@@ -112,5 +113,13 @@ export function ClientSculpture() {
   if (!Sculpture) return <IdleSculptureFallback />;
 
   const quality = mode === "lite" ? "lite" : "full";
-  return <Sculpture quality={quality} />;
+  // StaticSculptureFallback (not the idle pulse) on a WebGL failure here:
+  // this is reached only once mode is "full"/"lite" and the module has
+  // already loaded, so a stuck loading skeleton would misrepresent what
+  // happened — the "3D paused" static card is the honest state.
+  return (
+    <WebGLErrorBoundary fallback={<StaticSculptureFallback />}>
+      <Sculpture quality={quality} />
+    </WebGLErrorBoundary>
+  );
 }

@@ -55,7 +55,7 @@ export default function StarredReposCarousel({ repos }: StarredReposCarouselProp
         <button
           type="button"
           onClick={scrollLeft}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/80 text-white shadow-[0_0_15px_rgba(0,0,0,0.8)] transition hover:bg-white hover:text-black opacity-0 group-hover/carousel:opacity-100"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/80 text-white shadow-[0_0_15px_rgba(0,0,0,0.8)] transition hover:bg-white hover:text-black opacity-0 group-hover/carousel:opacity-100 focus-visible:opacity-100"
           aria-label="Scroll Left"
         >
           <FiChevronLeft size={16} />
@@ -101,7 +101,7 @@ export default function StarredReposCarousel({ repos }: StarredReposCarouselProp
         <button
           type="button"
           onClick={scrollRight}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/80 text-white shadow-[0_0_15px_rgba(0,0,0,0.8)] transition hover:bg-white hover:text-black opacity-0 group-hover/carousel:opacity-100"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/80 text-white shadow-[0_0_15px_rgba(0,0,0,0.8)] transition hover:bg-white hover:text-black opacity-0 group-hover/carousel:opacity-100 focus-visible:opacity-100"
           aria-label="Scroll Right"
         >
           <FiChevronRight size={16} />

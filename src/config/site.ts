@@ -13,15 +13,15 @@ type SocialLink = {
   icon: IconType;
 };
 
-const contactHeadline = "Ready to ship your AI-native product?";
+const contactHeadline = "Want to build something together?";
 const contactDescription =
-  "I partner with founders, research leads, and ops teams to design copilots, automation workflows, and intelligent UX from discovery through launch.";
+  "Open to internships, freelance work, and collaborations — reach out and let's talk about what you're building.";
 
-const emailSubject = `AI Collaboration - ${hero.name} x [Your Company]`;
+const emailSubject = `Let's talk - ${hero.name} x [Your Company]`;
 const emailBodyLines = [
   `Hi ${hero.name},`,
   "",
-  "I'm [Your Name], [Role] at [Company/Team]. We're building [brief description] and would love to explore partnering on AI product engineering.",
+  "I'm [Your Name], [Role] at [Company/Team]. We're building [brief description] and would love to explore working together.",
   "",
   "Build context:",
   "- Product vision: [Copilot, automation, insights, etc.]",
@@ -39,6 +39,7 @@ const emailBodyLines = [
 
 export const siteConfig = {
   navLinks: [
+    { label: "Work", href: "/#work" },
     { label: "Expertise", href: "/#expertise" },
     { label: "Experience", href: "/about#experience" },
     { label: "Projects", href: "/#projects" },
@@ -60,5 +61,3 @@ export const siteConfig = {
     },
   },
 };
-
-export const SITE_CONTAINER_CLASS = "max-w-7xl";

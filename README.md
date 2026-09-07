@@ -2,8 +2,8 @@
 
 # Dhanush Santosh
 
-*Full-Stack AI Developer & Cinematic UI Engineer*<br>
-Crafting AI-native products where resilient infra, delightful UX, and reliable models operate as a single surface.
+*Full-Stack Developer*<br>
+Building full-stack systems with Next.js, React, and Python/Django — currently finishing a Master's in Computer Science.
 
 <br>
 
@@ -19,9 +19,7 @@ Crafting AI-native products where resilient infra, delightful UX, and reliable m
 
 ### ✦ About Me
 
-I'm a product-minded engineer specializing in **AI orchestration, automation workflows, and cinematic UIs**. I focus on shipping high-performance applications from the ground up—bridging data contracts, Temporal pipelines, design systems, and robust deployment architectures.
-
-Currently building and scaling LLM copilots, realtime dashboards, and intelligent automation for B2B SaaS.
+Full-stack developer building with Next.js, React, and TypeScript on the frontend and Python/Django REST Framework on the backend. Backend/API and third-party integration experience from a software development internship at Payoda Technologies, and creator of [AgentComms](https://github.com/DhanushSantosh/AgentComms), a communication and governance layer for coordinating multiple AI coding agents.
 
 <br>
 
@@ -47,7 +45,7 @@ Currently building and scaling LLM copilots, realtime dashboards, and intelligen
 ---
 
 <div align="center">
-  <p><b>"Let's ship something intelligent together."</b></p>
+  <p><b>Open to internships, freelance work, and collaborations.</b></p>
   <p>
     <a href="mailto:contact@dhanushsantosh.in">contact@dhanushsantosh.in</a> • 
     <a href="https://dhanushsantosh.in">dhanushsantosh.in</a>

@@ -58,6 +58,43 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // nosniff/referrer/permissions-policy carry no functional risk and apply
+  // everywhere. CSP is intentionally Report-Only rather than enforced: the
+  // project preview feature (VideoModal) embeds arbitrary external live-site
+  // URLs per project, which a real frame-src allowlist can't accommodate
+  // without defeating the point of restricting it — enforcing a guessed
+  // policy risks silently breaking that feature. Report-Only surfaces real
+  // violations (via the browser console) without blocking anything, so it
+  // can be tightened into an enforced policy once actual traffic confirms
+  // what it needs to allow.
+  async headers() {
+    const contentSecurityPolicyReportOnly = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://api.github.com https://github.com",
+      "frame-src https:",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ");
+
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+          },
+          { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicyReportOnly },
+        ],
+      },
+    ];
+  },
   compiler: {
     // Keep console errors in production, strip noisy logs for smaller bundles.
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error"] } : false,

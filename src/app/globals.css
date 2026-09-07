@@ -212,6 +212,27 @@ body.has-custom-cursor * {
   transform-origin: center;
 }
 
+/* The Framer Motion components already gate themselves on useReducedMotion,
+   but plain CSS never checked prefers-reduced-motion at all: `scroll-behavior:
+   smooth` above ran unconditionally, and Tailwind's animate-ping/animate-pulse
+   status dots plus the decorative arc-rotate/arc-reverse loops kept animating
+   regardless of the user's OS-level preference. animate-spin loading spinners
+   are left alone deliberately — brief, functional progress indicators rather
+   than decorative motion. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-arc-rotate,
+  .animate-arc-reverse,
+  .animate-ping,
+  .animate-pulse,
+  .animate-bounce {
+    animation: none !important;
+  }
+}
+
 .tech-icon-wrap {
   contain: style paint;
 }
