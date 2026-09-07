@@ -60,5 +60,3 @@ export const siteConfig = {
     },
   },
 };
-
-export const SITE_CONTAINER_CLASS = "max-w-7xl";

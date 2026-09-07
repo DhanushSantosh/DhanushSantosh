@@ -22,21 +22,32 @@ export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       <HomepageIntroLoader />
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
-        <div className="flex min-h-[100dvh] flex-col gap-1 pt-8 sm:gap-2 sm:pt-10 lg:gap-3 lg:pt-12">
-          <SiteHeader
-            name={hero.name}
-            role={hero.role}
-            cvPageUrl={cvConfig.pageUrl}
-            githubUrl={siteConfig.socialLinks.find((link) => link.label === "GitHub")?.href ?? "https://github.com"}
-          />
-          <div className="flex min-h-0 flex-1 items-start justify-center py-6 sm:items-center sm:py-0 lg:-translate-y-9">
-            <HeroSection />
+      {/* The hero (including the h1) previously sat outside <main>, alongside
+          the header, in its own top-level wrapper — meaning the page's actual
+          primary content wasn't in the main landmark at all. Opening <main>
+          here instead, before the header/hero block, keeps every existing
+          class and the header/hero flex layout byte-for-byte identical (that
+          layout's min-h-[100dvh] math depends on both living in the same flex
+          column) while fixing the semantics: the header nests inside <main>
+          as a plain landmark (no longer exposed as role="banner", which is
+          fine — this isn't a cross-page site banner) and the hero is finally
+          part of main content. */}
+      <main id="main-content" className="w-full">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
+          <div className="flex min-h-[100dvh] flex-col gap-1 pt-8 sm:gap-2 sm:pt-10 lg:gap-3 lg:pt-12">
+            <SiteHeader
+              name={hero.name}
+              role={hero.role}
+              cvPageUrl={cvConfig.pageUrl}
+              githubUrl={siteConfig.socialLinks.find((link) => link.label === "GitHub")?.href ?? "https://github.com"}
+            />
+            <div className="flex min-h-0 flex-1 items-start justify-center py-6 sm:items-center sm:py-0 lg:-translate-y-9">
+              <HeroSection />
+            </div>
           </div>
         </div>
-      </div>
 
-      <main className="mt-8 w-full sm:mt-10 lg:mt-12">
+        <div className="mt-8 w-full sm:mt-10 lg:mt-12">
         <div className="relative w-full">
           <div className="pointer-events-none absolute inset-0 z-0">
             <ClientExpertiseSculpture />
@@ -96,6 +107,7 @@ export default function Home() {
               </footer>
             </Reveal>
           </div>
+        </div>
         </div>
       </main>
       <BackToTopButton />

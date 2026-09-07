@@ -40,7 +40,7 @@ export default function AboutPage() {
           <FiArrowLeft className="transition group-hover:-translate-x-0.5" />
         </Link>
 
-        <main className="space-y-16 sm:space-y-20 lg:space-y-24">
+        <main id="main-content" className="space-y-16 sm:space-y-20 lg:space-y-24">
           <Reveal>
             <section id="bio" className="cv-auto space-y-6">
               <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">

@@ -176,8 +176,15 @@ function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps
   }
 
   return (
-    <span className="inline-block">
-      {name}{" "}
+    // The animated branch below fragments the sentence into one <span> per
+    // character for the stagger effect — read literally, that's nonsense to
+    // a screen reader ("s h i p s space A I..."), and it keeps changing as
+    // the cycle rotates. aria-label carries the one coherent, current
+    // sentence as this element's accessible name instead; the animated
+    // markup underneath is aria-hidden so AT never reaches the fragments.
+    <span className="inline-block" aria-label={`${name} ${currentSentence}`}>
+      <span aria-hidden="true">
+        {name}{" "}
         <span className="relative inline-block align-baseline">
           <span aria-hidden="true" className="invisible select-none">
             {LONGEST_SENTENCE}
@@ -228,6 +235,7 @@ function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps
           </AnimatePresence>
         </span>
       </span>
+    </span>
   );
 }
 

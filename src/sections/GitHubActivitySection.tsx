@@ -94,7 +94,7 @@ export default async function GitHubActivitySection() {
                           
                           {/* Content */}
                           <div className="flex flex-wrap items-center gap-1.5 text-[9px]">
-                            <span className="text-white/40 font-mono">{formatShortDate(event.timestamp)}</span>
+                            <span className="text-white/60 font-mono">{formatShortDate(event.timestamp)}</span>
                             <span className="text-white/20">&bull;</span>
                             <span className="uppercase tracking-wider font-mono text-[8px] text-white/50">{getEventKindLabel(event.kind)}</span>
                             {isLatest && (
@@ -106,7 +106,7 @@ export default async function GitHubActivitySection() {
                           <h4 className="text-[12px] font-medium text-white/90 group-hover:text-cyan-400 transition-colors duration-200 leading-snug line-clamp-2">
                             {event.summary}
                           </h4>
-                          <p className="font-mono text-[9px] text-white/30 truncate max-w-full">
+                          <p className="font-mono text-[9px] text-white/60 truncate max-w-full">
                             {event.repoName}
                           </p>
                         </a>
@@ -114,7 +114,7 @@ export default async function GitHubActivitySection() {
                     })}
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-dashed border-white/10 bg-black/30 p-4 text-center text-[10px] text-white/40 font-sans my-auto">
+                  <div className="rounded-xl border border-dashed border-white/10 bg-black/30 p-4 text-center text-[10px] text-white/60 font-sans my-auto">
                     No recent events found.
                   </div>
                 )}
@@ -165,19 +165,19 @@ export default async function GitHubActivitySection() {
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mt-6">
               <div className="flex flex-col">
                 <span className="text-xl font-medium text-white tracking-tight">{data.recentEvents.length}</span>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1">Recent Events</span>
+                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60 mt-1">Recent Events</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-medium text-white tracking-tight">{profile?.followers ?? 0}</span>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1">Followers</span>
+                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60 mt-1">Followers</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-medium text-white tracking-tight">{data.projects.length}</span>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1">Projects</span>
+                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60 mt-1">Projects</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-white tracking-tight mt-1">{formatShortDate(data.lastSyncedAt)}</span>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/40 mt-1.5">Last Synced</span>
+                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60 mt-1.5">Last Synced</span>
               </div>
             </div>
           )}
