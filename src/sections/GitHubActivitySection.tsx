@@ -12,6 +12,21 @@ function formatShortDate(dateString: string) {
   }).format(new Date(dateString));
 }
 
+// lastSyncedAt is floored to the current revalidation window rather than
+// being an exact fetch timestamp (see getApproximateLastSyncedAt in
+// github.ts) — reasonably honest when the fetch behind it actually
+// succeeded, but wall-clock flooring alone would keep advancing with "now"
+// even through a multi-request outage where every fetch has been failing,
+// silently implying freshness that was never confirmed. Disclosing that
+// directly is more honest than a confident-looking date when there is no
+// confirmed-fresh source to point to.
+function formatLastSynced(dateString: string, source: string) {
+  if (source === "graphql" || source === "rest-fallback") {
+    return formatShortDate(dateString);
+  }
+  return "Unavailable";
+}
+
 function getEventKindLabel(kind: GitHubRecentEvent["kind"]) {
   if (kind === "pull_request") return "Pull Request";
   if (kind === "release") return "Release";
@@ -176,7 +191,7 @@ export default async function GitHubActivitySection() {
                 <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60 mt-1">Projects</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-white tracking-tight mt-1">{formatShortDate(data.lastSyncedAt)}</span>
+                <span className="text-sm font-medium text-white tracking-tight mt-1">{formatLastSynced(data.lastSyncedAt, data.source)}</span>
                 <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60 mt-1.5">Last Synced</span>
               </div>
             </div>

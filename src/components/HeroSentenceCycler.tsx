@@ -183,10 +183,14 @@ function HeroSentenceCycler({ name, intervalMs = 5000 }: HeroSentenceCyclerProps
     // The animated branch below fragments the sentence into one <span> per
     // character for the stagger effect — read literally, that's nonsense to
     // a screen reader ("s h i p s space A I..."), and it keeps changing as
-    // the cycle rotates. aria-label carries the one coherent, current
-    // sentence as this element's accessible name instead; the animated
-    // markup underneath is aria-hidden so AT never reaches the fragments.
-    <span className="inline-block" aria-label={`${name} ${currentSentence}`}>
+    // the cycle rotates. A real sr-only text node carries the one coherent,
+    // current sentence instead — unlike aria-label (better suited to short
+    // labels than full sentences), this behaves like ordinary text to AT:
+    // it's still findable, translatable, and works with braille displays.
+    // The animated markup underneath is aria-hidden so AT never reaches the
+    // character fragments.
+    <span className="inline-block">
+      <span className="sr-only">{name} {currentSentence}</span>
       <span aria-hidden="true">
         {name}{" "}
         <span className="relative inline-block align-baseline">

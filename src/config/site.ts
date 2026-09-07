@@ -39,6 +39,7 @@ const emailBodyLines = [
 
 export const siteConfig = {
   navLinks: [
+    { label: "Work", href: "/#work" },
     { label: "Expertise", href: "/#expertise" },
     { label: "Experience", href: "/about#experience" },
     { label: "Projects", href: "/#projects" },

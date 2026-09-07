@@ -47,7 +47,7 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
         <Link
           href="/#projects"
           data-cursor-block
-          className="inline-flex w-fit items-center gap-2 text-sm font-medium text-white/60 transition hover:text-white"
+          className="inline-flex w-fit items-center gap-2 text-sm font-medium text-white/60 transition hover-hover:hover:text-white"
         >
           <FiArrowLeft />
           Back to projects
@@ -81,11 +81,11 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
               target="_blank"
               rel="noreferrer"
               data-cursor-block
-              className="group inline-flex w-fit items-center gap-2 rounded-full border border-white bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]"
+              className="group inline-flex w-fit items-center gap-2 rounded-full border border-white bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover-hover:hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]"
             >
               <FiGithub />
               View repository
-              <FiArrowUpRight className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <FiArrowUpRight className="transition hover-hover:group-hover:translate-x-0.5 hover-hover:group-hover:-translate-y-0.5" />
             </a>
           </header>
 

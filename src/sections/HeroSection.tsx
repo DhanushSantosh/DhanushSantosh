@@ -19,14 +19,28 @@ function HeroSection() {
             <p className="max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">{hero.summary}</p>
           </div>
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <a
+              href="#work"
+              data-cursor-block
+              className="group inline-flex w-full items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-semibold text-black transition hover-hover:hover:shadow-[0_0_35px_rgba(255,255,255,0.55)] sm:w-auto"
+            >
+              View Work
+              <FiArrowUpRight className="ml-2 text-black transition hover-hover:group-hover:translate-x-0.5 hover-hover:group-hover:-translate-y-0.5" />
+            </a>
             <Link
               href="/about"
               data-cursor-block
-              className="group inline-flex w-full items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white hover:shadow-[0_0_35px_rgba(255,255,255,0.55)] sm:w-auto"
+              className="inline-flex w-full items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover-hover:hover:border-white/30 hover-hover:hover:bg-white/10 sm:w-auto"
             >
               About Me
-              <FiArrowUpRight className="ml-2 text-black transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
+            <a
+              href="#contact"
+              data-cursor-block
+              className="inline-flex w-full items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover-hover:hover:border-white/30 hover-hover:hover:bg-white/10 sm:w-auto"
+            >
+              Contact
+            </a>
           </div>
         </Reveal>
         <Reveal delay={0.2} className="flex w-full justify-center lg:flex-[0.35] lg:justify-end">

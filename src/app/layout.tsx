@@ -120,6 +120,19 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
         />
+        {/* Reveal (src/components/Reveal.tsx) renders its scroll-triggered
+            content at opacity:0 in the initial server-rendered HTML — that's
+            the intended behavior when JS is about to run and animate it in,
+            but it means a genuinely no-JS visitor gets huge swaths of the
+            page (every Reveal-wrapped section, which is most of the page)
+            permanently invisible, since nothing ever transitions the inline
+            style framer-motion would otherwise set. Every Reveal instance
+            already carries this stable base class; overriding it here with
+            !important (which does beat a plain, non-!important inline style)
+            only fires when <noscript> applies, i.e. only for that no-JS case. */}
+        <noscript>
+          <style>{`.will-change-transform.will-change-opacity { opacity: 1 !important; transform: none !important; filter: none !important; }`}</style>
+        </noscript>
         <div id="site-cursor" aria-hidden="true" data-visible="false" data-state="default">
           <div className="site-cursor-orbit" />
           <div className="site-cursor-core" />

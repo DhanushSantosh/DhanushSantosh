@@ -13,6 +13,7 @@ import GitHubActivitySection from "@/sections/GitHubActivitySection";
 import GitHubHighlightsSection from "@/sections/GitHubHighlightsSection";
 import HeroSection from "@/sections/HeroSection";
 import ProjectsSection from "@/sections/ProjectsSection";
+import SelectedWorkSection from "@/sections/SelectedWorkSection";
 import { HomepageIntroLoader } from "@/components/HomepageIntroLoader";
 
 export const revalidate = 3600;
@@ -48,7 +49,15 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-8 w-full sm:mt-10 lg:mt-12">
+        {/* Selected, hand-picked work leads immediately after the hero and is
+            sourced from a local list independent of the live GitHub catalog
+            further down — see SelectedWorkSection's own comment. GitHub
+            activity/stats follow after it rather than before. */}
+        <div className="mt-12 sm:mt-14 lg:mt-16">
+          <SelectedWorkSection />
+        </div>
+
+        <div className="mt-12 sm:mt-14 lg:mt-16">
         <div className="relative w-full">
           <SectionVisibilityGate>
             <ClientExpertiseSculpture />
