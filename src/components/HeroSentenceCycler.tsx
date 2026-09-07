@@ -5,19 +5,19 @@ import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import usePerformanceAudit from "@/hooks/usePerformanceAudit";
 
 const SENTENCES = [
-  "ships AI copilots end-to-end.",
-  "threads LLMs into workflows.",
-  "orchestrates edge inference.",
-  "designs automation that feels human.",
-  "turns data into reliable retrieval.",
-  "pairs design systems with agents.",
-  "teaches models to respect UX.",
-  "deploys evals before launch.",
-  "connects research to production.",
-  "builds interfaces that think.",
-  "scales inference across regions.",
-  "crafts interactions with intent.",
-  "engineers reliable agentic flows.",
+  "builds full-stack apps with Next.js and React.",
+  "ships backend APIs with Python and Django.",
+  "integrates real platforms like Jira and OAuth.",
+  "keeps Postgres data consistent and scoped.",
+  "coordinates AI agents that actually cooperate.",
+  "writes CI checks that catch real regressions.",
+  "debugs across frontend, backend, and infra.",
+  "documents systems so others can maintain them.",
+  "turns rough ideas into working prototypes.",
+  "is finishing a Master's in Computer Science.",
+  "builds tools to fix problems worth fixing.",
+  "cares about clean, motion-forward interfaces.",
+  "is early-career, and still learning fast.",
 ];
 
 const LONGEST_SENTENCE = SENTENCES.reduce(

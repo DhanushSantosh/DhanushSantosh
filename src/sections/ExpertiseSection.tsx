@@ -88,7 +88,7 @@ async function ExpertiseSection() {
         <Reveal as="section" className="space-y-6">
           <p className="text-sm uppercase tracking-[0.4em] text-white/50">Expertise</p>
           <h2 className="text-balance text-3xl font-semibold text-white md:text-4xl lg:text-5xl">
-            AI-native systems with cinematic craft.
+            Full-stack systems with cinematic craft.
           </h2>
           <p className="max-w-3xl text-base leading-relaxed text-white/70 sm:text-lg">{hero.tagline}</p>
         </Reveal>
