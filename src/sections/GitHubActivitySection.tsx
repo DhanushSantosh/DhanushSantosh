@@ -12,14 +12,14 @@ function formatShortDate(dateString: string) {
   }).format(new Date(dateString));
 }
 
-// lastSyncedAt (see getLastSyncedAt in github.ts) is only ever a genuinely
-// confirmed successful-sync timestamp, or null when no successful sync has
-// ever been cached. Still gated on data.source here too: this specific
-// render's data can be degraded (source not graphql/rest-fallback) even
-// while an older cached timestamp exists from a previous success, and
-// showing that old date next to today's degraded data would misleadingly
-// suggest today's data is that fresh.
-function formatLastSynced(dateString: string | null, source: string) {
+// lastReachableAt (see getLastReachableAt in github.ts) confirms GitHub was
+// reachable as of this date — deliberately not framed as "this data is this
+// fresh," since a successful reachability check doesn't guarantee every
+// individual payload below (projects, events, contributions) refreshed at
+// the same moment; those are fetched and cached independently. Still gated
+// on data.source: this render's data can be degraded even while an older
+// reachable-at timestamp exists from a previous success.
+function formatLastReachable(dateString: string | null, source: string) {
   if (dateString && (source === "graphql" || source === "rest-fallback")) {
     return formatShortDate(dateString);
   }
@@ -190,8 +190,8 @@ export default async function GitHubActivitySection() {
                 <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60 mt-1">Projects</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-white tracking-tight mt-1">{formatLastSynced(data.lastSyncedAt, data.source)}</span>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60 mt-1.5">Last Synced</span>
+                <span className="text-sm font-medium text-white tracking-tight mt-1">{formatLastReachable(data.lastReachableAt, data.source)}</span>
+                <span className="text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60 mt-1.5">GitHub Reachable</span>
               </div>
             </div>
           )}

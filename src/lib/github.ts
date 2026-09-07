@@ -27,18 +27,27 @@ export const GITHUB_TAGS = {
 
 type GitHubTag = (typeof GITHUB_TAGS)[keyof typeof GITHUB_TAGS];
 
-// A genuinely real "last synced" timestamp. An earlier version of this fix
-// cached a bare Date.now() — but that callback can never fail, so it kept
-// advancing on its own schedule (time-based revalidation) with zero
-// correlation to whether GitHub was actually reachable; through a standing
-// outage it would still claim a fresh-looking sync. This version makes a
-// small, dedicated request and only ever caches a timestamp when that
-// request genuinely succeeds — on failure it throws, and Next's Data Cache
-// (the same mechanism a plain fetch() call gets) falls back to serving the
-// last *successfully* cached timestamp instead of computing a fresh,
-// unconfirmed one. "Last Synced" can now only ever advance behind a real
-// success, even across a multi-request outage.
-const getConfirmedSyncedAtMs = unstable_cache(
+// This is a *connectivity* check, deliberately not a claim about the
+// freshness of any specific displayed payload (projects, events,
+// contributions) — and it's named and surfaced accordingly rather than as
+// "last synced." Two earlier versions of this both tried to make it mean
+// "the currently-displayed data is this fresh": first a bare Date.now()
+// (could never fail, so it advanced regardless of GitHub's actual health),
+// then this same dedicated request but still labeled as a sync claim (it
+// genuinely confirms reachability, but reachability succeeding doesn't mean
+// every individual payload's own cache also just refreshed — those are
+// fetched, and cached, independently). Actually tying one timestamp to
+// every displayed payload's real freshness would mean caching the whole
+// rendered snapshot and its timestamp as one atomic unit, which trades away
+// today's degraded-but-still-useful partial-data behavior (showing
+// whatever individually succeeded, even if something else failed) for a
+// guarantee this component doesn't currently make. Until that trade-off is
+// deliberately chosen, this stays an honestly-scoped reachability signal:
+// makes a small, dedicated request and only caches a timestamp on genuine
+// success (throws on failure, so Next's Data Cache — the same mechanism a
+// plain fetch() gets — falls back to the last successfully-confirmed
+// timestamp instead of computing a fresh, unconfirmed one).
+const getConfirmedReachableAtMs = unstable_cache(
   async () => {
     const username = getGitHubUsername();
     const response = await fetch(`${GITHUB_REST_ENDPOINT}/users/${username}`, {
@@ -46,25 +55,25 @@ const getConfirmedSyncedAtMs = unstable_cache(
       signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
     });
     if (!response.ok) {
-      throw new Error(`GitHub sync check failed with status ${response.status}`);
+      throw new Error(`GitHub reachability check failed with status ${response.status}`);
     }
     return Date.now();
   },
-  ["github-last-synced-at"],
+  ["github-last-reachable-at"],
   {
     revalidate: DEFAULT_REVALIDATE_SECONDS,
     tags: [GITHUB_TAGS.profile, GITHUB_TAGS.activity, GITHUB_TAGS.projects],
   },
 );
 
-async function getLastSyncedAt(): Promise<string | null> {
+async function getLastReachableAt(): Promise<string | null> {
   try {
-    return new Date(await getConfirmedSyncedAtMs()).toISOString();
+    return new Date(await getConfirmedReachableAtMs()).toISOString();
   } catch {
-    // No successful sync has ever been cached for this entry — e.g. this
-    // is the very first request and GitHub is unreachable right now.
-    // Nothing honest to report, so this is null rather than a fabricated
-    // date; callers/UI treat that the same as an unavailable source.
+    // No successful reachability check has ever been cached — e.g. this is
+    // the very first request and GitHub is unreachable right now. Nothing
+    // honest to report, so this is null rather than a fabricated date;
+    // callers/UI treat that the same as an unavailable source.
     return null;
   }
 }
@@ -114,7 +123,7 @@ export type GitHubRecentEvent = {
 export type GitHubPortfolioData = {
   available: boolean;
   contributionYears: GitHubContributionYear[];
-  lastSyncedAt: string | null;
+  lastReachableAt: string | null;
   profile: GitHubProfileSummary | null;
   projects: GitHubProject[];
   recentEvents: GitHubRecentEvent[];
@@ -853,7 +862,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
   return {
     available: true,
     contributionYears: contributionSummaryResult.years,
-    lastSyncedAt: await getLastSyncedAt(),
+    lastReachableAt: await getLastReachableAt(),
     profile: {
       avatarUrl: payload.user.avatarUrl,
       bio: payload.user.bio,
@@ -902,7 +911,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
   return {
     available: source !== "unavailable",
     contributionYears: [],
-    lastSyncedAt: await getLastSyncedAt(),
+    lastReachableAt: await getLastReachableAt(),
     profile: userResult.data
       ? {
           avatarUrl: userResult.data.avatar_url,
