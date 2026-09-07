@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { brandConfig } from "@/config/brand";
+import { caseStudies } from "@/data/projects";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
@@ -23,5 +24,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.6,
     },
+    ...caseStudies.map((study) => ({
+      url: `${brandConfig.canonicalUrl}/projects/${study.slug}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
   ];
 }

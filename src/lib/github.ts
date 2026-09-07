@@ -77,6 +77,7 @@ export type GitHubPortfolioData = {
 
 type GitHubProject = {
   accent: string;
+  caseStudySlug: string | null;
   defaultBranch: string | null;
   demoUrl: string | null;
   forkCount: number | null;
@@ -562,6 +563,7 @@ function normalizeProjectRepo(repo: GitHubRestRepo, override?: ProjectOverrideCo
 
   return {
     accent,
+    caseStudySlug: override?.caseStudySlug ?? null,
     defaultBranch: repo.default_branch ?? null,
     demoUrl: override?.demoUrl ?? null,
     forkCount: repo.forks_count ?? null,
@@ -577,7 +579,11 @@ function normalizeProjectRepo(repo: GitHubRestRepo, override?: ProjectOverrideCo
     repoUrl: repo.html_url,
     stack: normalizeProjectStack(topics),
     stars: repo.stargazers_count ?? null,
-    summary: override?.summaryOverride ?? repo.description ?? "Repository details will appear here once GitHub data is connected.",
+    // Previous copy ("Repository details will appear here once GitHub data
+    // is connected.") read as a loading/error state — misleading, since the
+    // GitHub connection is working fine here; the repo genuinely just has no
+    // description set on GitHub.
+    summary: override?.summaryOverride ?? repo.description ?? "No description provided.",
     topics,
   };
 }

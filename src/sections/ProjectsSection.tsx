@@ -1,8 +1,10 @@
-import { FiArrowUpRight, FiGithub, FiGitBranch, FiStar } from "react-icons/fi";
+import Link from "next/link";
+import { FiArrowUpRight, FiFileText, FiGithub, FiGitBranch, FiStar } from "react-icons/fi";
 
 import { Reveal } from "@/components/Reveal";
 import { ProjectsDemoController } from "@/components/ProjectsDemoController";
 import { getGitHubPortfolioData } from "@/lib/github";
+import { caseStudyLookup } from "@/data/projects";
 
 function formatUpdatedAt(dateString: string | null) {
   if (!dateString) return "Update unknown";
@@ -43,6 +45,7 @@ export default async function ProjectsSection() {
               const previewKind = project.demoUrl ? "video" : "site";
               const isLive = isRecentlyPushed(project.pushedAt, project.isArchived);
               const isLeftColumn = index % 2 === 0;
+              const caseStudy = project.caseStudySlug ? caseStudyLookup.get(project.caseStudySlug) : undefined;
 
               return (
                 <Reveal key={project.nameWithOwner ?? project.name} className="h-full">
@@ -114,6 +117,17 @@ export default async function ProjectsSection() {
 
                       {/* Direct External Action Buttons */}
                       <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
+                        {caseStudy ? (
+                          <Link
+                            href={`/projects/${caseStudy.slug}`}
+                            data-cursor-block
+                            title="Read case study"
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 transition hover:border-cyan-400/60 hover:bg-cyan-400/20"
+                            aria-label={`Read the case study for ${project.name}`}
+                          >
+                            <FiFileText size={12} />
+                          </Link>
+                        ) : null}
                         {project.liveUrl ? (
                           <a
                             href={project.liveUrl}
@@ -192,6 +206,11 @@ export default async function ProjectsSection() {
                         {project.isArchived ? (
                           <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] uppercase tracking-wider text-amber-300">
                             Archived
+                          </span>
+                        ) : null}
+                        {caseStudy?.status === "paused" ? (
+                          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] uppercase tracking-wider text-amber-300">
+                            Paused
                           </span>
                         ) : null}
                         {project.stack.slice(0, 3).map((tech) => (
