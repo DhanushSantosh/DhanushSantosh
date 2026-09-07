@@ -19,7 +19,11 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: "lts/*"
+          # "lts/*" floats to whatever the current LTS major is — a new Node
+          # major can land in CI on its own schedule, not this repo's,
+          # without anyone deciding to take it. Pinned to the major this
+          # project actually develops and tests against locally.
+          node-version: "26"
           cache: "npm"
 
       - run: npm ci

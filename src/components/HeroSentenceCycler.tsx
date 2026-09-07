@@ -4,19 +4,23 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import usePerformanceAudit from "@/hooks/usePerformanceAudit";
 
+// Kept short and measured against the mobile hero width: each sentence must
+// wrap to at most 2 lines (see the reserved-space sizer this list feeds via
+// LONGEST_SENTENCE below) — several longer, equally-honest phrasings wrapped
+// to 3 lines on a 375px viewport and were shortened for that reason alone.
 const SENTENCES = [
   "builds full-stack apps with Next.js and React.",
-  "ships backend APIs with Python and Django.",
-  "integrates real platforms like Jira and OAuth.",
+  "ships APIs with Python and Django.",
+  "integrates real platforms like Jira.",
   "keeps Postgres data consistent and scoped.",
-  "coordinates AI agents that actually cooperate.",
+  "coordinates AI agents well.",
   "writes CI checks that catch real regressions.",
-  "debugs across frontend, backend, and infra.",
-  "documents systems so others can maintain them.",
+  "debugs across the full stack.",
+  "documents systems for others.",
   "turns rough ideas into working prototypes.",
   "is finishing a Master's in Computer Science.",
   "builds tools to fix problems worth fixing.",
-  "cares about clean, motion-forward interfaces.",
+  "cares about clean interfaces.",
   "is early-career, and still learning fast.",
 ];
 

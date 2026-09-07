@@ -5,7 +5,7 @@ export const hero = {
   tagline:
     "I build reliable full-stack systems — Next.js and TypeScript on the frontend, Python and Django REST Framework on the backend — and I'm sharpening that through real internship work and my own tools built to solve problems I've actually run into.",
   summary:
-    "Currently finishing a Master's in Computer Science while shipping full-stack projects with Next.js, React, and TypeScript. During a software development internship at Payoda Technologies I worked on backend APIs and third-party integration for an AI-assisted requirements platform in a six-person Agile team, and I built AgentComms — a communication and governance layer for coordinating multiple AI coding agents — after running into real context-loss problems trying to manage them by hand.",
+    "Full-stack developer finishing a Master's in Computer Science, with backend/API experience from a software internship at Payoda Technologies and AgentComms — my own coordination layer for multi-agent AI workflows.",
   email: "contact@dhanushsantosh.in",
 };
 

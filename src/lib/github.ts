@@ -1,5 +1,6 @@
 import "server-only";
 
+import { AsyncLocalStorage } from "node:async_hooks";
 import { cache } from "react";
 
 import { projectOverrideLookup, type ProjectOverrideConfig } from "@/config/projectOverrides";
@@ -7,10 +8,32 @@ import { parseContributionHeadlineCount, parseContributionWeeks } from "@/lib/gi
 import { getRestPortfolioSource } from "@/lib/github-source";
 
 const DEFAULT_REVALIDATE_SECONDS = 3600;
+// None of these requests previously had any timeout at all — a hung GitHub
+// API call would hang the whole page render along with it. Bounded well
+// under Vercel's function timeout so a slow upstream degrades to the
+// unavailable/partial-data path instead of stalling the response.
+const GITHUB_FETCH_TIMEOUT_MS = 8000;
 const DEFAULT_GITHUB_USERNAME = "DhanushSantosh";
 const GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql";
 const GITHUB_REST_ENDPOINT = "https://api.github.com";
 const GITHUB_WEB_ENDPOINT = "https://github.com";
+
+// The underlying fetch() calls below are cached by Next.js for up to
+// DEFAULT_REVALIDATE_SECONDS via `next: { revalidate }` — but the surrounding
+// function still runs on every request regardless of whether a given fetch
+// was actually a network hit or a cache hit, and Next's fetch cache doesn't
+// expose which one happened. `new Date().toISOString()` here would therefore
+// claim "synced right now" on every single page view even when the
+// underlying data could be up to an hour stale — a real, visible dishonesty
+// bug. Flooring to the revalidation window's start instead means the
+// reported time only advances once per window, matching what's actually
+// knowable about freshness without adding external state to track real
+// fetch timestamps precisely.
+function getApproximateLastSyncedAt(): string {
+  const windowMs = DEFAULT_REVALIDATE_SECONDS * 1000;
+  const windowStartMs = Math.floor(Date.now() / windowMs) * windowMs;
+  return new Date(windowStartMs).toISOString();
+}
 
 export const GITHUB_TAGS = {
   profile: "github-profile",
@@ -260,11 +283,12 @@ async function fetchGitHubGraphQL<T>(
         revalidate: DEFAULT_REVALIDATE_SECONDS,
         tags: uniqueTags(tags),
       },
+      signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
     });
 
     if (!response.ok) {
       if (response.status === 401) {
-        githubTokenRejected = true;
+        markTokenRejected();
       }
       console.error(`[github] GraphQL request failed: ${response.status}`);
       return {
@@ -297,14 +321,31 @@ async function fetchGitHubGraphQL<T>(
   }
 }
 
-// Once a request proves the configured token is rejected, skip attaching it for
-// the rest of this invocation instead of paying a 401 round-trip per call.
-let githubTokenRejected = false;
+// Once a request proves the configured token is rejected, skip attaching it
+// for the rest of *that* request instead of paying a 401 round-trip per call.
+// This used to be a plain module-level `let`, which — despite the comment's
+// stated intent — actually persisted across every request served by the same
+// warm serverless instance: one transient 401 would silently degrade every
+// subsequent visitor to unauthenticated GitHub API calls (a much lower rate
+// limit) for the rest of that instance's lifetime, with no way to recover
+// short of a cold start. AsyncLocalStorage scopes it to the actual call tree
+// of a single getGitHubPortfolioData() invocation instead.
+type TokenRejectionState = { rejected: boolean };
+const tokenRejectionStore = new AsyncLocalStorage<TokenRejectionState>();
+
+function isTokenRejected(): boolean {
+  return tokenRejectionStore.getStore()?.rejected ?? false;
+}
+
+function markTokenRejected(): void {
+  const store = tokenRejectionStore.getStore();
+  if (store) store.rejected = true;
+}
 
 function restHeaders(token: string | null) {
   return {
     Accept: "application/vnd.github+json",
-    ...(token && !githubTokenRejected ? { Authorization: `Bearer ${token}` } : {}),
+    ...(token && !isTokenRejected() ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
@@ -319,10 +360,11 @@ async function fetchGitHubRestWithFallback(url: string, token: string | null, ta
       revalidate: DEFAULT_REVALIDATE_SECONDS,
       tags: uniqueTags(tags),
     },
+    signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
   });
 
-  if (response.status === 401 && token && !githubTokenRejected) {
-    githubTokenRejected = true;
+  if (response.status === 401 && token && !isTokenRejected()) {
+    markTokenRejected();
     console.error(
       "[github] REST request was rejected with 401 using GITHUB_TOKEN; retrying unauthenticated for the rest of this request.",
     );
@@ -332,6 +374,7 @@ async function fetchGitHubRestWithFallback(url: string, token: string | null, ta
         revalidate: DEFAULT_REVALIDATE_SECONDS,
         tags: uniqueTags(tags),
       },
+      signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
     });
   }
 
@@ -377,6 +420,7 @@ async function fetchGitHubHtml(path: string, tags: GitHubTag[]): Promise<GitHubF
         revalidate: DEFAULT_REVALIDATE_SECONDS,
         tags: uniqueTags(tags),
       },
+      signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -783,7 +827,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
   return {
     available: true,
     contributionYears: contributionSummaryResult.years,
-    lastSyncedAt: new Date().toISOString(),
+    lastSyncedAt: getApproximateLastSyncedAt(),
     profile: {
       avatarUrl: payload.user.avatarUrl,
       bio: payload.user.bio,
@@ -832,7 +876,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
   return {
     available: source !== "unavailable",
     contributionYears: [],
-    lastSyncedAt: new Date().toISOString(),
+    lastSyncedAt: getApproximateLastSyncedAt(),
     profile: userResult.data
       ? {
           avatarUrl: userResult.data.avatar_url,
@@ -864,8 +908,10 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
 }
 
 export const getGitHubPortfolioData = cache(async (): Promise<GitHubPortfolioData> => {
-  const username = getGitHubUsername();
-  const graphQL = await getGraphQLPortfolioData(username);
-  if (graphQL) return graphQL;
-  return getRestFallbackPortfolioData(username);
+  return tokenRejectionStore.run({ rejected: false }, async () => {
+    const username = getGitHubUsername();
+    const graphQL = await getGraphQLPortfolioData(username);
+    if (graphQL) return graphQL;
+    return getRestFallbackPortfolioData(username);
+  });
 });

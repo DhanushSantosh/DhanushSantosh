@@ -2,6 +2,7 @@ import BackToTopButton from "@/components/BackToTopButton";
 import { ClientContactSculpture } from "@/components/ContactSculpture";
 import { ClientExpertiseSculpture } from "@/components/ExpertiseSculpture";
 import { Reveal } from "@/components/Reveal";
+import { SectionVisibilityGate } from "@/components/SectionVisibilityGate";
 import { SiteHeader } from "@/components/SiteHeader";
 import { cvConfig } from "@/config/cv";
 import { siteConfig } from "@/config/site";
@@ -49,9 +50,9 @@ export default function Home() {
 
         <div className="mt-8 w-full sm:mt-10 lg:mt-12">
         <div className="relative w-full">
-          <div className="pointer-events-none absolute inset-0 z-0">
+          <SectionVisibilityGate>
             <ClientExpertiseSculpture />
-          </div>
+          </SectionVisibilityGate>
           <div className="relative z-10 flex flex-col space-y-4 sm:space-y-6 lg:space-y-8">
             <ExpertiseSection />
             <GitHubHighlightsSection />
@@ -67,9 +68,9 @@ export default function Home() {
         </div>
 
         <div className="relative mt-12 w-full sm:mt-14 lg:mt-16">
-          <div className="pointer-events-none absolute inset-0 z-0">
+          <SectionVisibilityGate>
             <ClientContactSculpture />
-          </div>
+          </SectionVisibilityGate>
           <div className="relative z-10 flex flex-col space-y-4 rounded-3xl border border-white/[0.12] bg-black/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1),inset_0_-1px_0_0_rgba(255,255,255,0.05),0_0_30px_rgba(0,0,0,0.4)] backdrop-blur-[3px] sm:space-y-6 lg:space-y-8">
             <ContactSection />
             <Reveal>
