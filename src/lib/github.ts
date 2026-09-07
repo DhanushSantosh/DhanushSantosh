@@ -27,24 +27,46 @@ export const GITHUB_TAGS = {
 
 type GitHubTag = (typeof GITHUB_TAGS)[keyof typeof GITHUB_TAGS];
 
-// A genuinely real "last synced" timestamp, not an approximation. The trick:
-// unstable_cache's wrapped function body only actually executes on a real
-// cache miss — first call, or after the tags below get revalidated, whether
-// by the DEFAULT_REVALIDATE_SECONDS window expiring or by an explicit
-// revalidateTag() from /api/github/refresh or /api/github/revalidate. So
-// Date.now() captured inside it is, by construction, the moment this cache
-// entry actually last (re)populated — the same tags as the real GitHub data
-// fetches below, so this timestamp and that data go stale together. This
-// replaces an earlier, weaker fix that only floored wall-clock "now" to the
-// revalidation window without ever confirming a fetch had actually
-// succeeded (still claimed a fresh-looking date through a standing outage).
-const getRealSyncedAtMs = unstable_cache(async () => Date.now(), ["github-last-synced-at"], {
-  revalidate: DEFAULT_REVALIDATE_SECONDS,
-  tags: [GITHUB_TAGS.profile, GITHUB_TAGS.activity, GITHUB_TAGS.projects],
-});
+// A genuinely real "last synced" timestamp. An earlier version of this fix
+// cached a bare Date.now() — but that callback can never fail, so it kept
+// advancing on its own schedule (time-based revalidation) with zero
+// correlation to whether GitHub was actually reachable; through a standing
+// outage it would still claim a fresh-looking sync. This version makes a
+// small, dedicated request and only ever caches a timestamp when that
+// request genuinely succeeds — on failure it throws, and Next's Data Cache
+// (the same mechanism a plain fetch() call gets) falls back to serving the
+// last *successfully* cached timestamp instead of computing a fresh,
+// unconfirmed one. "Last Synced" can now only ever advance behind a real
+// success, even across a multi-request outage.
+const getConfirmedSyncedAtMs = unstable_cache(
+  async () => {
+    const username = getGitHubUsername();
+    const response = await fetch(`${GITHUB_REST_ENDPOINT}/users/${username}`, {
+      headers: restHeaders(getGitHubToken()),
+      signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      throw new Error(`GitHub sync check failed with status ${response.status}`);
+    }
+    return Date.now();
+  },
+  ["github-last-synced-at"],
+  {
+    revalidate: DEFAULT_REVALIDATE_SECONDS,
+    tags: [GITHUB_TAGS.profile, GITHUB_TAGS.activity, GITHUB_TAGS.projects],
+  },
+);
 
-async function getLastSyncedAt(): Promise<string> {
-  return new Date(await getRealSyncedAtMs()).toISOString();
+async function getLastSyncedAt(): Promise<string | null> {
+  try {
+    return new Date(await getConfirmedSyncedAtMs()).toISOString();
+  } catch {
+    // No successful sync has ever been cached for this entry — e.g. this
+    // is the very first request and GitHub is unreachable right now.
+    // Nothing honest to report, so this is null rather than a fabricated
+    // date; callers/UI treat that the same as an unavailable source.
+    return null;
+  }
 }
 
 export type GitHubContributionDay = {
@@ -92,7 +114,7 @@ export type GitHubRecentEvent = {
 export type GitHubPortfolioData = {
   available: boolean;
   contributionYears: GitHubContributionYear[];
-  lastSyncedAt: string;
+  lastSyncedAt: string | null;
   profile: GitHubProfileSummary | null;
   projects: GitHubProject[];
   recentEvents: GitHubRecentEvent[];
