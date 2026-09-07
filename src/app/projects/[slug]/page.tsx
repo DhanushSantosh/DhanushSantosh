@@ -19,11 +19,28 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   const study = caseStudyLookup.get(slug);
   if (!study) return {};
 
+  const canonical = `${brandConfig.canonicalUrl}/projects/${study.slug}`;
+
   return {
     title: study.name,
     description: study.tagline,
     alternates: {
-      canonical: `${brandConfig.canonicalUrl}/projects/${study.slug}`,
+      canonical,
+    },
+    // Without these, a shared case-study link would fall back to the root
+    // layout's openGraph/twitter defaults (the homepage's own title, generic
+    // description, and brand-preview image) instead of anything about this
+    // specific project — title/description on their own don't propagate
+    // into openGraph/twitter, only images and other unset fields do.
+    openGraph: {
+      title: study.name,
+      description: study.tagline,
+      url: canonical,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: study.name,
+      description: study.tagline,
     },
   };
 }
