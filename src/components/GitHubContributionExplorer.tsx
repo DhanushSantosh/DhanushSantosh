@@ -86,6 +86,16 @@ export default function GitHubContributionExplorer({
     () => flattenContributionDays(contributionYears.flatMap((year) => year.weeks), throughDate),
     [contributionYears, throughDate],
   );
+  // A year's totalContributions is null only when that year's own fetch
+  // failed (see getGitHubContributionSummary in github.ts) — not when it
+  // genuinely had zero contributions, which is reported as 0. Summing nulls
+  // as 0 would silently understate this total while it still renders as one
+  // confident-looking number, so an incomplete year makes the badge below
+  // show a disclosed lower bound ("N+") instead of a false precise count.
+  const hasIncompleteYears = useMemo(
+    () => contributionYears.some((year) => year.totalContributions === null),
+    [contributionYears],
+  );
   const totalContributions = useMemo(
     () => contributionYears.reduce((sum, year) => sum + (year.totalContributions ?? 0), 0),
     [contributionYears],
@@ -194,7 +204,13 @@ export default function GitHubContributionExplorer({
 
           <div className="grid gap-4 border-t border-white/[0.05] px-4 py-4 sm:grid-cols-3 sm:px-5">
             <div className="flex flex-col">
-              <span className="text-xl font-medium leading-none tracking-tight text-white">{totalContributions}</span>
+              <span
+                className="text-xl font-medium leading-none tracking-tight text-white"
+                title={hasIncompleteYears ? "One or more years failed to load — this is a minimum, not the full total." : undefined}
+              >
+                {totalContributions}
+                {hasIncompleteYears ? "+" : ""}
+              </span>
               <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">
                 Total Contributions
               </span>

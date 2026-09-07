@@ -606,7 +606,17 @@ async function getGitHubContributionSummary(username: string, years: number[]): 
     }),
   );
 
-  const totalAllTime = yearResults.reduce((sum, result) => sum + (result.count ?? 0), 0);
+  // A per-year count is only null when that year's dedicated fetch failed
+  // (see the `count: result.data ? ... : null` above). Summing those as 0
+  // — like each individual year already reports honestly via that same
+  // null — would silently understate the all-time total while this still
+  // renders as a single precise-looking number, indistinguishable from a
+  // year that genuinely had zero contributions. So a partial fetch makes
+  // the *all-time* total unknown too, not a confident (wrong) number.
+  const allYearsOk = yearResults.every((result) => result.count !== null);
+  const totalAllTime = allYearsOk
+    ? yearResults.reduce((sum, result) => sum + (result.count ?? 0), 0)
+    : null;
 
   return {
     lastYear,
