@@ -33,7 +33,8 @@ major).
 | `npm run build` | Production build — deliberately on Webpack, not Turbopack, for Serwist (PWA service worker) compatibility. |
 | `npm run lint` | ESLint. |
 | `npm run typecheck` | `tsc --noEmit`. |
-| `npm run test` | Vitest, scoped to `src/**` only (see `vitest.config.mts` — without that scoping, Vitest's default discovery also picks up any nested git worktree checked out under this repo, silently doubling every test). |
+| `npm run test` | Vitest, scoped to `src/**` only (see `vitest.config.mts` — without that scoping, Vitest's default discovery also picks up any nested git worktree checked out under this repo, silently doubling every test). Includes unit tests plus `src/lib/github-integration.test.ts`, which exercises `getGitHubPortfolioData` end-to-end against a mocked `fetch` (invalid token, partial page, timeouts, malformed HTML). |
+| `npm run test:e2e` | Playwright, real-browser end-to-end tests in `e2e/` (modal keyboard/focus, CV worker loading, contact, anchor/Back navigation, no-JS degradation). Boots its own server per `playwright.config.ts`: a production build+start in CI, or the dev server locally (reuses one already running on port 3100, starts one otherwise). First run locally needs browser binaries: `npx playwright install chromium`. |
 | `npm run deadcode` | `knip` — unused exports/files. |
 | `npm run analyze` | Production build with the bundle analyzer enabled. |
 

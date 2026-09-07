@@ -13,7 +13,7 @@ concurrency:
 jobs:
   checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
 
@@ -37,5 +37,17 @@ jobs:
       - name: Test
         run: npm run test
 
+      - name: Dead code
+        run: npm run deadcode
+
       - name: Build
         run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        # GitHub Actions sets CI=true automatically, which is what makes
+        # playwright.config.ts boot a real production build+start instead of
+        # the dev server, and run forbidOnly/retries in their CI mode.
+        run: npm run test:e2e

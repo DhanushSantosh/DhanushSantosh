@@ -2,10 +2,15 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "src/app/**/*.{ts,tsx}",
-    "src/**/*.test.ts"
+    "src/**/*.test.ts",
+    "e2e/**/*.spec.ts"
   ],
   "project": [
     "src/**/*.{ts,tsx}",
-    "scripts/**/*.{js,mjs}"
+    "scripts/**/*.{js,mjs}",
+    "e2e/**/*.ts"
+  ],
+  "ignore": [
+    "src/lib/test-support/server-only-stub.ts"
   ]
 }
