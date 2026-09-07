@@ -7,7 +7,7 @@ const DISPLAY_NAME = "Dhanush Santosh";
 const SAFETY_TIMEOUT_MS = 6500;
 // The crossfade into the main page — slowed down so the handoff reads as a
 // deliberate transition rather than a quick cut.
-const OVERLAY_EXIT_DURATION_S = 0.7;
+const OVERLAY_EXIT_DURATION_S = 1;
 
 // Mirrors HeroSentenceCycler's motion values exactly — both the reveal AND
 // the dismiss use the identical blur+character-stagger transition the hero
@@ -23,10 +23,10 @@ const SENTENCE_BLUR_PX = 6;
 const SENTENCE_BLUR_DURATION_S = 0.45;
 const SENTENCE_BLUR_EASING = "easeOut";
 
-// Brief pause between the text finishing its blur-out and the overlay
-// starting its crossfade into the main page — short enough to keep the
-// handoff snappy, long enough to still read as a deliberate beat.
-const HOLD_GAP_MS = 700;
+// Pause between the text finishing its blur-out and the overlay starting
+// its crossfade into the main page, so the whole sequence gets a bit more
+// room to breathe rather than feeling over almost as soon as it starts.
+const HOLD_GAP_MS = 1300;
 
 const CHARACTER_VARIANTS = {
   hidden: { opacity: 0, y: CHARACTER_OFFSET_PX },
