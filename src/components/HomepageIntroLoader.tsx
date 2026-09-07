@@ -24,9 +24,9 @@ const SENTENCE_BLUR_DURATION_S = 0.45;
 const SENTENCE_BLUR_EASING = "easeOut";
 
 // Pause between the text finishing its blur-out and the overlay starting
-// its crossfade into the main page, so the whole sequence gets a bit more
-// room to breathe rather than feeling over almost as soon as it starts.
-const HOLD_GAP_MS = 1300;
+// its crossfade into the main page — just enough to register as a beat,
+// not a dead stall before the handoff.
+const HOLD_GAP_MS = 500;
 
 const CHARACTER_VARIANTS = {
   hidden: { opacity: 0, y: CHARACTER_OFFSET_PX },
