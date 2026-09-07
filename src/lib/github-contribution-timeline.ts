@@ -1,4 +1,4 @@
-import type { GitHubContributionWeek, GitHubContributionYear } from "@/lib/github";
+import type { GitHubContributionDay, GitHubContributionWeek, GitHubContributionYear } from "@/lib/github";
 
 export const MAX_TIMELINE_WEEKS = 106;
 
@@ -15,6 +15,29 @@ export function flattenContributionDays(weeks: GitHubContributionWeek[], through
     .flatMap((week) => week.contributionDays)
     .filter((day) => day.date <= throughDate)
     .sort((left, right) => left.date.localeCompare(right.date));
+}
+
+// `days` is expected in chronological order with contributionCount === 0 on
+// days with no activity (not omitted) — the shape flattenContributionDays
+// above produces. That makes both streaks a plain walk rather than needing
+// to reason about gaps in the data itself.
+export function getCurrentStreak(days: GitHubContributionDay[]) {
+  let streak = 0;
+  for (let i = days.length - 1; i >= 0; i -= 1) {
+    if (days[i].contributionCount === 0) break;
+    streak += 1;
+  }
+  return streak;
+}
+
+export function getLongestStreak(days: GitHubContributionDay[]) {
+  let longest = 0;
+  let current = 0;
+  for (const day of days) {
+    current = day.contributionCount > 0 ? current + 1 : 0;
+    if (current > longest) longest = current;
+  }
+  return longest;
 }
 
 export function buildTimelineWeeks(

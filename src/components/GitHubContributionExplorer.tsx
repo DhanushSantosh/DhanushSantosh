@@ -6,6 +6,8 @@ import type { GitHubContributionDay, GitHubContributionYear, GitHubPortfolioData
 import {
   buildTimelineWeeks,
   flattenContributionDays,
+  getCurrentStreak,
+  getLongestStreak,
   MAX_TIMELINE_WEEKS,
 } from "@/lib/github-contribution-timeline";
 
@@ -102,6 +104,8 @@ export default function GitHubContributionExplorer({
   );
   const activeDays = useMemo(() => getActiveDays(contributionDays), [contributionDays]);
   const peakDay = useMemo(() => getPeakContributionDay(contributionDays), [contributionDays]);
+  const currentStreak = useMemo(() => getCurrentStreak(contributionDays), [contributionDays]);
+  const longestStreak = useMemo(() => getLongestStreak(contributionDays), [contributionDays]);
   const hasContributionData = timelineWeeks.length > 0;
   const isLive = source !== "unavailable";
 
@@ -202,7 +206,7 @@ export default function GitHubContributionExplorer({
             </div>
           </div>
 
-          <div className="grid gap-4 border-t border-white/[0.05] px-4 py-4 sm:grid-cols-3 sm:px-5">
+          <div className="grid grid-cols-2 gap-4 border-t border-white/[0.05] px-4 py-4 sm:grid-cols-4 sm:px-5">
             <div className="flex flex-col">
               <span
                 className="text-xl font-medium leading-none tracking-tight text-white"
@@ -223,6 +227,12 @@ export default function GitHubContributionExplorer({
               <span className="text-xl font-medium leading-none tracking-tight text-white">{peakDay?.contributionCount ?? 0}</span>
               <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">
                 Peak Day · {formatPeakDate(peakDay?.date ?? null)}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-medium leading-none tracking-tight text-white">{currentStreak}</span>
+              <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">
+                Day Streak{longestStreak > currentStreak ? ` · Best ${longestStreak}` : ""}
               </span>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { GitHubContributionYear } from "./github";
-import { buildTimelineWeeks, flattenContributionDays } from "./github-contribution-timeline";
+import { buildTimelineWeeks, flattenContributionDays, getCurrentStreak, getLongestStreak } from "./github-contribution-timeline";
 
 function day(date: string, contributionCount = 0) {
   return {
@@ -46,5 +46,38 @@ describe("contribution timeline shaping", () => {
       "2026-01-05",
     ]);
     expect(flattenContributionDays(years.flatMap((year) => year.weeks), "2026-06-21")).toHaveLength(3);
+  });
+});
+
+describe("contribution streaks", () => {
+  it("counts the current streak backward from the most recent day", () => {
+    const days = [day("2026-01-01", 1), day("2026-01-02", 2), day("2026-01-03", 1)];
+    expect(getCurrentStreak(days)).toBe(3);
+  });
+
+  it("breaks the current streak at the most recent zero-contribution day", () => {
+    const days = [day("2026-01-01", 1), day("2026-01-02", 0), day("2026-01-03", 1), day("2026-01-04", 1)];
+    expect(getCurrentStreak(days)).toBe(2);
+  });
+
+  it("is zero when the most recent day has no contributions, even after an earlier run", () => {
+    const days = [day("2026-01-01", 3), day("2026-01-02", 3), day("2026-01-03", 0)];
+    expect(getCurrentStreak(days)).toBe(0);
+  });
+
+  it("finds the longest run anywhere in the history, not just the trailing one", () => {
+    const days = [
+      day("2026-01-01", 1),
+      day("2026-01-02", 1),
+      day("2026-01-03", 1),
+      day("2026-01-04", 0),
+      day("2026-01-05", 1),
+    ];
+    expect(getLongestStreak(days)).toBe(3);
+  });
+
+  it("returns zero for both streaks with no contribution data", () => {
+    expect(getCurrentStreak([])).toBe(0);
+    expect(getLongestStreak([])).toBe(0);
   });
 });
