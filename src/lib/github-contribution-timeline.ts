@@ -54,12 +54,22 @@ export function hasIncompleteYears(years: GitHubContributionYear[]) {
 // complete data ends) or wrong (an unobserved day in the missing year could
 // have been higher). Both need this stronger disclosure, not the plain
 // lower-bound "+" hasIncompleteYears covers for magnitude-only stats.
-export function isMostRecentYearMissing(years: GitHubContributionYear[]) {
-  const mostRecentYear = years.reduce<GitHubContributionYear | null>(
-    (latest, year) => (!latest || year.year > latest.year ? year : latest),
-    null,
-  );
-  return mostRecentYear?.totalContributions === null;
+//
+// Two different ways the current year can be "missing," both handled the
+// same way: an entry for it exists but its own fetch failed
+// (totalContributions: null — see getGitHubContributionSummary), or there's
+// no entry for it at all — every REST-fallback result has an empty
+// contributionYears array regardless of the real calendar year, and even on
+// the GraphQL path a brand-new account's current year might not appear in
+// contributionsCollection.contributionYears yet. Silently falling back to
+// whatever older year happens to be present (via a plain "most recent
+// entry" reduce) would misreport a stale year's peak/streak as current, the
+// exact honesty gap this function exists to prevent.
+export function isMostRecentYearMissing(years: GitHubContributionYear[], now: Date = new Date()) {
+  const currentCalendarYear = now.getUTCFullYear();
+  const currentYearEntry = years.find((year) => year.year === currentCalendarYear);
+  if (!currentYearEntry) return true;
+  return currentYearEntry.totalContributions === null;
 }
 
 export function buildTimelineWeeks(
