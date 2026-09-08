@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft, FiArrowUpRight, FiGithub } from "react-icons/fi";
@@ -36,27 +37,24 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
     // individual fields like images into it — Quill's review caught that
     // an earlier version of this omitted images entirely on that assumption
     // and the built HTML confirmed it: both image tags were genuinely
-    // absent, not silently inherited. Repeating the same brand-preview image
-    // the root layout uses (with project-specific alt text) here explicitly
-    // is what actually keeps it present on a shared case-study link.
+    // absent, not silently inherited. Using the real product screenshot
+    // when one exists (falling back to the shared brand-preview otherwise)
+    // is what actually keeps a relevant image present on a shared link.
     openGraph: {
       title: study.name,
       description: study.tagline,
       url: canonical,
       images: [
-        {
-          url: "/api/brand-preview",
-          width: 1200,
-          height: 630,
-          alt: `${study.name} — ${hero.name}`,
-        },
+        study.screenshot
+          ? { url: study.screenshot.src, width: 1440, height: 900, alt: study.screenshot.alt }
+          : { url: "/api/brand-preview", width: 1200, height: 630, alt: `${study.name} — ${hero.name}` },
       ],
     },
     twitter: {
       card: "summary_large_image",
       title: study.name,
       description: study.tagline,
-      images: ["/api/brand-preview"],
+      images: [study.screenshot?.src ?? "/api/brand-preview"],
     },
   };
 }
@@ -121,6 +119,36 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
               <FiArrowUpRight className="transition hover-hover:group-hover:translate-x-0.5 hover-hover:group-hover:-translate-y-0.5" />
             </a>
           </header>
+
+          {study.screenshot && (
+            <section className="space-y-2">
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-[0_0_60px_rgba(0,0,0,0.6)]">
+                <Image
+                  src={study.screenshot.src}
+                  alt={study.screenshot.alt}
+                  width={1440}
+                  height={900}
+                  className="h-auto w-full"
+                  priority
+                />
+              </div>
+              {/* Real evidence, not a mockup: a genuine screenshot of the
+                  actual live deployment, with the URL it was captured from
+                  disclosed alongside it rather than left unstated. */}
+              <p className="text-xs text-white/40">
+                From the live deployment at{" "}
+                <a
+                  href={study.screenshot.capturedFrom}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-cursor-block
+                  className="underline decoration-white/20 underline-offset-2 transition hover-hover:hover:text-white/70"
+                >
+                  {study.screenshot.capturedFrom.replace(/^https?:\/\//, "")}
+                </a>
+              </p>
+            </section>
+          )}
 
           <section className="space-y-3">
             <h2 className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45">Problem</h2>

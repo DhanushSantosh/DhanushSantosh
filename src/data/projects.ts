@@ -8,6 +8,15 @@
 
 type ProjectStatus = "active" | "paused";
 
+type CaseStudyScreenshot = {
+  // Path under /public — a real screenshot of the actual live deployment
+  // (see src/app/projects/[slug]/page.tsx's comment on how these were
+  // captured), not a mockup or stock image standing in for the product.
+  src: string;
+  alt: string;
+  capturedFrom: string;
+};
+
 export type CaseStudy = {
   slug: string;
   name: string;
@@ -22,6 +31,7 @@ export type CaseStudy = {
   result: string;
   constraints: string;
   techStack: string[];
+  screenshot: CaseStudyScreenshot | null;
 };
 
 export const caseStudies: CaseStudy[] = [
@@ -48,6 +58,11 @@ export const caseStudies: CaseStudy[] = [
     constraints:
       "Built and used by one person so far, primarily for coordinating this developer's own concurrent-agent workflows; it hasn't been used by a team or published for wider adoption yet.",
     techStack: ["Go"],
+    screenshot: {
+      src: "/case-studies/agentcomms.png",
+      alt: "The Agent Comms landing page: \"Let agents work at once — Keep the project in one piece,\" with Install / Read the operating model calls to action.",
+      capturedFrom: "https://agentcomms-cli.vercel.app",
+    },
   },
   {
     slug: "deskcrafter",
@@ -68,6 +83,11 @@ export const caseStudies: CaseStudy[] = [
     constraints:
       "Early-stage and not under active development right now. Treat it as a snapshot of an idea in progress, not a finished product.",
     techStack: ["Python", "PyQt5", "Shell"],
+    screenshot: {
+      src: "/case-studies/deskcrafter.png",
+      alt: "The DeskCrafter landing page: \"An action-first Linux desktop integration and repair suite for launchers, startup entries, defaults, sandboxes, and service fixes.\"",
+      capturedFrom: "https://deskcrafter-site.vercel.app",
+    },
   },
 ];
 
