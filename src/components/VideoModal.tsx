@@ -5,8 +5,17 @@ import { FiArrowUpRight, FiExternalLink, FiGithub, FiX } from "react-icons/fi";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
+// Deliberately excludes `iframe`: once focus enters a cross-origin iframe's
+// own document, this page cannot observe or intercept its key events at
+// all (same-origin policy) — there is no way to "trap" Tab from in there,
+// only to stop Tab from landing on the iframe in the first place. Keeping
+// it out of the modal's own tab order (and setting tabIndex={-1} directly
+// on both <iframe> elements below, for anything that ever queries a wider
+// selector) is what actually keeps this contained — the modal already
+// offers "Visit site"/"Repo"/"Open in new tab"/"Frame blocked?" as the
+// real way to reach that content's own interface.
 const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])';
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 const emptySubscribe = () => () => {};
 const getClientMounted = () => true;
@@ -55,6 +64,7 @@ function PreviewContent({
           className="h-full w-full border-0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
+          tabIndex={-1}
         />
       </div>
     );
@@ -117,6 +127,7 @@ function PreviewContent({
           title={iframeTitle}
           className="h-full w-full flex-1 border-0 bg-white"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          tabIndex={-1}
           onLoad={() => setIsLoading(false)}
           onError={() => {
             setIsLoading(false);
