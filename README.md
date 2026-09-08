@@ -2,7 +2,7 @@
 
 # Dhanush Santosh
 
-*Full-Stack Developer*<br>
+*Software Developer*<br>
 Building full-stack systems with Next.js, React, and Python/Django — currently finishing a Master's in Computer Science.
 
 <br>

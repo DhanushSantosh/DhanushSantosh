@@ -1,6 +1,6 @@
 export const hero = {
   name: "Dhanush Santosh",
-  role: "Full-Stack Developer",
+  role: "Software Developer",
   location: "Remote - Worldwide",
   tagline:
     "I build reliable full-stack systems — Next.js and TypeScript on the frontend, Python and Django REST Framework on the backend — and I'm sharpening that through real internship work and my own tools built to solve problems I've actually run into.",
