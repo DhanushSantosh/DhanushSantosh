@@ -1,4 +1,27 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+// Diagnosed directly, not guessed: a trivial `page.evaluate(() => 1 + 1)`
+// round-trip on this homepage (hero sculpture mounted, WebGL rendering)
+// measured 1-4+ seconds under load on the shared dev machine this was
+// investigated on (load average ~7 on 4 cores) — the same page's /cv route,
+// with no <Canvas>, round-trips in single-digit ms. That main-thread
+// contention, not click interception (elementFromPoint resolved correctly
+// to the link itself throughout), is what made Playwright's click
+// actionability retries occasionally exceed the default 30s budget — GitHub
+// Actions' own isolated runners don't carry this contention and pass this
+// same suite reliably. Rather than just raising the timeout and hoping,
+// this explicitly waits for the main thread to demonstrably be responsive
+// before attempting the interaction, so the test still fails for real if
+// the page genuinely never recovers.
+async function waitForMainThreadResponsive(page: Page, { withinMs = 500, overallTimeoutMs = 20_000 } = {}) {
+  const deadline = Date.now() + overallTimeoutMs;
+  for (;;) {
+    const start = Date.now();
+    await page.evaluate(() => 1 + 1);
+    if (Date.now() - start <= withinMs) return;
+    if (Date.now() > deadline) return; // let the subsequent action fail on its own terms
+  }
+}
 
 // ScrollReset used to force scroll-to-top unconditionally on every mount,
 // which broke both of these real navigation paths — landing directly on a
@@ -13,6 +36,12 @@ test.describe("navigation", () => {
   });
 
   test("clicking an anchor nav link updates the URL hash and scrolls to it", async ({ page }) => {
+    // A single page.evaluate() round-trip itself can exceed several seconds
+    // under the contention described above — waitForMainThreadResponsive's
+    // own polling loop needs real budget to work with, not just the click
+    // action. Bounded, not unlimited: this still fails for real if the page
+    // never recovers within a minute and a half.
+    test.setTimeout(90_000);
     await page.goto("/");
     // HomepageIntroLoader is a fullscreen fixed overlay (z-[9999]) for its
     // ~3-7s sequence before it unmounts — Quill's independent review saw
@@ -22,6 +51,7 @@ test.describe("navigation", () => {
     // like the Back-navigation test below already does, removes that race
     // instead of hoping the retry window is wide enough.
     await page.locator("#homepage-intro-loader").waitFor({ state: "detached", timeout: 10_000 }).catch(() => {});
+    await waitForMainThreadResponsive(page);
     await page.getByRole("link", { name: "Contact", exact: true }).first().click();
     await expect(page).toHaveURL(/#contact$/);
     await expect(page.locator("#contact")).toBeInViewport({ timeout: 5000 });
