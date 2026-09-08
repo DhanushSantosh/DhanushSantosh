@@ -31,7 +31,7 @@ function PerformanceTuner({ minDpr, maxDpr }: { minDpr: number; maxDpr: number }
   return null;
 }
 
-function NeuralDataWave({ activeTech, hoveredTech, quality }: { activeTech: string | null; hoveredTech: string | null; quality: "full" | "lite" }) {
+function NeuralDataWave({ hoveredTech, quality }: { hoveredTech: string | null; quality: "full" | "lite" }) {
   const meshRef = useRef<THREE.Points>(null);
   const matRef = useRef<THREE.PointsMaterial>(null);
 
@@ -56,9 +56,8 @@ function NeuralDataWave({ activeTech, hoveredTech, quality }: { activeTech: stri
   }, [segments]);
 
   const targetColor = useMemo(() => {
-    const tech = hoveredTech || activeTech;
-    return new THREE.Color(tech && colorMap[tech] ? colorMap[tech] : "#4E88D4");
-  }, [hoveredTech, activeTech]);
+    return new THREE.Color(hoveredTech && colorMap[hoveredTech] ? colorMap[hoveredTech] : "#4E88D4");
+  }, [hoveredTech]);
 
   useFrame((state) => {
     if (!meshRef.current) return;
@@ -102,33 +101,7 @@ function ExpertiseSculpture({
   onWebglFailure?: (error: unknown) => void;
 }) {
   const [hoveredTech, setHoveredTech] = useState<string | null>(null);
-  const [activeTech, setActiveTech] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    const checkActiveTech = () => {
-      const section = sectionRef.current ?? document.getElementById("expertise");
-      if (!section) return;
-      sectionRef.current = section;
-      const activeEl = section.querySelector('[data-tech-item][data-active="true"]');
-      setActiveTech(activeEl ? activeEl.getAttribute("data-tech-item") : null);
-    };
-
-    const section = document.getElementById("expertise");
-    if (!section) return;
-    sectionRef.current = section;
-
-    checkActiveTech();
-
-    const observer = new MutationObserver(checkActiveTech);
-    observer.observe(section, {
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["data-active"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     const section = sectionRef.current ?? document.getElementById("expertise");
@@ -164,7 +137,7 @@ function ExpertiseSculpture({
         <PerformanceMonitor>
           <PerformanceTuner minDpr={1} maxDpr={maxDeviceDpr} />
           
-          <NeuralDataWave activeTech={activeTech} hoveredTech={hoveredTech} quality={quality} />
+          <NeuralDataWave hoveredTech={hoveredTech} quality={quality} />
 
           <AdaptiveEvents />
           <Preload all />

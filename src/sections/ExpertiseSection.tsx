@@ -14,7 +14,6 @@ import {
   SiVercel,
 } from "react-icons/si";
 
-import { ExpertiseSelectionController } from "@/components/ExpertiseSelectionController";
 import { Reveal } from "@/components/Reveal";
 import { hero, techStack } from "@/data/content";
 
@@ -107,13 +106,18 @@ async function ExpertiseSection() {
                   const hoverColor = hoverColorMap[tech] || "#ffffff";
 
                   return (
-                    <button
+                    // A static label, not a button: this used to be a
+                    // clickable/"pressable" toggle with no effect beyond a
+                    // decorative highlight — implying it did something
+                    // meaningful (select this as evidence of expertise) when
+                    // using a tool's logo isn't evidence of anything by
+                    // itself. Hover still drives the 3D highlight purely as
+                    // a visual flourish; nothing here claims to prove
+                    // expertise the way a real link to a case study would.
+                    <div
                       key={tech}
-                      type="button"
                       data-tech-item={tech}
-                      data-active="false"
-                      aria-pressed="false"
-                      className="group tech-item flex cursor-pointer flex-col items-center gap-3"
+                      className="group tech-item flex flex-col items-center gap-3"
                       style={{ "--hover-color": hoverColor } as CSSProperties}
                     >
                       <div className="tech-icon-wrap relative flex items-center justify-center transition-transform duration-300 hover-hover:group-hover:-translate-y-1">
@@ -134,7 +138,7 @@ async function ExpertiseSection() {
                       <span className="tech-label text-[10px] font-medium uppercase tracking-wider text-white/40 transition-colors duration-300 hover-hover:group-hover:text-white/70">
                         {tech}
                       </span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -154,13 +158,18 @@ async function ExpertiseSection() {
                   const hoverColor = hoverColorMap[tech] || "#ffffff";
 
                   return (
-                    <button
+                    // A static label, not a button: this used to be a
+                    // clickable/"pressable" toggle with no effect beyond a
+                    // decorative highlight — implying it did something
+                    // meaningful (select this as evidence of expertise) when
+                    // using a tool's logo isn't evidence of anything by
+                    // itself. Hover still drives the 3D highlight purely as
+                    // a visual flourish; nothing here claims to prove
+                    // expertise the way a real link to a case study would.
+                    <div
                       key={tech}
-                      type="button"
                       data-tech-item={tech}
-                      data-active="false"
-                      aria-pressed="false"
-                      className="group tech-item flex cursor-pointer flex-col items-center gap-3"
+                      className="group tech-item flex flex-col items-center gap-3"
                       style={{ "--hover-color": hoverColor } as CSSProperties}
                     >
                       <div className="tech-icon-wrap relative flex items-center justify-center transition-transform duration-300 hover-hover:group-hover:-translate-y-1">
@@ -181,7 +190,7 @@ async function ExpertiseSection() {
                       <span className="tech-label text-[10px] font-medium uppercase tracking-wider text-white/40 transition-colors duration-300 hover-hover:group-hover:text-white/70">
                         {tech}
                       </span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -189,7 +198,6 @@ async function ExpertiseSection() {
           </Reveal>
         </div>
       </div>
-      <ExpertiseSelectionController />
     </section>
   );
 }

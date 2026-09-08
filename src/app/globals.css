@@ -236,21 +236,3 @@ body.has-custom-cursor * {
 .tech-icon-wrap {
   contain: style paint;
 }
-
-.tech-item[data-active="true"] .tech-icon-wrap {
-  transform: translateY(-0.25rem);
-}
-
-.tech-item[data-active="true"] .tech-icon {
-  color: var(--hover-color);
-  filter: drop-shadow(0 0 10px var(--hover-color));
-}
-
-.tech-item[data-active="true"] .tech-image {
-  opacity: 1;
-  filter: grayscale(0) drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
-}
-
-.tech-item[data-active="true"] .tech-label {
-  color: rgba(255, 255, 255, 0.6);
-}
