@@ -62,9 +62,15 @@ function pickRenderMode(): RenderMode {
   return "full";
 }
 
+type SculptureComponent = ComponentType<{
+  quality?: "full" | "lite";
+  onWebglFailure?: (error: unknown) => void;
+}>;
+
 export function ClientSculpture() {
   const [mode, setMode] = useState<RenderMode>("idle");
-  const [Sculpture, setSculpture] = useState<ComponentType<{ quality?: "full" | "lite" }> | null>(null);
+  const [Sculpture, setSculpture] = useState<SculptureComponent | null>(null);
+  const [webglFailed, setWebglFailed] = useState(false);
   const isAudit = usePerformanceAudit();
   const shouldLoadSculpture = useMemo(() => mode === "full" || mode === "lite", [mode]);
   const applyMode = useCallback(() => setMode(isAudit ? "static" : pickRenderMode()), [isAudit]);
@@ -108,7 +114,7 @@ export function ClientSculpture() {
   }, [applyMode]);
 
   if (mode === "idle") return <IdleSculptureFallback />;
-  if (mode === "static") return <StaticSculptureFallback />;
+  if (mode === "static" || webglFailed) return <StaticSculptureFallback />;
 
   if (!Sculpture) return <IdleSculptureFallback />;
 
@@ -119,7 +125,7 @@ export function ClientSculpture() {
   // happened — the "3D paused" static card is the honest state.
   return (
     <WebGLErrorBoundary fallback={<StaticSculptureFallback />}>
-      <Sculpture quality={quality} />
+      <Sculpture quality={quality} onWebglFailure={() => setWebglFailed(true)} />
     </WebGLErrorBoundary>
   );
 }

@@ -98,6 +98,20 @@ export default function GitHubContributionExplorer({
     () => contributionYears.some((year) => year.totalContributions === null),
     [contributionYears],
   );
+  // The current streak specifically breaks down differently from the other
+  // stats if it's the *most recent* year that's missing: Active Days/Peak
+  // Day/Total Contributions are still honest as an "at least this many"
+  // lower bound when an older year is missing, but a missing current year
+  // means contributionDays has no entries for it at all, so the streak walk
+  // (see getCurrentStreak) would silently resume from wherever the older,
+  // complete data ends — rendering a stale streak from months ago as if it
+  // were "current," not just an understated one. That's a different failure
+  // mode from undercounting and needs its own, stronger disclosure.
+  const mostRecentYear = useMemo(
+    () => contributionYears.reduce<GitHubContributionYear | null>((latest, year) => (!latest || year.year > latest.year ? year : latest), null),
+    [contributionYears],
+  );
+  const isCurrentStreakUnreliable = mostRecentYear?.totalContributions === null;
   const totalContributions = useMemo(
     () => contributionYears.reduce((sum, year) => sum + (year.totalContributions ?? 0), 0),
     [contributionYears],
@@ -220,19 +234,45 @@ export default function GitHubContributionExplorer({
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-medium leading-none tracking-tight text-white">{activeDays}</span>
+              <span
+                className="text-xl font-medium leading-none tracking-tight text-white"
+                title={hasIncompleteYears ? "One or more years failed to load — this is a minimum, not the full count." : undefined}
+              >
+                {activeDays}
+                {hasIncompleteYears ? "+" : ""}
+              </span>
               <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">Active Days</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-medium leading-none tracking-tight text-white">{peakDay?.contributionCount ?? 0}</span>
+              <span
+                className="text-xl font-medium leading-none tracking-tight text-white"
+                title={hasIncompleteYears ? "One or more years failed to load — the real peak may be higher and elsewhere." : undefined}
+              >
+                {peakDay?.contributionCount ?? 0}
+                {hasIncompleteYears ? "+" : ""}
+              </span>
               <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">
                 Peak Day · {formatPeakDate(peakDay?.date ?? null)}
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-medium leading-none tracking-tight text-white">{currentStreak}</span>
+              <span
+                className="text-xl font-medium leading-none tracking-tight text-white"
+                title={
+                  isCurrentStreakUnreliable
+                    ? "The most recent year failed to load, so this may be a stale streak rather than today's."
+                    : hasIncompleteYears
+                      ? "An older year failed to load — this is a minimum, not the full streak."
+                      : undefined
+                }
+              >
+                {isCurrentStreakUnreliable ? "—" : currentStreak}
+                {!isCurrentStreakUnreliable && hasIncompleteYears ? "+" : ""}
+              </span>
               <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">
-                Day Streak{longestStreak > currentStreak ? ` · Best ${longestStreak}` : ""}
+                {isCurrentStreakUnreliable
+                  ? "Day Streak · Unavailable"
+                  : `Day Streak${longestStreak > currentStreak ? ` · Best ${longestStreak}` : ""}`}
               </span>
             </div>
           </div>

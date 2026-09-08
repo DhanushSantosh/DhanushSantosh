@@ -17,6 +17,14 @@ type NavigatorWithHints = Navigator & {
 
 type QualityProps = {
   quality?: "full" | "lite";
+  // See src/lib/webgl.ts: react-three-fiber's Canvas creates its
+  // WebGLRenderer inside an internal async function, so a WebGL-unsupported
+  // failure there rejects a promise R3F never awaits/catches — no React
+  // error boundary (including WebGLErrorBoundary below) ever sees it. Model
+  // components that render a <Canvas> are expected to pass this through
+  // createGuardedGl(onWebglFailure) as their `gl` prop so this wrapper can
+  // still catch that failure and swap to the same fallback.
+  onWebglFailure?: (error: unknown) => void;
 };
 
 const MODE_IDLE_TIMEOUT_MS = 900;
@@ -50,6 +58,7 @@ export function withDynamicModel<TProps extends QualityProps>({ loader, fallback
   return function DynamicModelWrapper(props: Omit<TProps, "quality">) {
     const [mode, setMode] = useState<RenderMode>("idle");
     const [Model, setModel] = useState<ComponentType<TProps> | null>(null);
+    const [webglFailed, setWebglFailed] = useState(false);
     const isAudit = usePerformanceAudit();
     const shouldLoad = useMemo(() => mode === "full" || mode === "lite", [mode]);
     const applyMode = useCallback(() => setMode(isAudit ? "static" : pickRenderMode()), [isAudit]);
@@ -89,14 +98,14 @@ export function withDynamicModel<TProps extends QualityProps>({ loader, fallback
       };
     }, [applyMode]);
 
-    if (mode === "idle" || mode === "static" || !Model) {
+    if (mode === "idle" || mode === "static" || !Model || webglFailed) {
       return fallback;
     }
 
     const quality = mode === "lite" ? "lite" : "full";
     return (
       <WebGLErrorBoundary fallback={fallback}>
-        <Model {...(props as TProps)} quality={quality} />
+        <Model {...(props as TProps)} quality={quality} onWebglFailure={() => setWebglFailed(true)} />
       </WebGLErrorBoundary>
     );
   };

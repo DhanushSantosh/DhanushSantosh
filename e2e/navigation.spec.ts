@@ -14,6 +14,14 @@ test.describe("navigation", () => {
 
   test("clicking an anchor nav link updates the URL hash and scrolls to it", async ({ page }) => {
     await page.goto("/");
+    // HomepageIntroLoader is a fullscreen fixed overlay (z-[9999]) for its
+    // ~3-7s sequence before it unmounts — Quill's independent review saw
+    // this exact click intermittently intercepted/timeout, most likely
+    // Playwright's actionability retry racing that overlay closer to its
+    // own default timeout than is reliable. Waiting for it to detach first,
+    // like the Back-navigation test below already does, removes that race
+    // instead of hoping the retry window is wide enough.
+    await page.locator("#homepage-intro-loader").waitFor({ state: "detached", timeout: 10_000 }).catch(() => {});
     await page.getByRole("link", { name: "Contact", exact: true }).first().click();
     await expect(page).toHaveURL(/#contact$/);
     await expect(page.locator("#contact")).toBeInViewport({ timeout: 5000 });

@@ -5,6 +5,7 @@ import { AdaptiveEvents, PerformanceMonitor, Preload, usePerformanceMonitor, typ
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { withDynamicModel } from "@/components/DynamicModelLoader";
+import { createGuardedGl } from "@/lib/webgl";
 
 const colorMap: Record<string, string> = {
   "Next.js": "#ffffff", React: "#61DAFB", TypeScript: "#3178C6",
@@ -93,7 +94,13 @@ function NeuralDataWave({ activeTech, hoveredTech, quality }: { activeTech: stri
   );
 }
 
-function ExpertiseSculpture({ quality = "full" }: { quality?: "full" | "lite" }) {
+function ExpertiseSculpture({
+  quality = "full",
+  onWebglFailure,
+}: {
+  quality?: "full" | "lite";
+  onWebglFailure?: (error: unknown) => void;
+}) {
   const [hoveredTech, setHoveredTech] = useState<string | null>(null);
   const [activeTech, setActiveTech] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -146,10 +153,14 @@ function ExpertiseSculpture({ quality = "full" }: { quality?: "full" | "lite" })
 
   const dprMax = quality === "lite" ? 2 : 3;
   const maxDeviceDpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, dprMax) : dprMax;
+  const gl = useMemo(
+    () => (onWebglFailure ? createGuardedGl(onWebglFailure) : { antialias: true, powerPreference: "high-performance" as const }),
+    [onWebglFailure],
+  );
 
   return (
     <div className="w-full h-full absolute inset-0 -z-10 bg-black pointer-events-none">
-      <Canvas camera={{ position: [0, 2, 8], fov: 60 }} dpr={maxDeviceDpr} gl={{ antialias: true, powerPreference: "high-performance" }} className="w-full h-full">
+      <Canvas camera={{ position: [0, 2, 8], fov: 60 }} dpr={maxDeviceDpr} gl={gl} className="w-full h-full">
         <PerformanceMonitor>
           <PerformanceTuner minDpr={1} maxDpr={maxDeviceDpr} />
           

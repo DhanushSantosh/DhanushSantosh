@@ -14,9 +14,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Ref } from "rea
 import * as THREE from "three";
 import type { Line2, LineSegments2 } from "three-stdlib";
 import { scheduleIdleTask } from "@/hooks/scheduleIdleTask";
+import { createGuardedGl } from "@/lib/webgl";
 
 type OrbitalSculptureProps = {
   quality?: "full" | "lite";
+  onWebglFailure?: (error: unknown) => void;
 };
 
 type WorldLinePaths = Array<Array<[number, number]>>;
@@ -661,7 +663,7 @@ function PerformanceTuner({ minDpr, maxDpr }: PerformanceTunerProps) {
   return null;
 }
 
-function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
+function OrbitalSculpture({ quality = "full", onWebglFailure }: OrbitalSculptureProps) {
   const preset = qualityPresets[quality] ?? qualityPresets.full;
   const [isMobile, setIsMobile] = useState(false);
   const [enhancedDetails, setEnhancedDetails] = useState(false);
@@ -723,13 +725,17 @@ function OrbitalSculpture({ quality = "full" }: OrbitalSculptureProps) {
   const directionalIntensity = 1.4;
   const pointIntensity = 0.8;
   const arcDensity = isMobile ? 0.85 : 1.0;
+  const gl = useMemo(
+    () => (onWebglFailure ? createGuardedGl(onWebglFailure) : { antialias: true, powerPreference: "high-performance" as const }),
+    [onWebglFailure],
+  );
 
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[32px] bg-black shadow-[0_0_80px_rgba(0,0,0,0.9)]">
       <Canvas
         camera={{ position: [0, 0, 6], fov: 38 }}
         dpr={maxDeviceDpr}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
+        gl={gl}
         className="absolute inset-0"
       >
         <PerformanceMonitor>

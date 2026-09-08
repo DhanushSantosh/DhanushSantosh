@@ -2,10 +2,11 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { AdaptiveEvents, PerformanceMonitor, Preload, usePerformanceMonitor, type PerformanceMonitorApi } from "@react-three/drei";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { withDynamicModel } from "@/components/DynamicModelLoader";
 import { createParticles } from "@/components/sculptureMath";
+import { createGuardedGl } from "@/lib/webgl";
 
 const PERFORMANCE_FACTOR_MIN = 0;
 const PERFORMANCE_FACTOR_MAX = 1;
@@ -137,16 +138,26 @@ function NeuralConstellation({ quality }: { quality: "full" | "lite" }) {
   );
 }
 
-function ContactSculpture({ quality = "full" }: { quality?: "full" | "lite" }) {
+function ContactSculpture({
+  quality = "full",
+  onWebglFailure,
+}: {
+  quality?: "full" | "lite";
+  onWebglFailure?: (error: unknown) => void;
+}) {
   const dprMax = quality === "lite" ? 2 : 3;
   const maxDeviceDpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, dprMax) : dprMax;
+  const gl = useMemo(
+    () => (onWebglFailure ? createGuardedGl(onWebglFailure) : { antialias: true, powerPreference: "high-performance" as const }),
+    [onWebglFailure],
+  );
 
   return (
     <div className="absolute inset-0 -z-10 h-full w-full bg-black pointer-events-none">
       <Canvas
         camera={{ position: [0, 0, 10], fov: 60 }}
         dpr={maxDeviceDpr}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
+        gl={gl}
         className="h-full w-full"
       >
         <PerformanceMonitor>
