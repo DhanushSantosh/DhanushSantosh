@@ -4,7 +4,15 @@ import { FiActivity, FiFolder, FiStar } from "react-icons/fi";
 import { Reveal } from "@/components/Reveal";
 import { getGitHubPortfolioData } from "@/lib/github";
 
-function getHighlightsSourceLabel(source: "graphql" | "live-partial" | "rest-fallback" | "unavailable") {
+function getHighlightsSourceLabel(
+  source: "graphql" | "live-partial" | "rest-fallback" | "unavailable",
+  isPersistedSnapshot: boolean,
+) {
+  // See GitHubContributionExplorer's getSourceLabel — same reasoning, same
+  // override: a persisted last-known-good snapshot isn't honestly "GraphQL
+  // + REST" or any other live-source label regardless of what fetched it
+  // originally, since this render didn't fetch it at all.
+  if (isPersistedSnapshot) return "Saved snapshot";
   if (source === "graphql") return "GraphQL + REST";
   if (source === "live-partial") return "Partial live data";
   if (source === "rest-fallback") return "REST fallback";
@@ -61,7 +69,7 @@ export default async function GitHubHighlightsSection() {
               </div>
 
               <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.26em] text-white/55">
-                {getHighlightsSourceLabel(data.source)}
+                {getHighlightsSourceLabel(data.source, data.isPersistedSnapshot)}
               </div>
             </div>
 

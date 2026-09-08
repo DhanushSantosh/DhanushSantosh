@@ -59,7 +59,11 @@ export default async function GitHubActivitySection() {
               
               {/* Left Side: Contribution Grid & Metrics */}
               <div className="flex-1 p-5 sm:p-7 flex flex-col min-w-0 justify-between">
-                <GitHubContributionExplorer contributionYears={data.contributionYears} source={data.source} />
+                <GitHubContributionExplorer
+                  contributionYears={data.contributionYears}
+                  isPersistedSnapshot={data.isPersistedSnapshot}
+                  source={data.source}
+                />
               </div>
 
               {/* Right Side: Timeline (Limited to 3) */}

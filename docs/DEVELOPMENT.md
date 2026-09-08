@@ -61,18 +61,29 @@ knowing before touching it:
 - **Bounded fetch timeouts**: every GitHub request carries
   `signal: AbortSignal.timeout(GITHUB_FETCH_TIMEOUT_MS)` so a hung upstream
   request degrades gracefully to the unavailable/partial-data UI state
-  instead of hanging the whole page render. There is currently no
-  persistent last-known-good snapshot beyond what Next's fetch cache already
-  retains — a full outage where the cache has also expired will show the
-  degraded/empty state. Building real resilience against that (a static
-  fallback snapshot, or an external KV/Blob store) is a real infra decision,
-  not something to bolt on silently; raise it before building it.
-- **`lastSyncedAt`** is intentionally *not* `new Date()` at render time — see
-  the comment on `getApproximateLastSyncedAt()`. It's floored to the current
-  revalidation window instead, since the actual fetch could have happened
-  anywhere up to `DEFAULT_REVALIDATE_SECONDS` (1h) ago and Next's fetch cache
-  doesn't expose whether a given request was a cache hit or a real network
-  fetch.
+  instead of hanging the whole page render.
+- **Persistent last-known-good snapshot**: `getPersistedPortfolioSnapshot`
+  (`unstable_cache`, its own dedicated cache key) wraps the whole GraphQL/
+  REST fetch pipeline and throws when it produces no usable data —
+  `unstable_cache`'s own semantics only overwrite the cached value on a call
+  that resolves, so a revalidation attempt that throws here falls back to
+  serving whatever full snapshot was last cached successfully instead of a
+  fresh empty result. A sustained outage now degrades to slightly-stale real
+  data rather than an empty section. `GitHubPortfolioData.isPersistedSnapshot`
+  marks when that's happening (via `isSnapshotStale`, reusing
+  `lastReachableAt` as the freshness signal — see its own comment for why
+  that's a disclosed approximation, not something Next's Data Cache exposes
+  precisely) — both `GitHubActivitySection`/`GitHubHighlightsSection` show a
+  distinct "Saved Snapshot" label in that case rather than claiming
+  liveness.
+- **`lastReachableAt`** (`getLastReachableAt`/`getConfirmedReachableAtMs`)
+  is a dedicated, deliberately separate connectivity check — a small
+  `/users/{username}` request that only caches a timestamp on genuine
+  success. It confirms GitHub was reachable as of that date; it doesn't by
+  itself guarantee every displayed payload refreshed at the same moment,
+  since those are fetched and cached independently — see its own comment in
+  `github.ts` for the three earlier, less honest versions of this that were
+  tried and rejected first.
 
 ## Case studies
 

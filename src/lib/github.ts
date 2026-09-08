@@ -123,6 +123,13 @@ export type GitHubRecentEvent = {
 export type GitHubPortfolioData = {
   available: boolean;
   contributionYears: GitHubContributionYear[];
+  // True when this payload is a persisted last-known-good snapshot being
+  // served because the live attempt behind it failed (see
+  // getPersistedPortfolioSnapshot) — false for every direct fetch result,
+  // whether that result is a full success, a live-partial degrade, or the
+  // fully-unavailable shape, all of which reflect this exact request's own
+  // attempt rather than an earlier one being reused.
+  isPersistedSnapshot: boolean;
   lastReachableAt: string | null;
   profile: GitHubProfileSummary | null;
   projects: GitHubProject[];
@@ -872,6 +879,7 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
   return {
     available: true,
     contributionYears: contributionSummaryResult.years,
+    isPersistedSnapshot: false,
     lastReachableAt: await getLastReachableAt(),
     profile: {
       avatarUrl: payload.user.avatarUrl,
@@ -921,6 +929,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
   return {
     available: source !== "unavailable",
     contributionYears: [],
+    isPersistedSnapshot: false,
     lastReachableAt: await getLastReachableAt(),
     profile: userResult.data
       ? {
@@ -952,11 +961,69 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
   };
 }
 
+async function fetchPortfolioData(): Promise<GitHubPortfolioData> {
+  const username = getGitHubUsername();
+  const graphQL = await getGraphQLPortfolioData(username);
+  return graphQL ?? getRestFallbackPortfolioData(username);
+}
+
+// Without this, a sustained GitHub outage (or just every individual
+// fetch happening to fail at once) made the GitHub sections go empty —
+// the audit's own "last-known-good snapshot" requirement, previously
+// covered only for curated project data (SelectedWorkSection, sourced
+// from src/data/projects.ts independently of GitHub) but not for the
+// live activity/highlights sections, which had nothing to fall back to.
+//
+// Same throw-on-failure pattern already used for getConfirmedReachableAtMs:
+// Next's Data Cache only overwrites the cached value on a call that
+// resolves, so a revalidation attempt that throws here falls back to
+// whatever full snapshot was last cached successfully, instead of
+// replacing good data with an empty result.
+const getPersistedPortfolioSnapshot = unstable_cache(
+  async (): Promise<GitHubPortfolioData> => {
+    const data = await fetchPortfolioData();
+    if (!data.available) {
+      throw new Error("GitHub fetch produced no usable portfolio data");
+    }
+    return data;
+  },
+  ["github-last-known-good-snapshot"],
+  {
+    revalidate: DEFAULT_REVALIDATE_SECONDS,
+    tags: [GITHUB_TAGS.profile, GITHUB_TAGS.activity, GITHUB_TAGS.projects],
+  },
+);
+
+// A snapshot this stale almost certainly means the most recent revalidation
+// attempt behind it failed and Next fell back to an older successful value
+// (see getPersistedPortfolioSnapshot's comment) — Next's Data Cache doesn't
+// directly expose "was this call a hit, a fresh success, or a stale
+// fallback after an error", so this reuses the same honestly-scoped
+// connectivity signal lastReachableAt already provides, on the same
+// established reasoning: a snapshot fetched within roughly the normal
+// revalidation cadence is presumed current; meaningfully older than that,
+// presumed to be a persisted fallback. Not a perfectly precise signal —
+// Next genuinely doesn't expose one — but a disclosed, defensible one.
+const GITHUB_SNAPSHOT_STALE_THRESHOLD_MS = DEFAULT_REVALIDATE_SECONDS * 1000 * 1.5;
+
+export function isSnapshotStale(lastReachableAt: string | null): boolean {
+  if (!lastReachableAt) return true;
+  const age = Date.now() - Date.parse(lastReachableAt);
+  return age > GITHUB_SNAPSHOT_STALE_THRESHOLD_MS;
+}
+
 export const getGitHubPortfolioData = cache(async (): Promise<GitHubPortfolioData> => {
   return tokenRejectionStore.run({ rejected: false }, async () => {
-    const username = getGitHubUsername();
-    const graphQL = await getGraphQLPortfolioData(username);
-    if (graphQL) return graphQL;
-    return getRestFallbackPortfolioData(username);
+    try {
+      const snapshot = await getPersistedPortfolioSnapshot();
+      return { ...snapshot, isPersistedSnapshot: isSnapshotStale(snapshot.lastReachableAt) };
+    } catch {
+      // No successful snapshot has ever been cached — this is genuinely the
+      // first request, or GitHub has never once been reachable since this
+      // instance started. Nothing to persist-and-serve yet, so fall through
+      // to a direct attempt's own honestly-degraded shape (available:
+      // false / source: "unavailable") rather than fabricating one.
+      return fetchPortfolioData();
+    }
   });
 });

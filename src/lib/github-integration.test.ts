@@ -97,6 +97,8 @@ describe("getGitHubPortfolioData: invalid/rejected token", () => {
     // eventually succeeded via the unauthenticated retry.
     expect(result.available).toBe(true);
     expect(result.profile?.login).toBe("octocat");
+    // A genuinely fresh success this request, not a persisted fallback.
+    expect(result.isPersistedSnapshot).toBe(false);
 
     // Every call after the first GraphQL 401 must have been unauthenticated
     // — proving the token-rejection state actually threaded through the
@@ -181,6 +183,28 @@ describe("getGitHubPortfolioData: request timeouts", () => {
     expect(result.available).toBe(false);
     expect(result.source).toBe("unavailable");
     expect(result.lastReachableAt).toBeNull();
+    // Nothing has ever been successfully cached to fall back to here (this
+    // is the very first call in a fresh module), so this is a direct
+    // failed attempt, not a persisted snapshot being served in its place.
+    expect(result.isPersistedSnapshot).toBe(false);
+  });
+});
+
+describe("isSnapshotStale", () => {
+  it("is stale when there is no reachability timestamp at all", async () => {
+    const { isSnapshotStale } = await freshGithubModule();
+    expect(isSnapshotStale(null)).toBe(true);
+  });
+
+  it("is not stale for a timestamp from just now", async () => {
+    const { isSnapshotStale } = await freshGithubModule();
+    expect(isSnapshotStale(new Date().toISOString())).toBe(false);
+  });
+
+  it("is stale for a timestamp well beyond the revalidation window", async () => {
+    const { isSnapshotStale } = await freshGithubModule();
+    const wayInThePast = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(); // 6h ago
+    expect(isSnapshotStale(wayInThePast)).toBe(true);
   });
 });
 
