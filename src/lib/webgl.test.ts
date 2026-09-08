@@ -5,7 +5,7 @@ vi.mock("three", () => ({
 }));
 
 import { WebGLRenderer } from "three";
-import { createGuardedGl } from "./webgl";
+import { attachContextLostHandler, createGuardedGl } from "./webgl";
 
 describe("createGuardedGl", () => {
   it("returns a real renderer and never calls onFailure when construction succeeds", () => {
@@ -44,5 +44,48 @@ describe("createGuardedGl", () => {
     expect(() => gl({ antialias: true })).toThrow(constructionError);
     expect(onFailure).toHaveBeenCalledTimes(1);
     expect(onFailure).toHaveBeenCalledWith(constructionError);
+  });
+});
+
+// A minimal fake <canvas> — attachContextLostHandler only touches
+// addEventListener/removeEventListener, so a full DOM/jsdom environment
+// isn't needed to exercise its actual contract.
+function createFakeCanvas() {
+  const listeners = new Map<string, EventListener>();
+  return {
+    element: {
+      addEventListener: vi.fn((type: string, listener: EventListener) => listeners.set(type, listener)),
+      removeEventListener: vi.fn((type: string) => listeners.delete(type)),
+    } as unknown as HTMLCanvasElement,
+    fireContextLost: () => {
+      const listener = listeners.get("webglcontextlost");
+      const event = { type: "webglcontextlost", preventDefault: vi.fn() };
+      listener?.(event as unknown as Event);
+      return event;
+    },
+  };
+}
+
+describe("attachContextLostHandler", () => {
+  it("calls onLost and prevents the event's default action when the context is lost", () => {
+    const { element, fireContextLost } = createFakeCanvas();
+    const onLost = vi.fn();
+
+    attachContextLostHandler(element, onLost);
+    const event = fireContextLost();
+
+    expect(onLost).toHaveBeenCalledTimes(1);
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops calling onLost once the returned cleanup function runs", () => {
+    const { element, fireContextLost } = createFakeCanvas();
+    const onLost = vi.fn();
+
+    const cleanup = attachContextLostHandler(element, onLost);
+    cleanup();
+    fireContextLost();
+
+    expect(onLost).not.toHaveBeenCalled();
   });
 });

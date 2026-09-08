@@ -5,7 +5,7 @@ import { AdaptiveEvents, PerformanceMonitor, Preload, usePerformanceMonitor, typ
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { withDynamicModel } from "@/components/DynamicModelLoader";
-import { createGuardedGl } from "@/lib/webgl";
+import { createGuardedGl, useWebglContextLostHandler } from "@/lib/webgl";
 
 const colorMap: Record<string, string> = {
   "Next.js": "#ffffff", React: "#61DAFB", TypeScript: "#3178C6",
@@ -130,10 +130,17 @@ function ExpertiseSculpture({
     () => (onWebglFailure ? createGuardedGl(onWebglFailure) : { antialias: true, powerPreference: "high-performance" as const }),
     [onWebglFailure],
   );
+  const handleCreated = useWebglContextLostHandler(onWebglFailure);
 
   return (
     <div className="w-full h-full absolute inset-0 -z-10 bg-black pointer-events-none">
-      <Canvas camera={{ position: [0, 2, 8], fov: 60 }} dpr={maxDeviceDpr} gl={gl} className="w-full h-full">
+      <Canvas
+        camera={{ position: [0, 2, 8], fov: 60 }}
+        dpr={maxDeviceDpr}
+        gl={gl}
+        onCreated={handleCreated}
+        className="w-full h-full"
+      >
         <PerformanceMonitor>
           <PerformanceTuner minDpr={1} maxDpr={maxDeviceDpr} />
           

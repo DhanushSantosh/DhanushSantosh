@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { withDynamicModel } from "@/components/DynamicModelLoader";
 import { createParticles } from "@/components/sculptureMath";
-import { createGuardedGl } from "@/lib/webgl";
+import { createGuardedGl, useWebglContextLostHandler } from "@/lib/webgl";
 
 const PERFORMANCE_FACTOR_MIN = 0;
 const PERFORMANCE_FACTOR_MAX = 1;
@@ -151,6 +151,7 @@ function ContactSculpture({
     () => (onWebglFailure ? createGuardedGl(onWebglFailure) : { antialias: true, powerPreference: "high-performance" as const }),
     [onWebglFailure],
   );
+  const handleCreated = useWebglContextLostHandler(onWebglFailure);
 
   return (
     <div className="absolute inset-0 -z-10 h-full w-full bg-black pointer-events-none">
@@ -158,6 +159,7 @@ function ContactSculpture({
         camera={{ position: [0, 0, 10], fov: 60 }}
         dpr={maxDeviceDpr}
         gl={gl}
+        onCreated={handleCreated}
         className="h-full w-full"
       >
         <PerformanceMonitor>

@@ -14,7 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Ref } from "rea
 import * as THREE from "three";
 import type { Line2, LineSegments2 } from "three-stdlib";
 import { scheduleIdleTask } from "@/hooks/scheduleIdleTask";
-import { createGuardedGl } from "@/lib/webgl";
+import { createGuardedGl, useWebglContextLostHandler } from "@/lib/webgl";
 
 type OrbitalSculptureProps = {
   quality?: "full" | "lite";
@@ -729,6 +729,7 @@ function OrbitalSculpture({ quality = "full", onWebglFailure }: OrbitalSculpture
     () => (onWebglFailure ? createGuardedGl(onWebglFailure) : { antialias: true, powerPreference: "high-performance" as const }),
     [onWebglFailure],
   );
+  const handleCreated = useWebglContextLostHandler(onWebglFailure);
 
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-[32px] bg-black shadow-[0_0_80px_rgba(0,0,0,0.9)]">
@@ -736,6 +737,7 @@ function OrbitalSculpture({ quality = "full", onWebglFailure }: OrbitalSculpture
         camera={{ position: [0, 0, 6], fov: 38 }}
         dpr={maxDeviceDpr}
         gl={gl}
+        onCreated={handleCreated}
         className="absolute inset-0"
       >
         <PerformanceMonitor>

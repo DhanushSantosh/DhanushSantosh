@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useState } from "react";
+import type { RootState } from "@react-three/fiber";
 import { WebGLRenderer, type WebGLRendererParameters } from "three";
 
 // react-three-fiber's <Canvas> constructs its WebGLRenderer inside an
@@ -49,4 +51,45 @@ export function createGuardedGl(onFailure: (error: unknown) => void) {
       throw error;
     }
   };
+}
+
+// A separate failure mode from the above: a context that was created
+// successfully can still be lost mid-session — GPU driver crash/reset,
+// out-of-memory, some platforms losing contexts on backgrounding. That's a
+// "webglcontextlost" DOM event fired on the <canvas> element itself, not a
+// thrown error, so it isn't caught by createGuardedGl or WebGLErrorBoundary
+// at all; it needs its own listener. `preventDefault()` on the event is
+// what tells the browser this page intends to handle recovery itself rather
+// than immediately tearing down the context further — three.js's own
+// automatic context-restore isn't attempted here (this app doesn't rebuild
+// the whole scene on "webglcontextrestored"), so onLost's job is just to
+// swap to the existing static/lite fallback UI, matching how a
+// mount-time-unsupported failure already degrades.
+export function attachContextLostHandler(canvas: HTMLCanvasElement, onLost: () => void) {
+  const handleContextLost = (event: Event) => {
+    event.preventDefault();
+    onLost();
+  };
+  canvas.addEventListener("webglcontextlost", handleContextLost, false);
+  return () => canvas.removeEventListener("webglcontextlost", handleContextLost, false);
+}
+
+// Shared wiring for the three sculptures: pass the returned onCreated to
+// <Canvas onCreated={...}>. R3F's onCreated fires once, synchronously, with
+// the real RootState (including gl.domElement, the actual <canvas>) — that
+// timing is captured via state rather than a plain ref because a ref
+// mutation alone wouldn't re-run the effect that attaches the listener.
+export function useWebglContextLostHandler(onWebglFailure?: (error: unknown) => void) {
+  const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
+
+  const onCreated = useCallback((state: RootState) => {
+    setCanvasEl(state.gl.domElement);
+  }, []);
+
+  useEffect(() => {
+    if (!onWebglFailure || !canvasEl) return;
+    return attachContextLostHandler(canvasEl, () => onWebglFailure(new Error("WebGL context lost")));
+  }, [canvasEl, onWebglFailure]);
+
+  return onCreated;
 }
