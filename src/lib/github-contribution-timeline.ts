@@ -40,6 +40,28 @@ export function getLongestStreak(days: GitHubContributionDay[]) {
   return longest;
 }
 
+// A year's totalContributions is null only when that year's own fetch
+// failed (see getGitHubContributionSummary in github.ts) — not when it
+// genuinely had zero contributions, which is reported as 0.
+export function hasIncompleteYears(years: GitHubContributionYear[]) {
+  return years.some((year) => year.totalContributions === null);
+}
+
+// When it's specifically the *most recent* year that's missing (not just
+// some older one), contributionDays has no entries for it at all — so a
+// "current streak" or "peak day" computed from that data isn't merely an
+// undercount, it could be entirely stale (resuming from wherever older,
+// complete data ends) or wrong (an unobserved day in the missing year could
+// have been higher). Both need this stronger disclosure, not the plain
+// lower-bound "+" hasIncompleteYears covers for magnitude-only stats.
+export function isMostRecentYearMissing(years: GitHubContributionYear[]) {
+  const mostRecentYear = years.reduce<GitHubContributionYear | null>(
+    (latest, year) => (!latest || year.year > latest.year ? year : latest),
+    null,
+  );
+  return mostRecentYear?.totalContributions === null;
+}
+
 export function buildTimelineWeeks(
   contributionYears: GitHubContributionYear[],
   throughDate: string,

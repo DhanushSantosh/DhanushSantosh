@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { GitHubContributionYear } from "./github";
-import { buildTimelineWeeks, flattenContributionDays, getCurrentStreak, getLongestStreak } from "./github-contribution-timeline";
+import {
+  buildTimelineWeeks,
+  flattenContributionDays,
+  getCurrentStreak,
+  getLongestStreak,
+  hasIncompleteYears,
+  isMostRecentYearMissing,
+} from "./github-contribution-timeline";
 
 function day(date: string, contributionCount = 0) {
   return {
@@ -79,5 +86,46 @@ describe("contribution streaks", () => {
   it("returns zero for both streaks with no contribution data", () => {
     expect(getCurrentStreak([])).toBe(0);
     expect(getLongestStreak([])).toBe(0);
+  });
+});
+
+describe("incomplete-year disclosure", () => {
+  const complete: GitHubContributionYear[] = [
+    { totalContributions: 10, year: 2025, weeks: [] },
+    { totalContributions: 20, year: 2026, weeks: [] },
+  ];
+
+  it("is false when every year loaded successfully", () => {
+    expect(hasIncompleteYears(complete)).toBe(false);
+    expect(isMostRecentYearMissing(complete)).toBe(false);
+  });
+
+  it("flags an older failed year as incomplete but not as the most-recent-missing case", () => {
+    const olderMissing: GitHubContributionYear[] = [
+      { totalContributions: null, year: 2025, weeks: [] },
+      { totalContributions: 20, year: 2026, weeks: [] },
+    ];
+    expect(hasIncompleteYears(olderMissing)).toBe(true);
+    expect(isMostRecentYearMissing(olderMissing)).toBe(false);
+  });
+
+  it("flags the current year failing as both incomplete and most-recent-missing", () => {
+    const currentMissing: GitHubContributionYear[] = [
+      { totalContributions: 10, year: 2025, weeks: [] },
+      { totalContributions: null, year: 2026, weeks: [] },
+    ];
+    expect(hasIncompleteYears(currentMissing)).toBe(true);
+    expect(isMostRecentYearMissing(currentMissing)).toBe(true);
+  });
+
+  it("treats a genuine zero-contribution year as complete, not missing", () => {
+    const genuineZero: GitHubContributionYear[] = [{ totalContributions: 0, year: 2026, weeks: [] }];
+    expect(hasIncompleteYears(genuineZero)).toBe(false);
+    expect(isMostRecentYearMissing(genuineZero)).toBe(false);
+  });
+
+  it("is false for no years at all", () => {
+    expect(hasIncompleteYears([])).toBe(false);
+    expect(isMostRecentYearMissing([])).toBe(false);
   });
 });

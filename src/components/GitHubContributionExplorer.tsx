@@ -8,10 +8,18 @@ import {
   flattenContributionDays,
   getCurrentStreak,
   getLongestStreak,
+  hasIncompleteYears as computeHasIncompleteYears,
+  isMostRecentYearMissing as computeIsMostRecentYearMissing,
   MAX_TIMELINE_WEEKS,
 } from "@/lib/github-contribution-timeline";
 
-function getSourceLabel(source: GitHubPortfolioData["source"]) {
+// isPersistedSnapshot means the live fetch behind this data failed and
+// what's shown is a last-known-good snapshot (see getPersistedPortfolioSnapshot
+// in github.ts) — worth its own distinct label regardless of the underlying
+// source, since "Full Live Sync" would otherwise claim freshness this
+// specific render doesn't have.
+function getSourceLabel(source: GitHubPortfolioData["source"], isPersistedSnapshot: boolean) {
+  if (isPersistedSnapshot) return "Saved Snapshot";
   if (source === "graphql") return "Full Live Sync";
   if (source === "live-partial") return "Partial Live Sync";
   if (source === "rest-fallback") return "Live Public Sync";
@@ -71,11 +79,13 @@ function formatPeakDate(date: string | null) {
 
 type GitHubContributionExplorerProps = {
   contributionYears: GitHubContributionYear[];
+  isPersistedSnapshot: boolean;
   source: GitHubPortfolioData["source"];
 };
 
 export default function GitHubContributionExplorer({
   contributionYears,
+  isPersistedSnapshot,
   source,
 }: GitHubContributionExplorerProps) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -88,30 +98,15 @@ export default function GitHubContributionExplorer({
     () => flattenContributionDays(contributionYears.flatMap((year) => year.weeks), throughDate),
     [contributionYears, throughDate],
   );
-  // A year's totalContributions is null only when that year's own fetch
-  // failed (see getGitHubContributionSummary in github.ts) — not when it
-  // genuinely had zero contributions, which is reported as 0. Summing nulls
-  // as 0 would silently understate this total while it still renders as one
-  // confident-looking number, so an incomplete year makes the badge below
-  // show a disclosed lower bound ("N+") instead of a false precise count.
-  const hasIncompleteYears = useMemo(
-    () => contributionYears.some((year) => year.totalContributions === null),
+  // See hasIncompleteYears/isMostRecentYearMissing in
+  // github-contribution-timeline.ts for what each actually means and why
+  // they're treated differently below (magnitude-only lower bound vs.
+  // possibly-stale-or-wrong identity claim).
+  const hasIncompleteYears = useMemo(() => computeHasIncompleteYears(contributionYears), [contributionYears]);
+  const isMostRecentYearMissing = useMemo(
+    () => computeIsMostRecentYearMissing(contributionYears),
     [contributionYears],
   );
-  // The current streak specifically breaks down differently from the other
-  // stats if it's the *most recent* year that's missing: Active Days/Peak
-  // Day/Total Contributions are still honest as an "at least this many"
-  // lower bound when an older year is missing, but a missing current year
-  // means contributionDays has no entries for it at all, so the streak walk
-  // (see getCurrentStreak) would silently resume from wherever the older,
-  // complete data ends — rendering a stale streak from months ago as if it
-  // were "current," not just an understated one. That's a different failure
-  // mode from undercounting and needs its own, stronger disclosure.
-  const mostRecentYear = useMemo(
-    () => contributionYears.reduce<GitHubContributionYear | null>((latest, year) => (!latest || year.year > latest.year ? year : latest), null),
-    [contributionYears],
-  );
-  const isCurrentStreakUnreliable = mostRecentYear?.totalContributions === null;
   const totalContributions = useMemo(
     () => contributionYears.reduce((sum, year) => sum + (year.totalContributions ?? 0), 0),
     [contributionYears],
@@ -121,7 +116,9 @@ export default function GitHubContributionExplorer({
   const currentStreak = useMemo(() => getCurrentStreak(contributionDays), [contributionDays]);
   const longestStreak = useMemo(() => getLongestStreak(contributionDays), [contributionDays]);
   const hasContributionData = timelineWeeks.length > 0;
-  const isLive = source !== "unavailable";
+  // The pulsing dot implies "currently live" — misleading on a persisted
+  // snapshot even though its underlying source would otherwise count as one.
+  const isLive = source !== "unavailable" && !isPersistedSnapshot;
 
   useEffect(() => {
     const node = scrollContainerRef.current;
@@ -143,8 +140,11 @@ export default function GitHubContributionExplorer({
           ) : null}
         </div>
         <div className="flex items-center">
-          <span className="rounded-full border border-white/[0.08] bg-white/[0.02] px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.2em] text-white/50">
-            {getSourceLabel(source)}
+          <span
+            className="rounded-full border border-white/[0.08] bg-white/[0.02] px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.2em] text-white/50"
+            title={isPersistedSnapshot ? "GitHub couldn't be reached just now — showing the last successful data instead." : undefined}
+          >
+            {getSourceLabel(source, isPersistedSnapshot)}
           </span>
         </div>
       </div>
@@ -246,31 +246,41 @@ export default function GitHubContributionExplorer({
             <div className="flex flex-col">
               <span
                 className="text-xl font-medium leading-none tracking-tight text-white"
-                title={hasIncompleteYears ? "One or more years failed to load — the real peak may be higher and elsewhere." : undefined}
+                title={
+                  hasIncompleteYears
+                    ? "One or more years failed to load — an unobserved day elsewhere could be the real peak."
+                    : undefined
+                }
               >
                 {peakDay?.contributionCount ?? 0}
                 {hasIncompleteYears ? "+" : ""}
               </span>
               <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">
-                Peak Day · {formatPeakDate(peakDay?.date ?? null)}
+                {/* "Peak Day" claims this specific date is THE highest —
+                    incomplete source data can't support that claim (the
+                    real peak may be an unobserved day), so the label itself
+                    says so visibly rather than only via a hover-only title,
+                    which touch devices and screen-reader-only inspection
+                    wouldn't reliably surface. */}
+                {hasIncompleteYears ? "Best Known Day" : "Peak Day"} · {formatPeakDate(peakDay?.date ?? null)}
               </span>
             </div>
             <div className="flex flex-col">
               <span
                 className="text-xl font-medium leading-none tracking-tight text-white"
                 title={
-                  isCurrentStreakUnreliable
+                  isMostRecentYearMissing
                     ? "The most recent year failed to load, so this may be a stale streak rather than today's."
                     : hasIncompleteYears
                       ? "An older year failed to load — this is a minimum, not the full streak."
                       : undefined
                 }
               >
-                {isCurrentStreakUnreliable ? "—" : currentStreak}
-                {!isCurrentStreakUnreliable && hasIncompleteYears ? "+" : ""}
+                {isMostRecentYearMissing ? "—" : currentStreak}
+                {!isMostRecentYearMissing && hasIncompleteYears ? "+" : ""}
               </span>
               <span className="mt-1.5 text-[8px] font-semibold uppercase tracking-[0.2em] text-white/60">
-                {isCurrentStreakUnreliable
+                {isMostRecentYearMissing
                   ? "Day Streak · Unavailable"
                   : `Day Streak${longestStreak > currentStreak ? ` · Best ${longestStreak}` : ""}`}
               </span>
