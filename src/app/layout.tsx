@@ -157,22 +157,35 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className={bodyClassName}>
+      {/* Explicit <head>, alongside the metadata-API-generated one Next.js
+          still merges in, purely so this script lands near the very top of
+          the raw HTML response — matching Google's own "as high in <head>
+          as possible" instruction, and, more concretely, staying well
+          inside whatever byte budget a simple installer-checker scans. This
+          page's full HTML is large (~600KB, mostly the RSC hydration
+          payload); the previous placement at the top of <body> put the
+          script roughly halfway through that response, which is a
+          plausible reason GTM's "Test your website" check kept reporting
+          the tag as undetected even though it was confirmed present. */}
+      <head>
         {gtmContainerId && (
-          <>
-            <script id="gtm-init" dangerouslySetInnerHTML={{ __html: gtmInitScript }} />
-            {/* The no-JS fallback for the one case the script tag above can't
-                cover on its own. */}
-            <noscript>
-              <iframe
-                src={`https://www.googletagmanager.com/ns.html?id=${gtmContainerId}`}
-                height="0"
-                width="0"
-                style={{ display: "none", visibility: "hidden" }}
-                title="Google Tag Manager"
-              />
-            </noscript>
-          </>
+          <script id="gtm-init" dangerouslySetInnerHTML={{ __html: gtmInitScript }} />
+        )}
+      </head>
+      <body suppressHydrationWarning className={bodyClassName}>
+        {/* The no-JS fallback belongs right after the opening <body> tag per
+            Google's own instructions — it's the one case the <head> script
+            above can't cover on its own. */}
+        {gtmContainerId && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${gtmContainerId}`}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+              title="Google Tag Manager"
+            />
+          </noscript>
         )}
         <a
           href="#main-content"
