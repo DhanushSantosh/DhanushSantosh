@@ -25,6 +25,7 @@ project's own dev machines).
 | `GITHUB_WEBHOOK_SECRET` | Only for `/api/github/refresh` | HMAC secret verifying that revalidation requests actually came from GitHub. |
 | `CRON_SECRET` | Only for the scheduled refresh | Bearer token verifying that `/api/github/refresh` requests come from Vercel's own cron trigger (see `vercel.json`), not an arbitrary caller. |
 | `NEXT_ALLOWED_DEV_ORIGINS` | No | Comma-separated bare hostnames (no protocol/port) allowed to load dev-server resources — e.g. a Tailscale IP for testing from a phone on the same network. Defaults to one hardcoded fallback IP in `next.config.ts`; override this instead of editing that default when your own dev machine's address changes. |
+| `NEXT_PUBLIC_GTM_ID` | No | Google Tag Manager container ID (e.g. `GTM-XXXXXXX`). Unset by default, which keeps GTM from firing in local dev/CI; set it in Vercel's Production environment to enable it there. Public by design — a `NEXT_PUBLIC_` var is bundled into client JS and visible in page source regardless of where it's set. |
 
 ## Scripts
 

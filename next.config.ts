@@ -70,11 +70,18 @@ const nextConfig: NextConfig = {
   async headers() {
     const contentSecurityPolicyReportOnly = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      // Google Tag Manager (src/app/layout.tsx) inserts its own <script src>
+      // pointed at googletagmanager.com and calls back to it for its
+      // preview/debug tooling — allowed here explicitly rather than waiting
+      // for a violation report to say so, since it's already known to be
+      // needed. If a tag added *inside* GTM later needs another origin (GA4
+      // adds google-analytics.com, for instance), that'll show up in the
+      // Report-Only violations and can be added the same way.
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.github.com https://github.com",
+      "connect-src 'self' https://api.github.com https://github.com https://www.googletagmanager.com",
       "frame-src https:",
       "base-uri 'self'",
       "form-action 'self'",

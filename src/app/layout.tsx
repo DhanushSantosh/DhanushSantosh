@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import "./globals.css";
 import { CursorFluid } from "@/components/CursorFluid";
 import MotionProvider from "@/components/MotionProvider";
@@ -120,6 +121,16 @@ const personJsonLd = {
   knowsAbout: [...techStack.fullStack, "Python", "Django REST Framework", "PostgreSQL"],
 };
 
+// Not part of the SEO/entity work above — GTM doesn't influence crawling or
+// ranking, it's a tag-management layer for wiring up analytics/conversion
+// tracking later without editing code each time. Reads the container ID
+// from an env var (unset in local dev/CI by default) rather than hardcoding
+// it, so it only fires where it's actually meant to — most directly, so a
+// dev/preview build can't pollute production data, but it also naturally
+// keeps quiet on the non-canonical .vercel.app host the noindex header
+// above already excludes.
+const gtmContainerId = process.env.NEXT_PUBLIC_GTM_ID;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -130,6 +141,35 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={bodyClassName}>
+        {gtmContainerId && (
+          <>
+            {/* Google's own install snippet loads via a plain document.write-
+                style <script> tag; next/script's afterInteractive strategy is
+                the framework-idiomatic equivalent — fires as soon as the page
+                is interactive, without blocking the initial render the way a
+                manually-placed head script would. */}
+            <Script id="gtm-init" strategy="afterInteractive">
+              {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${gtmContainerId}');`}
+            </Script>
+            {/* The <noscript> fallback has to be real server-rendered markup,
+                not something next/script can produce — it only matters when
+                JS never runs at all, the one case a JS-driven script tag
+                can't cover. */}
+            <noscript>
+              <iframe
+                src={`https://www.googletagmanager.com/ns.html?id=${gtmContainerId}`}
+                height="0"
+                width="0"
+                style={{ display: "none", visibility: "hidden" }}
+                title="Google Tag Manager"
+              />
+            </noscript>
+          </>
+        )}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10000] focus:rounded-full focus:border focus:border-white/20 focus:bg-black focus:px-5 focus:py-3 focus:text-sm focus:font-semibold focus:text-white focus:shadow-[0_0_30px_rgba(0,0,0,0.8)] focus:outline focus:outline-2 focus:outline-white"
