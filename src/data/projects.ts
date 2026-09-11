@@ -65,29 +65,28 @@ export const caseStudies: CaseStudy[] = [
     },
   },
   {
-    slug: "deskcrafter",
-    name: "DeskCrafter",
-    status: "paused",
-    statusLabel: "Early-stage, currently paused",
-    tagline: "An early-stage Linux desktop-entry tool, on hold while its direction gets rethought.",
-    repoUrl: "https://github.com/DhanushSantosh/DeskCrafter",
+    slug: "wield",
+    name: "Wield",
+    status: "active",
+    statusLabel: "In active development, pre-MVP",
+    tagline: "A portal-native Linux utility hub — global-hotkey command palette, rebuilt from a rethought scope.",
+    repoUrl: "https://github.com/DhanushSantosh/Wield",
     problem:
-      "Creating and managing custom .desktop entries on Linux is a manual, fiddly process. DeskCrafter started as a friendlier way to create, manage, and launch them, with an early ambition of growing into a broader toolbox of task-specific tools across the Linux desktop.",
-    audience: "Linux desktop users who want an easier way to create and manage custom app launchers.",
-    role: "Sole builder, as a personal/learning project.",
+      "Wield grew out of an earlier project (DeskCrafter) for creating and managing Linux desktop-entry files. Partway through, the intended use case changed to something different: a global-hotkey command palette and tray fronting quick utility actions — screen capture tools and file/data converters — built on XDG Desktop Portals so it works across desktop environments without per-DE code. Most of the old codebase was redundant under the new design, and the old name no longer matched what the project had become, so it restarted clean under a new name rather than carrying that mismatch forward.",
+    audience:
+      "Linux desktop users who want quick utility actions — screen capture, file/data conversion — available from one global-hotkey command palette, without tooling that only works on a specific desktop environment.",
+    role: "Sole builder, as a personal project — rebuilt from scratch after the DeskCrafter scope changed.",
     decisions: [
-      "This is being stated plainly rather than dressed up: the broader \"toolbox suite\" direction was never fully committed to, and the project has been paused while that direction gets rethought.",
+      "Built on XDG Desktop Portals rather than per-desktop-environment integrations, so the same tool works across GNOME, KDE, and others without separate code paths for each.",
+      "Split into a Rust workspace — wield-core (descriptor model, executor, tool registry), wield-portal (portal access and capability probing), wield-tools (built-in tool descriptors), wield-cli (a command-line surface) — with a Tauri + React desktop shell on top, instead of one monolithic app.",
+      "Restarted as a new project rather than continuing to evolve DeskCrafter, once the scope had changed enough that most of the old codebase was redundant and the old name no longer matched what the project had become.",
     ],
     result:
-      "Currently paused. It exists as a real, working desktop-entry tool, not the broader toolbox it was originally scoped toward — that expansion hasn't happened yet.",
+      "Still in active development and not yet at an MVP — an ongoing process, stated plainly rather than dressed up as further along than it is.",
     constraints:
-      "Early-stage and not under active development right now. Treat it as a snapshot of an idea in progress, not a finished product.",
-    techStack: ["Python", "PyQt5", "Shell"],
-    screenshot: {
-      src: "/case-studies/deskcrafter.png",
-      alt: "The DeskCrafter landing page: \"An action-first Linux desktop integration and repair suite for launchers, startup entries, defaults, sandboxes, and service fixes.\"",
-      capturedFrom: "https://deskcrafter-site.vercel.app",
-    },
+      "Early-stage and pre-MVP: the design is still being worked out, and scope or direction may keep changing before an MVP lands. No packaged release yet.",
+    techStack: ["Rust", "Tauri", "React", "TypeScript"],
+    screenshot: null,
   },
 ];
 

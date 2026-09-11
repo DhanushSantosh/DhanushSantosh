@@ -22,8 +22,8 @@ const projectOverrides: ProjectOverrideConfig[] = [
     caseStudySlug: "agentcomms",
   },
   {
-    repo: "DhanushSantosh/DeskCrafter",
-    caseStudySlug: "deskcrafter",
+    repo: "DhanushSantosh/Wield",
+    caseStudySlug: "wield",
   },
 ];
 

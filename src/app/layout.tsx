@@ -105,7 +105,7 @@ export const metadata: Metadata = {
 // - description/image reuse the same real copy and photo the page itself
 //   shows, so the structured data doesn't assert anything unverifiable.
 // - knowsAbout lists only technologies actually demonstrated on this site
-//   (the Expertise section, the AgentComms/DeskCrafter case studies, and
+//   (the Expertise section, the AgentComms/Wield case studies, and
 //   the Payoda internship's own stack) — not aspirational keywords.
 const personJsonLd = {
   "@context": "https://schema.org",
@@ -117,7 +117,15 @@ const personJsonLd = {
   url: brandConfig.canonicalUrl,
   image: `${brandConfig.canonicalUrl}/profile-photo.jpg`,
   sameAs: siteConfig.socialLinks.map((link) => link.href),
-  knowsAbout: [...techStack.fullStack, "Python", "Django REST Framework", "PostgreSQL"],
+  knowsAbout: [
+    ...techStack.fullStack,
+    "Python",
+    "Django REST Framework",
+    "PostgreSQL",
+    "Go",
+    "Rust",
+    "Tauri",
+  ],
 };
 
 // Not part of the SEO/entity work above — GTM doesn't influence crawling or
