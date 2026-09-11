@@ -57,3 +57,4 @@ performance/
 .codex-runtime/
 /.agents
 /.agent-comms/
+.superpowers/
