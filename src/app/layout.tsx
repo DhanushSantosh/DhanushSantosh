@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import Script from "next/script";
 import "./globals.css";
 import { CursorFluid } from "@/components/CursorFluid";
 import MotionProvider from "@/components/MotionProvider";
@@ -131,6 +130,24 @@ const personJsonLd = {
 // above already excludes.
 const gtmContainerId = process.env.NEXT_PUBLIC_GTM_ID;
 
+// Google's own install snippet, kept byte-for-byte. Deliberately NOT
+// next/script's afterInteractive strategy (tried first): that only
+// creates the actual <script src=...> tag client-side, post-hydration —
+// functionally correct for real visitors (a live dataLayer check on
+// dhanushsantosh.in confirmed it firing) but invisible to GTM's own
+// "Test your website" installer check, which does a plain, non-JS HTTP
+// fetch of the page and looks for this literal snippet in the raw HTML.
+// It reported the tag as undetected even though it was genuinely firing.
+// A plain <script> below (rendered the same server-side way as the
+// Person JSON-LD script further down) is real, byte-for-byte markup in
+// the initial HTML response, so both real visitors and non-JS checkers
+// see it.
+const gtmInitScript = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${gtmContainerId}');`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -143,22 +160,9 @@ export default function RootLayout({
       <body suppressHydrationWarning className={bodyClassName}>
         {gtmContainerId && (
           <>
-            {/* Google's own install snippet loads via a plain document.write-
-                style <script> tag; next/script's afterInteractive strategy is
-                the framework-idiomatic equivalent — fires as soon as the page
-                is interactive, without blocking the initial render the way a
-                manually-placed head script would. */}
-            <Script id="gtm-init" strategy="afterInteractive">
-              {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${gtmContainerId}');`}
-            </Script>
-            {/* The <noscript> fallback has to be real server-rendered markup,
-                not something next/script can produce — it only matters when
-                JS never runs at all, the one case a JS-driven script tag
-                can't cover. */}
+            <script id="gtm-init" dangerouslySetInnerHTML={{ __html: gtmInitScript }} />
+            {/* The no-JS fallback for the one case the script tag above can't
+                cover on its own. */}
             <noscript>
               <iframe
                 src={`https://www.googletagmanager.com/ns.html?id=${gtmContainerId}`}
