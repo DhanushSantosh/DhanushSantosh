@@ -6,7 +6,7 @@ import MotionProvider from "@/components/MotionProvider";
 import ScrollReset from "@/components/ScrollReset";
 import { brandConfig } from "@/config/brand";
 import { siteConfig } from "@/config/site";
-import { hero } from "@/data/content";
+import { hero, techStack } from "@/data/content";
 
 const geistSans = localFont({
   src: "../../public/fonts/geist/GeistSans-Variable.woff2",
@@ -25,8 +25,15 @@ const geistMono = localFont({
 });
 
 const profileTitle = `${hero.name} - ${hero.role}`;
-const profileDescription =
-  `Portfolio for ${hero.name}, a creative developer crafting cinematic interfaces with Next.js, WebGL, and motion.`;
+// One canonical description, reused for the meta tag, OG card, Twitter
+// card, and the Person JSON-LD below, instead of four separately-authored
+// blurbs that can quietly drift apart (which is exactly how Google ended up
+// indexing an old "Full-Stack AI Developer / ships AI copilots" snapshot
+// long after the actual positioning had moved on — nothing forced the
+// surfaces search engines read to stay in sync with each other, let alone
+// with the page). hero.summary is already the honest, factual version used
+// on the homepage itself, so this makes that the single source of truth.
+const profileDescription = hero.summary;
 
 export const viewport: Viewport = {
   themeColor: "#050a12",
@@ -52,8 +59,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: profileTitle,
-    description:
-      "Digital craftsmanship for immersive web experiences, powered by code, motion, and 3D storytelling.",
+    description: profileDescription,
     url: brandConfig.canonicalUrl,
     siteName: hero.name,
     images: [
@@ -90,14 +96,28 @@ export const metadata: Metadata = {
 // Person schema so search engines can resolve "Dhanush Santosh" as an
 // entity (name, role, homepage, social profiles) rather than just indexing
 // unstructured page text — improves eligibility for knowledge-panel-style
-// rich results and disambiguates against unrelated same-name results.
+// rich results and disambiguates against unrelated same-name results (a
+// namesake actor plus at least one other same-name professional currently
+// outrank this entity in Google's own knowledge panel — a fuller, evidenced
+// Person node is one of the few direct levers available for that).
+// - @id anchors this as one stable entity node other pages/JSON-LD could
+//   reference, rather than an anonymous inline object.
+// - description/image reuse the same real copy and photo the page itself
+//   shows, so the structured data doesn't assert anything unverifiable.
+// - knowsAbout lists only technologies actually demonstrated on this site
+//   (the Expertise section, the AgentComms/DeskCrafter case studies, and
+//   the Payoda internship's own stack) — not aspirational keywords.
 const personJsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
+  "@id": `${brandConfig.canonicalUrl}/#person`,
   name: hero.name,
   jobTitle: hero.role,
+  description: hero.summary,
   url: brandConfig.canonicalUrl,
+  image: `${brandConfig.canonicalUrl}/profile-photo.jpg`,
   sameAs: siteConfig.socialLinks.map((link) => link.href),
+  knowsAbout: [...techStack.fullStack, "Python", "Django REST Framework", "PostgreSQL"],
 };
 
 export default function RootLayout({

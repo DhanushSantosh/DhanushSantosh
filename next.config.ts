@@ -93,6 +93,22 @@ const nextConfig: NextConfig = {
           { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicyReportOnly },
         ],
       },
+      // Vercel's own production alias (profile-site-*.vercel.app) serves the
+      // exact same content as the real domain but isn't covered by the
+      // git-branch preview deployments' automatic noindex/SSO protection —
+      // it was publicly crawlable with no signal telling search engines not
+      // to index it as a duplicate. The <link rel="canonical"> every page
+      // already sets should make Google consolidate to the real domain
+      // regardless, but an explicit noindex on any host that isn't the real
+      // one is a firmer, more direct signal than relying on canonical
+      // resolution alone — and costs nothing on the domain that matters,
+      // since `missing` only matches requests where the host is *not*
+      // dhanushsantosh.in.
+      {
+        source: "/:path*",
+        missing: [{ type: "host", value: "dhanushsantosh.in" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
     ];
   },
   compiler: {

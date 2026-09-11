@@ -14,7 +14,11 @@ import ExperienceSection from "@/sections/ExperienceSection";
 
 export const metadata: Metadata = {
   title: "About Me",
-  description: "Learn more about my background, skills, and journey as a creative developer.",
+  // Reuses the same factual summary the homepage and Person JSON-LD use
+  // (see layout.tsx's profileDescription) rather than a separate generic
+  // blurb — one consistent, honest description across every surface search
+  // engines read, instead of several that can quietly drift out of sync.
+  description: hero.summary,
   alternates: {
     canonical: `${brandConfig.canonicalUrl}/about`,
   },
@@ -45,7 +49,7 @@ export default function AboutPage() {
             <section id="bio" className="cv-auto space-y-6">
               <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-12">
                 <div className="w-full max-w-xs shrink-0 lg:w-80 lg:max-w-sm">
-                  <PhotoFrame imageUrl="/profile-photo.jpg" />
+                  <PhotoFrame imageUrl="/profile-photo.jpg" alt={hero.name} />
                 </div>
 
                 <div className="flex-1 space-y-6 lg:pl-8">
