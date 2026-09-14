@@ -27,7 +27,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-icons": "^5.7.0",
-    "react-pdf": "^10.5.0",
+    "react-pdf": "^11.0.0",
     "server-only": "0.0.1",
     "serwist": "^9.5.11",
     "three": "^0.185.1",
