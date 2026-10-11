@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { FiActivity, FiFolder, FiStar } from "react-icons/fi";
+import { FiActivity, FiCalendar, FiFolder } from "react-icons/fi";
 
 import { Reveal } from "@/components/Reveal";
 import { getGitHubPortfolioData } from "@/lib/github";
@@ -16,7 +16,7 @@ function getHighlightsSourceLabel(
   if (source === "graphql") return "GraphQL + REST";
   if (source === "live-partial") return "Partial live data";
   if (source === "rest-fallback") return "REST fallback";
-  return "Static-safe mode";
+  return "Offline";
 }
 
 function GitHubProofCard({
@@ -94,13 +94,21 @@ export default async function GitHubHighlightsSection() {
                         ? "Partial data"
                         : "REST mode"
                 }
-                hint="all GitHub contributions across every contribution year when GraphQL is available"
+                hint="across all contribution years"
               />
               <GitHubProofCard
-                icon={<FiStar />}
-                label="Stars"
-                value={String(data.totalProjectStars)}
-                hint="stars accumulated across public GitHub repos currently visible on the site"
+                icon={<FiCalendar />}
+                label="Last 12 months"
+                value={
+                  profile?.lastYearContributions != null
+                    ? String(profile.lastYearContributions)
+                    : data.source === "unavailable"
+                      ? "Offline"
+                      : data.source === "live-partial"
+                        ? "Partial data"
+                        : "REST mode"
+                }
+                hint="contributions over the past 12 months"
               />
               <GitHubProofCard
                 icon={<FiFolder />}

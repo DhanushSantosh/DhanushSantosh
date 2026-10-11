@@ -34,6 +34,10 @@ export const techStack = {
     "Three.js",
     "Node.js",
     "Vercel",
+    "Python",
+    "Django",
+    "PostgreSQL",
+    "Go",
   ],
   ai: [
     "Codex",

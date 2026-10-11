@@ -132,7 +132,14 @@ export type GitHubPortfolioData = {
   isPersistedSnapshot: boolean;
   lastReachableAt: string | null;
   profile: GitHubProfileSummary | null;
+  // Repos this account owns outright (not forks) — the "my projects" list.
   projects: GitHubProject[];
+  // Forks, kept separate rather than mixed into `projects`: a fork is
+  // upstream work this account contributes to, and listing it alongside
+  // its own projects (it used to sort to #01 whenever upstream pushed,
+  // complete with a preview of someone else's live site) read as a claim
+  // of authorship it isn't.
+  contributedProjects: GitHubProject[];
   recentEvents: GitHubRecentEvent[];
   source: "graphql" | "live-partial" | "rest-fallback" | "unavailable";
   starredRepos: GitHubStarredRepo[];
@@ -684,6 +691,13 @@ function normalizeProjectRepo(repo: GitHubRestRepo, override?: ProjectOverrideCo
   };
 }
 
+function splitOwnedAndContributed(items: GitHubProject[]) {
+  return {
+    projects: items.filter((project) => !project.isFork),
+    contributedProjects: items.filter((project) => project.isFork),
+  };
+}
+
 function countProjectStars(projects: GitHubProject[]) {
   return projects.reduce((sum, project) => sum + (project.stars ?? 0), 0);
 }
@@ -867,6 +881,8 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
     rawRecentEvents,
   );
 
+  const ownedAndContributed = splitOwnedAndContributed(projectsResult.items);
+
   const source =
     payloadResult.ok &&
     projectsResult.ok &&
@@ -895,11 +911,11 @@ async function getGraphQLPortfolioData(username: string): Promise<GitHubPortfoli
       totalContributions: contributionSummaryResult.totalAllTime,
       url: payload.user.url,
     },
-    projects: projectsResult.items,
+    ...ownedAndContributed,
     recentEvents,
     source,
     starredRepos: starredReposResult.items,
-    totalProjectStars: countProjectStars(projectsResult.items),
+    totalProjectStars: countProjectStars(ownedAndContributed.projects),
     weeks: contributionSummaryResult.years[0]?.weeks ?? payload.user.contributionsCollection.contributionCalendar.weeks,
   };
 }
@@ -917,6 +933,8 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
     eventsResult.ok &&
     projectsResult.ok &&
     starredReposResult.ok;
+
+  const ownedAndContributed = splitOwnedAndContributed(projectsResult.items);
 
   const source = getRestPortfolioSource({
     complete: isRestFallbackComplete,
@@ -946,7 +964,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
           url: userResult.data.html_url,
         }
       : null,
-    projects: projectsResult.items,
+    ...ownedAndContributed,
     recentEvents: await enrichPushEvents(
       (eventsResult.data ?? [])
         .map(normalizeActivityEvent)
@@ -956,7 +974,7 @@ async function getRestFallbackPortfolioData(username: string): Promise<GitHubPor
     ),
     source,
     starredRepos: starredReposResult.items,
-    totalProjectStars: countProjectStars(projectsResult.items),
+    totalProjectStars: countProjectStars(ownedAndContributed.projects),
     weeks: [],
   };
 }
@@ -987,7 +1005,10 @@ const getPersistedPortfolioSnapshot = unstable_cache(
     }
     return data;
   },
-  ["github-last-known-good-snapshot"],
+  // Versioned: the data cache outlives deploys, and a snapshot persisted
+  // before the projects/contributedProjects split has no
+  // contributedProjects field and still lists forks under projects.
+  ["github-last-known-good-snapshot-v2"],
   {
     revalidate: DEFAULT_REVALIDATE_SECONDS,
     tags: [GITHUB_TAGS.profile, GITHUB_TAGS.activity, GITHUB_TAGS.projects],
