@@ -2,7 +2,13 @@ import type { GitHubContributionDay, GitHubContributionWeek, GitHubContributionY
 
 export const MAX_TIMELINE_WEEKS = 106;
 
-export type TimelineWeek = GitHubContributionWeek & {
+// Only what the calendar cell actually renders — GitHub's own `color` and
+// `weekday` stay on the server (see summarizeContributions).
+type TimelineDay = Pick<GitHubContributionDay, "contributionCount" | "contributionLevel" | "date">;
+
+export type TimelineWeek = {
+  contributionDays: TimelineDay[];
+  firstDay: string;
   monthLabel: string;
   showMonthLabel: boolean;
   showYearDivider: boolean;
@@ -109,4 +115,52 @@ export function buildTimelineWeeks(
       yearLabel: String(week.year),
     };
   });
+}
+
+export type ContributionSummary = {
+  activeDays: number;
+  currentStreak: number;
+  hasIncompleteYears: boolean;
+  isMostRecentYearMissing: boolean;
+  longestStreak: number;
+  peakDay: { contributionCount: number; date: string } | null;
+  timelineWeeks: TimelineWeek[];
+  totalContributions: number;
+};
+
+// Computed on the server so the client calendar receives only the weeks it
+// draws (MAX_TIMELINE_WEEKS) with trimmed day fields. Passing every
+// contribution year down for client-side stats serialized ~1,800 full day
+// objects into the page's RSC payload to render ~740 cells.
+export function summarizeContributions(
+  contributionYears: GitHubContributionYear[],
+  throughDate: string,
+  now: Date = new Date(),
+): ContributionSummary {
+  const days = flattenContributionDays(
+    contributionYears.flatMap((year) => year.weeks),
+    throughDate,
+  );
+  const peak = days.reduce<GitHubContributionDay | null>(
+    (best, day) => (!best || day.contributionCount > best.contributionCount ? day : best),
+    null,
+  );
+
+  return {
+    activeDays: days.filter((day) => day.contributionCount > 0).length,
+    currentStreak: getCurrentStreak(days),
+    hasIncompleteYears: hasIncompleteYears(contributionYears),
+    isMostRecentYearMissing: isMostRecentYearMissing(contributionYears, now),
+    longestStreak: getLongestStreak(days),
+    peakDay: peak ? { contributionCount: peak.contributionCount, date: peak.date } : null,
+    timelineWeeks: buildTimelineWeeks(contributionYears, throughDate).map((week) => ({
+      ...week,
+      contributionDays: week.contributionDays.map(({ contributionCount, contributionLevel, date }) => ({
+        contributionCount,
+        contributionLevel,
+        date,
+      })),
+    })),
+    totalContributions: contributionYears.reduce((sum, year) => sum + (year.totalContributions ?? 0), 0),
+  };
 }

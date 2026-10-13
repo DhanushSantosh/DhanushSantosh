@@ -101,3 +101,12 @@ here only when there's something real and specific to say about it.
 Deploys via Vercel's GitHub integration on push to `main`. `vercel.json`
 configures a daily cron (`0 5 * * *`) hitting `/api/github/refresh` to keep
 the GitHub-sourced sections warm even without organic traffic.
+
+## Security headers
+
+`next.config.ts` sends a report-only Content Security Policy. Browser violation
+reports go to `POST /api/csp-report`, which accepts legacy CSP reports and
+Reporting API JSON batches up to 16 KiB, logs a compact summary per violation,
+and returns 204 for accepted or malformed JSON. Oversized bodies return 413.
+The policy is report-only because project previews can embed external sites;
+review collected violations before considering enforcement.

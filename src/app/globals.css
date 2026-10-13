@@ -236,3 +236,32 @@ body.has-custom-cursor * {
 .tech-icon-wrap {
   contain: style paint;
 }
+
+/* Homepage intro already played this tab session: hide the server-rendered
+   overlay before first paint (flag set by src/lib/intro-loader.ts). */
+html[data-intro-seen] #homepage-intro-loader {
+  display: none !important;
+}
+
+/* GitHub contribution calendar cell — one shared class instead of a long
+   utility string repeated on ~740 elements (see GitHubContributionExplorer). */
+.contribution-cell {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 1.5px;
+  transition: all 200ms var(--default-transition-timing-function, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+@media (hover: hover) {
+  .contribution-cell:hover {
+    z-index: 10;
+    transform: scale(1.5);
+  }
+}
+
+@media (min-width: 640px) {
+  .contribution-cell {
+    width: 0.625rem;
+    height: 0.625rem;
+  }
+}

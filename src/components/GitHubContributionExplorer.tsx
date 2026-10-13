@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 
-import type { GitHubContributionDay, GitHubContributionYear, GitHubPortfolioData } from "@/lib/github";
+import type { GitHubPortfolioData } from "@/lib/github";
 import {
-  buildTimelineWeeks,
-  flattenContributionDays,
-  getCurrentStreak,
-  getLongestStreak,
-  hasIncompleteYears as computeHasIncompleteYears,
-  isMostRecentYearMissing as computeIsMostRecentYearMissing,
   MAX_TIMELINE_WEEKS,
+  type ContributionSummary,
+  type TimelineWeek,
 } from "@/lib/github-contribution-timeline";
+
+type TimelineDay = TimelineWeek["contributionDays"][number];
 
 // isPersistedSnapshot means the live fetch behind this data failed and
 // what's shown is a last-known-good snapshot (see getPersistedPortfolioSnapshot
@@ -26,7 +24,7 @@ function getSourceLabel(source: GitHubPortfolioData["source"], isPersistedSnapsh
   return "Safe Fallback";
 }
 
-function getContributionColor(day: GitHubContributionDay) {
+function getContributionColor(day: TimelineDay) {
   if (day.contributionCount === 0) return "rgba(255, 255, 255, 0.03)";
 
   switch (day.contributionLevel) {
@@ -45,26 +43,18 @@ function getContributionColor(day: GitHubContributionDay) {
   }
 }
 
-function ContributionCell({ day }: { day: GitHubContributionDay }) {
+// Styling lives in globals.css's .contribution-cell rather than inline
+// utility classes: ~740 of these render, and the repeated class string was a
+// sizeable share of the homepage's HTML.
+function ContributionCell({ day }: { day: TimelineDay }) {
   return (
     <div
       aria-hidden="true"
-      className="h-2 w-2 rounded-[1.5px] transition-all duration-200 hover:z-10 hover:scale-150 sm:h-2.5 sm:w-2.5"
+      className="contribution-cell"
       style={{ backgroundColor: getContributionColor(day) }}
       title={`${day.contributionCount} contribution${day.contributionCount === 1 ? "" : "s"} on ${day.date}`}
     />
   );
-}
-
-function getActiveDays(days: GitHubContributionDay[]) {
-  return days.filter((day) => day.contributionCount > 0).length;
-}
-
-function getPeakContributionDay(days: GitHubContributionDay[]) {
-  return days.reduce<GitHubContributionDay | null>((peak, day) => {
-    if (!peak || day.contributionCount > peak.contributionCount) return day;
-    return peak;
-  }, null);
 }
 
 function formatPeakDate(date: string | null) {
@@ -78,43 +68,31 @@ function formatPeakDate(date: string | null) {
 }
 
 type GitHubContributionExplorerProps = {
-  contributionYears: GitHubContributionYear[];
   isPersistedSnapshot: boolean;
   source: GitHubPortfolioData["source"];
+  summary: ContributionSummary;
 };
 
 export default function GitHubContributionExplorer({
-  contributionYears,
   isPersistedSnapshot,
   source,
+  summary,
 }: GitHubContributionExplorerProps) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const throughDate = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const timelineWeeks = useMemo(
-    () => buildTimelineWeeks(contributionYears, throughDate),
-    [contributionYears, throughDate],
-  );
-  const contributionDays = useMemo(
-    () => flattenContributionDays(contributionYears.flatMap((year) => year.weeks), throughDate),
-    [contributionYears, throughDate],
-  );
   // See hasIncompleteYears/isMostRecentYearMissing in
   // github-contribution-timeline.ts for what each actually means and why
   // they're treated differently below (magnitude-only lower bound vs.
   // possibly-stale-or-wrong identity claim).
-  const hasIncompleteYears = useMemo(() => computeHasIncompleteYears(contributionYears), [contributionYears]);
-  const isMostRecentYearMissing = useMemo(
-    () => computeIsMostRecentYearMissing(contributionYears),
-    [contributionYears],
-  );
-  const totalContributions = useMemo(
-    () => contributionYears.reduce((sum, year) => sum + (year.totalContributions ?? 0), 0),
-    [contributionYears],
-  );
-  const activeDays = useMemo(() => getActiveDays(contributionDays), [contributionDays]);
-  const peakDay = useMemo(() => getPeakContributionDay(contributionDays), [contributionDays]);
-  const currentStreak = useMemo(() => getCurrentStreak(contributionDays), [contributionDays]);
-  const longestStreak = useMemo(() => getLongestStreak(contributionDays), [contributionDays]);
+  const {
+    activeDays,
+    currentStreak,
+    hasIncompleteYears,
+    isMostRecentYearMissing,
+    longestStreak,
+    peakDay,
+    timelineWeeks,
+    totalContributions,
+  } = summary;
   const hasContributionData = timelineWeeks.length > 0;
   // The pulsing dot implies "currently live" — misleading on a persisted
   // snapshot even though its underlying source would otherwise count as one.

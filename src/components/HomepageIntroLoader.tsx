@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { m, useReducedMotion } from "framer-motion";
+import { INTRO_SEEN_STORAGE_KEY } from "@/lib/intro-loader";
 
 const DISPLAY_NAME = "Dhanush Santosh";
 const HOMEPAGE_INTRO_LOADER_ID = "homepage-intro-loader";
@@ -70,9 +71,43 @@ function useMounted() {
   return useSyncExternalStore(emptySubscribe, getClientMounted, getServerMounted);
 }
 
+// Plays once per browser tab session. It used to replay on every mount of
+// the homepage — including client-side navigation back from /about or a
+// case study ("Back to projects") — locking scroll for ~4s each time.
+// Storage can throw (private mode, blocked site data); treat that as unseen.
+function readIntroSeen() {
+  try {
+    return window.sessionStorage.getItem(INTRO_SEEN_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markIntroSeen() {
+  try {
+    window.sessionStorage.setItem(INTRO_SEEN_STORAGE_KEY, "1");
+  } catch {
+    // Nothing to persist into; the intro simply plays again next time.
+  }
+}
+
+// Captured once per mount (not re-read on every render): markIntroSeen()
+// runs as soon as playback starts, and re-reading afterwards would unmount
+// the overlay mid-animation. The server snapshot is false so hydration
+// matches the server HTML; the real value takes over right after.
+function useIntroAlreadySeen() {
+  const seenRef = useRef<boolean | null>(null);
+  const getSnapshot = () => {
+    if (seenRef.current === null) seenRef.current = readIntroSeen();
+    return seenRef.current;
+  };
+  return useSyncExternalStore(emptySubscribe, getSnapshot, getServerMounted);
+}
+
 export function HomepageIntroLoader() {
   const isMounted = useMounted();
   const prefersReducedMotion = useReducedMotion();
+  const introAlreadySeen = useIntroAlreadySeen();
 
   const [visible, setVisible] = useState(true);
   const [isTextExiting, setIsTextExiting] = useState(false);
@@ -84,9 +119,11 @@ export function HomepageIntroLoader() {
   const dismissedRef = useRef(false);
 
   useEffect(() => {
-    if (!isMounted || prefersReducedMotion) {
+    if (!isMounted || prefersReducedMotion || introAlreadySeen) {
       return;
     }
+
+    markIntroSeen();
 
     // Every setTimeout scheduled below is tracked here and cleared on
     // cleanup. reactStrictMode double-invokes this effect once in dev
@@ -187,7 +224,7 @@ export function HomepageIntroLoader() {
       pendingTimeouts.clear();
       unlockScroll();
     };
-  }, [isMounted, prefersReducedMotion]);
+  }, [isMounted, prefersReducedMotion, introAlreadySeen]);
 
   // Not dismissed yet, and reduced motion isn't (as far as we can tell yet)
   // preferred — render unconditionally, including on the server and on the
@@ -198,7 +235,7 @@ export function HomepageIntroLoader() {
   // real page would flash visible until hydration catches up and mounts it.
   // Rendering it solid from frame one — no JS required — is what actually
   // prevents that flash.
-  if (prefersReducedMotion || !visible) {
+  if (prefersReducedMotion || !visible || introAlreadySeen) {
     return null;
   }
 

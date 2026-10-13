@@ -4,6 +4,7 @@ import GitHubContributionExplorer from "@/components/GitHubContributionExplorer"
 import { Reveal } from "@/components/Reveal";
 import StarredReposCarousel from "@/components/StarredReposCarousel";
 import { type GitHubRecentEvent, getGitHubPortfolioData } from "@/lib/github";
+import { summarizeContributions } from "@/lib/github-contribution-timeline";
 
 function formatShortDate(dateString: string) {
   return new Intl.DateTimeFormat("en", {
@@ -60,9 +61,9 @@ export default async function GitHubActivitySection() {
               {/* Left Side: Contribution Grid & Metrics */}
               <div className="flex-1 p-5 sm:p-7 flex flex-col min-w-0 justify-between">
                 <GitHubContributionExplorer
-                  contributionYears={data.contributionYears}
                   isPersistedSnapshot={data.isPersistedSnapshot}
                   source={data.source}
+                  summary={summarizeContributions(data.contributionYears, new Date().toISOString().slice(0, 10))}
                 />
               </div>
 

@@ -42,7 +42,7 @@ Common UI surfaces use a consistent dark glass feel:
   - `border border-white/10`
   - `rounded-3xl` or `rounded-[32px]`
   - Soft shadows like `shadow-[0_0_45px_rgba(0,0,0,0.8)]`
-  - Examples: `src/sections/StatsSection.tsx`, `src/sections/ContactSection.tsx`, `src/sections/ExperienceSection.tsx`
+  - Examples: `src/sections/GitHubHighlightsSection.tsx`, `src/sections/ContactSection.tsx`, `src/sections/ExperienceSection.tsx`
 
 Cards follow the same vocabulary with tighter rounding:
 - `rounded-2xl`, `border-white/10` or `border-white/5`, `bg-white/5` or `bg-black`
@@ -73,7 +73,7 @@ Use the `hover-hover:` variant to avoid hover effects on touch devices:
 
 ### Custom cursor behavior
 The site uses a custom desktop cursor instead of the default pointer:
-- The cursor is rendered from layered orbit, ring, and core shapes in `src/app/layout.tsx`.
+- The cursor is rendered from orbit and core elements in `src/app/layout.tsx`.
 - Motion and pointer state are controlled in `src/components/CursorFluid.tsx`.
 - Styling lives in `src/app/globals.css` and follows the same black-glass, thin-border, soft-cyan accent language as the rest of the site.
 - It is automatically disabled for `prefers-reduced-motion`, no-hover, or coarse-pointer devices.
@@ -90,11 +90,13 @@ Interactive elements can still influence cursor behavior:
 
 ### Scroll-reveal wrapper
 `src/components/Reveal.tsx` is the standard reveal animation:
-- Starts hidden: `{ opacity: 0, y: 32 }`
-- Enters visible: `{ opacity: 1, y: 0 }`
+- Renders visible initially; elements that start off-screen animate from `{ opacity: 0, y: 32 }` to `{ opacity: 1, y: 0 }` when they enter view.
 - Transition: `duration: 0.9`, `ease: [0.16, 1, 0.3, 1]`
 - Uses `useInView` with `once: true` and a top/bottom margin to trigger slightly before fully in view.
 - Uses `useReducedMotion()` to skip animation for users that request reduced motion.
+
+### Homepage intro
+`src/components/HomepageIntroLoader.tsx` shows a blur and character-stagger name reveal on the homepage once per browser tab session. Reduced-motion and no-JS visitors see the page without the intro; the loader does not wait for the 3D sculpture.
 
 Usage:
 ```tsx
@@ -136,7 +138,7 @@ Defined in `src/app/globals.css`:
 Used in `src/components/PhotoFrame.tsx`.
 
 ### Custom cursor (CSS + JS)
-- `#site-cursor` in `src/app/layout.tsx` renders the layered orbit, ring, and core.
+- `#site-cursor` in `src/app/layout.tsx` renders the orbit and core.
 - `src/components/CursorFluid.tsx` lerps the cursor toward the pointer on `requestAnimationFrame` and toggles between default and interactive states based on hover target.
 - `src/app/globals.css` hides native scrollbars globally and also hides the native pointer when the custom cursor is active.
 - Automatically disabled for `prefers-reduced-motion`, no hover, or coarse pointers.
@@ -151,10 +153,8 @@ While not a UI animation, the 3D hero is animated in `src/components/OrbitalScul
 ## Client islands (SSR-first)
 Use server-rendered sections with small client controllers to keep hydration minimal:
 - Projects: `src/sections/ProjectsSection.tsx` + `src/components/ProjectsDemoController.tsx`
-  - Buttons carry `data-project-demo`.
-- Expertise: `src/sections/ExpertiseSection.tsx` + `src/components/ExpertiseSelectionController.tsx`
-  - Buttons carry `data-tech-item` and `data-active` toggles.
-  - Active styling is driven by CSS in `src/app/globals.css` under `.tech-item[data-active="true"]`.
+  - Preview buttons carry `data-project-preview` and `data-preview-kind`.
+- Expertise: `src/sections/ExpertiseSection.tsx` renders static technology tiles with `data-tech-item`; `src/components/ExpertiseSculpture.tsx` reads hovered tiles for a decorative 3D highlight.
 
 ## Implementation steps (for new UI work)
 1. Start with existing token usage: use `bg-black`, `border-white/10`, `text-white/70`, and `rounded-2xl/3xl` to match the current surfaces.

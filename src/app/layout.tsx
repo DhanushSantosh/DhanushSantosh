@@ -7,6 +7,7 @@ import ScrollReset from "@/components/ScrollReset";
 import { brandConfig } from "@/config/brand";
 import { siteConfig } from "@/config/site";
 import { hero, techStack } from "@/data/content";
+import { introSeenInitScript } from "@/lib/intro-loader";
 
 const geistSans = localFont({
   src: "../../public/fonts/geist/GeistSans-Variable.woff2",
@@ -176,6 +177,9 @@ export default function RootLayout({
           plausible reason GTM's "Test your website" check kept reporting
           the tag as undetected even though it was confirmed present. */}
       <head>
+        {/* Must run before the homepage intro overlay first paints — see
+            src/lib/intro-loader.ts. A no-op on every other page. */}
+        <script dangerouslySetInnerHTML={{ __html: introSeenInitScript }} />
         {gtmContainerId && (
           <script id="gtm-init" dangerouslySetInnerHTML={{ __html: gtmInitScript }} />
         )}

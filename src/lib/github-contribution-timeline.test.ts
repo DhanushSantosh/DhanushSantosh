@@ -8,6 +8,7 @@ import {
   getLongestStreak,
   hasIncompleteYears,
   isMostRecentYearMissing,
+  summarizeContributions,
 } from "./github-contribution-timeline";
 
 function day(date: string, contributionCount = 0) {
@@ -146,5 +147,37 @@ describe("incomplete-year disclosure", () => {
     // claim Peak Day/Current Streak make needs that confirmation to be honest.
     expect(hasIncompleteYears([])).toBe(false);
     expect(isMostRecentYearMissing([], now)).toBe(true);
+  });
+});
+
+describe("summarizeContributions", () => {
+  const years: GitHubContributionYear[] = [
+    {
+      totalContributions: 3,
+      year: 2025,
+      weeks: [{ firstDay: "2025-12-29", contributionDays: [day("2025-12-29", 1), day("2025-12-30", 2), day("2025-12-31")] }],
+    },
+    {
+      totalContributions: 5,
+      year: 2026,
+      weeks: [{ firstDay: "2026-01-01", contributionDays: [day("2026-01-01", 5), day("2026-01-02", 0)] }],
+    },
+  ];
+
+  it("computes the stats server-side from every year", () => {
+    const summary = summarizeContributions(years, "2026-01-02", new Date("2026-01-02T00:00:00Z"));
+    expect(summary.totalContributions).toBe(8);
+    expect(summary.activeDays).toBe(3);
+    expect(summary.peakDay).toEqual({ contributionCount: 5, date: "2026-01-01" });
+    expect(summary.longestStreak).toBe(2);
+    expect(summary.currentStreak).toBe(0);
+    expect(summary.hasIncompleteYears).toBe(false);
+    expect(summary.isMostRecentYearMissing).toBe(false);
+  });
+
+  it("sends the client only the fields a calendar cell renders", () => {
+    const summary = summarizeContributions(years, "2026-01-02", new Date("2026-01-02T00:00:00Z"));
+    const cell = summary.timelineWeeks[0]?.contributionDays[0];
+    expect(cell && Object.keys(cell).sort()).toEqual(["contributionCount", "contributionLevel", "date"]);
   });
 });

@@ -64,9 +64,8 @@ const nextConfig: NextConfig = {
   // URLs per project, which a real frame-src allowlist can't accommodate
   // without defeating the point of restricting it — enforcing a guessed
   // policy risks silently breaking that feature. Report-Only surfaces real
-  // violations (via the browser console) without blocking anything, so it
-  // can be tightened into an enforced policy once actual traffic confirms
-  // what it needs to allow.
+  // violations without blocking anything. Browsers send reports to
+  // /api/csp-report so the policy can be tightened against observed traffic.
   async headers() {
     const contentSecurityPolicyReportOnly = [
       "default-src 'self'",
@@ -85,6 +84,7 @@ const nextConfig: NextConfig = {
       "frame-src https:",
       "base-uri 'self'",
       "form-action 'self'",
+      "report-uri /api/csp-report",
     ].join("; ");
 
     return [
