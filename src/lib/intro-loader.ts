@@ -3,7 +3,7 @@
 // component as client references, not values, so they live here instead.
 
 export const INTRO_SEEN_STORAGE_KEY = "homepage-intro-seen";
-export const INTRO_SEEN_ATTR = "data-intro-seen";
+const INTRO_SEEN_ATTR = "data-intro-seen";
 
 // The intro overlay is server-rendered solid, so on a full reload within the
 // same session it would paint before hydration could remove it. Run from
