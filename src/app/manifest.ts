@@ -3,7 +3,7 @@ import { hero } from "@/data/content";
 
 export default function manifest(): MetadataRoute.Manifest {
   const name = `${hero.name} — ${hero.role}`;
-  const description = `Immersive portfolio for ${hero.name}, showcasing cinematic product storytelling with code, motion, and 3D.`;
+  const description = hero.summary;
   return {
     name,
     short_name: hero.name,
@@ -43,7 +43,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/apple-touch-icon.png",
         sizes: "180x180",
         type: "image/png",
-        purpose: "maskable",
+        purpose: "any",
       },
     ],
     screenshots: [
@@ -64,7 +64,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: "Contact",
         url: "/#contact",
-        description: "Book new collaborations",
+        description: "Get in touch",
       },
     ],
   };

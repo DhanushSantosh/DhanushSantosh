@@ -27,6 +27,10 @@ function formatLastReachable(dateString: string | null, source: string) {
   return "Unavailable";
 }
 
+function formatProjectCount(count: number) {
+  return `${count} ${count === 1 ? "project" : "projects"}`;
+}
+
 function getEventKindLabel(kind: GitHubRecentEvent["kind"]) {
   if (kind === "pull_request") return "Pull Request";
   if (kind === "release") return "Release";
@@ -165,9 +169,9 @@ export default async function GitHubActivitySection() {
                 <div>
                   <p className="text-sm uppercase tracking-[0.3em] text-white/45">Profile Pulse</p>
                   <p className="mt-1 text-white/70">
-                    {profile
-                      ? `@${profile.login} with ${profile.followers} followers and ${data.projects.length} public repos currently visible.`
-                      : `${data.projects.length} public repos are currently visible while the GitHub profile summary reconnects.`}
+                    {profile ? `@${profile.login} — ` : ""}
+                    {formatProjectCount(data.projects.length)} of my own and {data.contributedProjects.length} I
+                    contribute to.
                   </p>
                 </div>
               </div>

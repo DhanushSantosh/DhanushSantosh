@@ -119,11 +119,9 @@ const personJsonLd = {
   image: `${brandConfig.canonicalUrl}/profile-photo.jpg`,
   sameAs: siteConfig.socialLinks.map((link) => link.href),
   knowsAbout: [
-    ...techStack.fullStack,
-    "Python",
-    "Django REST Framework",
-    "PostgreSQL",
-    "Go",
+    ...techStack.fullStack.map((tech) =>
+      tech === "Django" ? "Django REST Framework" : tech,
+    ),
     "Rust",
     "Tauri",
   ],

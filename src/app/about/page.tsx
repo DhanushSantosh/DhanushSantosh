@@ -83,6 +83,7 @@ export default function AboutPage() {
                   <ul className="list-inside list-disc space-y-2 text-white/70">
                     <li>TypeScript / JavaScript (ES6+)</li>
                     <li>Python</li>
+                    <li>Go / Rust</li>
                     <li>Problem solving and product thinking</li>
                     <li>Performance-aware frontend implementation</li>
                   </ul>
@@ -94,7 +95,8 @@ export default function AboutPage() {
                     <li>Tailwind CSS / Framer Motion</li>
                     <li>Three.js / React Three Fiber</li>
                     <li>Node.js / Vercel</li>
-                    <li>OpenAI / Claude / Gemini</li>
+                    <li>Django REST Framework / PostgreSQL</li>
+                    <li>Codex / Claude / Gemini</li>
                   </ul>
                 </div>
               </div>

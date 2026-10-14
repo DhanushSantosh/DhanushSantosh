@@ -260,3 +260,44 @@ describe("getGitHubPortfolioData: malformed contribution HTML", () => {
     expect(result.contributionYears[0]?.weeks).toEqual([]);
   });
 });
+
+describe("getGitHubPortfolioData: owned vs contributed repos", () => {
+  it("keeps forks out of projects and lists them as contributedProjects instead", async () => {
+    vi.stubEnv("GITHUB_TOKEN", "");
+
+    const repo = (name: string, fork: boolean, stars: number) => ({
+      archived: false,
+      default_branch: "main",
+      description: null,
+      fork,
+      forks_count: 0,
+      full_name: `octocat/${name}`,
+      homepage: fork ? "https://upstream.example" : null,
+      html_url: `https://github.com/octocat/${name}`,
+      language: "TypeScript",
+      name,
+      open_issues_count: 0,
+      pushed_at: "2026-10-01T00:00:00Z",
+      stargazers_count: stars,
+      topics: [],
+    });
+
+    vi.stubGlobal(
+      "fetch",
+      buildFetchMock([
+        [/\/users\/octocat\/events/, () => ({ json: [] })],
+        [/\/users\/octocat\/repos/, () => ({ json: [repo("own-tool", false, 2), repo("upstream-app", true, 50)] })],
+        [/\/users\/octocat\/starred/, () => ({ json: [] })],
+        [/\/users\/octocat$/, () => ({ json: MINIMAL_USER })],
+      ]),
+    );
+
+    const { getGitHubPortfolioData } = await freshGithubModule();
+    const result = await getGitHubPortfolioData();
+
+    expect(result.projects.map((project) => project.name)).toEqual(["own-tool"]);
+    expect(result.contributedProjects.map((project) => project.name)).toEqual(["upstream-app"]);
+    // Only owned repos count toward the portfolio's star total.
+    expect(result.totalProjectStars).toBe(2);
+  });
+});
